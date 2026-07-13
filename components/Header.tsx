@@ -2,15 +2,20 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
-import { Home, User, ShoppingCart, Menu, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
+import { Home, User, ShoppingCart, Menu, X, Moon, Sun } from "lucide-react";
 import styles from "./Header.module.css";
 
 export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [language, setLanguage] = useState<"da" | "en">("da");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const toggleLanguage = () => {
     setLanguage((prev) => (prev === "da" ? "en" : "da"));
   };
@@ -20,6 +25,9 @@ export default function Header() {
     setIsMenuOpen(false);
   };
   const closeMenu = () => setIsMenuOpen(false);
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
   return (
     <>
       <header className={styles.header}>
@@ -27,11 +35,12 @@ export default function Header() {
           <Image
             src="/images/logo.png"
             alt="Gastronomia 3300"
-            width={70}
-            height={65}
+            width={60}
+            height={60}
             priority
+            style={{ width: "auto", height: "auto" }}
           />
-          <span className={styles.brandName}>Gastronomia 3300</span>
+          <span className={styles.brandName}>Gastronomia Pizza</span>
         </Link>
 
         <nav className={styles.navDesktop}>
@@ -54,7 +63,7 @@ export default function Header() {
           </button>
         </nav>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
+        <div className={styles.rightSection}>
           <div className={styles.langSwitcher}>
             <button
               onClick={toggleLanguage}
@@ -69,7 +78,15 @@ export default function Header() {
               EN
             </button>
           </div>
-
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            className={styles.themeToggle}
+            aria-label="Toggle theme"
+          >
+            {mounted &&
+              (theme === "dark" ? <Sun size={20} /> : <Moon size={20} />)}
+          </button>
           <div className={styles.userIcon}>
             <User size={18} />
           </div>
