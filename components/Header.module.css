@@ -1,4 +1,8 @@
 .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -6,8 +10,9 @@
     background-color: #ffffff;
     border-bottom: 3px solid var(--green);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    flex-wrap: wrap;
-    gap: 1rem;
+    z-index: 1000;
+    height: 90px;
+    box-sizing: border-box;
 }
 
 .brand {
@@ -24,11 +29,11 @@
     color: var(--green);
 }
 
-.nav {
+/* ===== DESKTOP NAV ===== */
+.navDesktop {
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    flex-wrap: wrap;
 }
 
 .navLink {
@@ -49,10 +54,15 @@
     color: var(--red);
 }
 
-
-
-.authBtn.loggedIn {
+.loggedIn {
     color: var(--red);
+}
+
+/* ===== RIGHT SECTION (Language + User + Hamburger) ===== */
+.rightSection {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
 }
 
 .langSwitcher {
@@ -92,4 +102,103 @@
     color: #ffffff;
     font-weight: bold;
     font-size: 0.8rem;
+}
+
+.hamburger {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--dark);
+    padding: 0.2rem;
+}
+
+/* ===== MOBILE MENU (Slide from right) ===== */
+.mobileMenu {
+    position: fixed;
+    top: 90px;
+    right: -100%;
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    transition: right 0.3s ease;
+    z-index: 200;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.mobileMenu.open {
+    right: 0;
+}
+
+.mobileMenuInner {
+    width: 75%;
+    max-width: 300px;
+    height: 100%;
+    background-color: #ffffff;
+    padding: 2rem 1.5rem;
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    overflow-y: auto;
+}
+
+.mobileNav {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.mobileNavLink {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--dark);
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+    transition: color 0.2s;
+    width: 100%;
+    text-align: left;
+}
+
+.mobileNavLink:hover {
+    color: var(--red);
+}
+
+/* ===== RESPONSIVE: Mobile ===== */
+@media (max-width: 768px) {
+    .navDesktop {
+        display: none;
+    }
+
+    .hamburger {
+        display: block;
+    }
+
+    .brandName {
+        font-size: 0.9rem;
+    }
+
+    .header {
+        padding: 0.6rem 1.2rem;
+    }
+}
+
+/* ===== RESPONSIVE: Very small screens ===== */
+@media (max-width: 480px) {
+    .brandName {
+        display: none;
+    }
+
+    .mobileMenuInner {
+        width: 85%;
+    }
 }

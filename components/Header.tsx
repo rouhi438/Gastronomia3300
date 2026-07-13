@@ -3,12 +3,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { Home, User, ShoppingCart } from "lucide-react";
+import { Home, User, ShoppingCart, Menu, X } from "lucide-react";
 import styles from "./Header.module.css";
 
 export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [language, setLanguage] = useState<"da" | "en">("da");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleLanguage = () => {
     setLanguage((prev) => (prev === "da" ? "en" : "da"));
@@ -16,61 +17,101 @@ export default function Header() {
 
   const handleAuth = () => {
     setIsLoggedIn(!isLoggedIn);
+    setIsMenuOpen(false);
   };
-
+  const closeMenu = () => setIsMenuOpen(false);
   return (
-    <header className={styles.header}>
-      <Link href="/" className={styles.brand}>
-        <Image
-          src="/images/logo.png"
-          alt="Gastronomia 3300"
-          width={45}
-          height={22}
-          priority
-        />
-        <span className={styles.brandName}>Gastronomia 3300</span>
-      </Link>
-
-      <nav className={styles.nav}>
-        <Link href="/" className={styles.navLink}>
-          <Home size={18} />
-          <span>Hjem</span>
+    <>
+      <header className={styles.header}>
+        <Link href="/" className={styles.brand}>
+          <Image
+            src="/images/logo.png"
+            alt="Gastronomia 3300"
+            width={70}
+            height={65}
+            priority
+          />
+          <span className={styles.brandName}>Gastronomia 3300</span>
         </Link>
 
-        <Link href="/cart" className={styles.navLink}>
-          <ShoppingCart size={18} />
-          <span>Kurv</span>
-        </Link>
+        <nav className={styles.navDesktop}>
+          <Link href="/" className={styles.navLink}>
+            <Home size={18} />
+            <span>Hjem</span>
+          </Link>
 
-        <button
-          onClick={handleAuth}
-          className={`${styles.navLink} ${isLoggedIn ? styles.loggedIn : ""}`}
-        >
-          <User size={18} />
-          <span>{isLoggedIn ? "Log ud" : "Log ind / Opret"}</span>
-        </button>
-      </nav>
+          <Link href="/cart" className={styles.navLink}>
+            <ShoppingCart size={18} />
+            <span>Kurv</span>
+          </Link>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
-        <div className={styles.langSwitcher}>
           <button
-            onClick={toggleLanguage}
-            className={`${styles.langBtn} ${language === "da" ? styles.active : ""}`}
+            onClick={handleAuth}
+            className={`${styles.navLink} ${isLoggedIn ? styles.loggedIn : ""}`}
           >
-            DA
+            <User size={18} />
+            <span>{isLoggedIn ? "Log ud" : "Log ind / Opret"}</span>
           </button>
+        </nav>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
+          <div className={styles.langSwitcher}>
+            <button
+              onClick={toggleLanguage}
+              className={`${styles.langBtn} ${language === "da" ? styles.active : ""}`}
+            >
+              DA
+            </button>
+            <button
+              onClick={toggleLanguage}
+              className={`${styles.langBtn} ${language === "en" ? styles.active : ""}`}
+            >
+              EN
+            </button>
+          </div>
+
+          <div className={styles.userIcon}>
+            <User size={18} />
+          </div>
+          {/* Hamburger button (mobile only) */}
           <button
-            onClick={toggleLanguage}
-            className={`${styles.langBtn} ${language === "en" ? styles.active : ""}`}
+            className={styles.hamburger}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
           >
-            EN
+            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
-
-        <div className={styles.userIcon}>
-          <User size={18} />
+      </header>
+      {/* ===== MOBILE MENU (Slide from right) ===== */}
+      <div
+        className={`${styles.mobileMenu} ${isMenuOpen ? styles.open : ""}`}
+        onClick={closeMenu}
+      >
+        <div
+          className={styles.mobileMenuInner}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <nav className={styles.mobileNav}>
+            <Link href="/" className={styles.mobileNavLink} onClick={closeMenu}>
+              <Home size={20} />
+              <span>Hjem</span>
+            </Link>
+            <Link
+              href="/cart"
+              className={styles.mobileNavLink}
+              onClick={closeMenu}
+            >
+              <ShoppingCart size={20} />
+              <span>Kurv</span>
+            </Link>
+            <button onClick={handleAuth} className={styles.mobileNavLink}>
+              <User size={20} />
+              <span>{isLoggedIn ? "Log ud" : "Log ind / Opret"}</span>
+            </button>
+          </nav>
         </div>
       </div>
-    </header>
+    </>
   );
 }

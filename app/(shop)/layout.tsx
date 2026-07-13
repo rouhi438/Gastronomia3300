@@ -13,6 +13,7 @@ export default function ShopLayout({
         display: "flex",
         flexDirection: "column",
         minHeight: "100vh",
+        paddingTop: "90px",
       }}
     >
       <Header />
