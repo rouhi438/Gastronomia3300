@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { MenuGrid } from "@/components/MenuGrid";
 export default function Home() {
   return (
     <main>
@@ -20,6 +21,7 @@ export default function Home() {
       >
         Authentic Italian Pizza
       </p>
+      <MenuGrid />
     </main>
   );
 }
