@@ -1,0 +1,95 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 2rem;
+    background-color: #ffffff;
+    border-bottom: 3px solid var(--green);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: var(--dark);
+}
+
+.brandName {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: var(--green);
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.navLink {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--dark);
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.navLink:hover {
+    color: var(--red);
+}
+
+
+
+.authBtn.loggedIn {
+    color: var(--red);
+}
+
+.langSwitcher {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background-color: #f0f0f0;
+    border-radius: 20px;
+    padding: 0.2rem;
+}
+
+.langBtn {
+    padding: 0.3rem 0.7rem;
+    border-radius: 20px;
+    border: none;
+    font-weight: bold;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    color: var(--dark);
+}
+
+.langBtn.active {
+    background-color: var(--green);
+    color: #ffffff;
+}
+
+.userIcon {
+    background-color: var(--green);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 0.8rem;
+}

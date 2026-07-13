@@ -1,0 +1,45 @@
+.landing {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+}
+
+.logo {
+    max-width: 100%;
+    height: auto;
+}
+
+.title {
+    font-size: 2.8rem;
+    font-weight: bold;
+    color: var(--green);
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    letter-spacing: 1px;
+}
+
+.description {
+    font-size: 1.3rem;
+    color: #333;
+    max-width: 700px;
+    line-height: 1.8;
+    margin: 0 auto 1.5rem;
+}
+
+.subDescription {
+    font-size: 1.1rem;
+    color: #555;
+    max-width: 600px;
+    margin: 0 auto 2.5rem;
+}
+
+.btnExtra {
+    margin-top: 1rem;
+    padding: 1rem 4rem;
+    /* تغییر اندازه */
+}

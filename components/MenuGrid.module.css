@@ -1,0 +1,84 @@
+.menuContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.categoryTitle {
+    color: var(--green);
+    border-bottom: 3px solid var(--red);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.card {
+    background-color: #ffffff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border-top: 4px solid var(--green);
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.card:hover {
+    transform: scale(1.02);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+}
+
+.itemName {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--dark);
+}
+
+.priceNormal {
+    color: var(--red);
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.description {
+    font-size: 0.9rem;
+    color: #555;
+    margin-top: 0.3rem;
+}
+
+.priceDetails {
+    margin-top: 0.8rem;
+    font-size: 0.85rem;
+    color: #333;
+}
+
+.priceFamily {
+    margin-right: 1rem;
+}
+
+.priceChildren {
+    margin-right: 1rem;
+}
+
+.deepPan {
+    color: var(--green);
+    font-weight: bold;
+}
+
+.priceFixed {
+    font-weight: bold;
+    color: var(--red);
+}

@@ -1,0 +1,34 @@
+.footer {
+    background-color: var(--dark);
+    color: var(--light-bg);
+    padding: 2rem;
+    text-align: center;
+    border-top: 4px solid var(--red);
+    margin-top: 2rem;
+}
+
+.content {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.brand {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #ffffff;
+}
+
+.info {
+    color: #cccccc;
+}
+
+.copyright {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: #888888;
+    border-top: 1px solid #333;
+    padding-top: 1rem;
+}
