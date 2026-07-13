@@ -1,8 +1,25 @@
+import Image from "next/image";
 export default function Home() {
   return (
-    <main style={{ fontFamily: "Arial, sans-serif", padding: "2rem" }}>
-      <h1 style={{ color: "#009246" }}>Welcome to Gastronomia 3300</h1>
-      <p style={{ color: "#CE2B37" }}>Our pizza menu is coming soon.</p>
+    <main>
+      <Image
+        src="/images/logo.png"
+        alt="Gastronomia 3300 logo"
+        width={320}
+        height={300}
+        priority
+      />
+      <p
+        style={{
+          marginTop: "1.5rem",
+          color: "#333",
+          fontSize: "1.2rem",
+          borderTop: "2px solid #009246",
+          paddingTop: "1rem",
+        }}
+      >
+        Authentic Italian Pizza
+      </p>
     </main>
   );
 }
