@@ -5,7 +5,7 @@ export interface PizzaItem {
   category:
     | "pizza"
     | "Vegetarian"
-    | "Indbagt Pizza"
+    | "Indbagt-Pizza"
     | "sandwich"
     | "burger"
     | "pasta"
@@ -217,14 +217,14 @@ export const menuData: PizzaItem[] = [
     id: 24,
     name: "CALZONA",
     description: "Tomatsauce, ost, champignon",
-    category: "special-pizza",
+    category: "Indbagt-Pizza",
     prices: { fixed: 85 },
   },
   {
     id: 25,
     name: "HALV INDBAGT",
     description: "Ost, kebab, champignon, løg, bearnaisesauce og chili",
-    category: "special-pizza",
+    category: "Indbagt-Pizza",
     prices: { fixed: 85 },
   },
 ];

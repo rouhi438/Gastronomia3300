@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import { MenuGrid } from "@/components/MenuGrid";
 export default function Home() {
