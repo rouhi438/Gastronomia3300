@@ -91,9 +91,11 @@ export default function Header() {
             {mounted &&
               (theme === "dark" ? <Sun size={20} /> : <Moon size={20} />)}
           </button>
-          <div className={styles.userIcon}>
-            <User size={18} />
-          </div>
+          <Link href="/profile" className={styles.userIconLink}>
+            <div className={styles.userIcon}>
+              <User size={18} />
+            </div>
+          </Link>
           {/* Hamburger button (mobile only) */}
           <button
             className={styles.hamburger}

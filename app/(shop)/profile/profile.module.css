@@ -1,0 +1,297 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 90px - 200px);
+    padding: 2rem 1rem;
+    background-color: var(--bg);
+    transition: background-color 0.3s ease;
+}
+
+
+.card {
+    width: 100%;
+    max-width: 480px;
+    background-color: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 2.5rem 2rem 2rem;
+    border-top: 6px solid var(--green);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+
+.title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: 2rem;
+    letter-spacing: -0.5px;
+}
+
+/* ===================
+   AVATAR SECTION (text-based)
+   =================== */
+.avatarSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2.2rem;
+}
+
+.avatarCircle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid var(--green);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.avatarCircle:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 146, 70, 0.25);
+}
+
+.avatarInitials {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    user-select: none;
+    line-height: 1;
+}
+
+.avatarName {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    margin-top: 0.5rem;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.input {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    font-size: 1rem;
+    background-color: var(--bg);
+    color: var(--text-primary);
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(0, 146, 70, 0.2);
+}
+
+.input:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.passwordSection {
+    margin: 0.25rem 0 0.25rem;
+}
+
+.passwordToggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    color: var(--green);
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 0.3rem 0;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.passwordToggle:hover {
+    color: var(--red);
+    text-decoration: underline;
+}
+
+/* =================
+   ACTION BUTTONS
+   =================*/
+.actionRow {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.actionRow .btn-primary {
+    flex: 1;
+    padding: 0.85rem 1rem;
+    font-size: 1.05rem;
+    text-align: center;
+}
+
+.cancelBtn {
+    flex: 1;
+    padding: 0.85rem 1rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cancelBtn:hover {
+    background-color: var(--bg);
+    color: var(--red);
+    border-color: var(--red);
+}
+
+.logoutSection {
+    margin-top: 2rem;
+    text-align: center;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.logoutBtn {
+    background: none;
+    border: none;
+    color: var(--red);
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 0.4rem 1.2rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.logoutBtn:hover {
+    background-color: rgba(206, 43, 55, 0.08);
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .container {
+        min-height: calc(100vh - 60px - 180px);
+        padding: 1.5rem 1rem;
+    }
+
+    .card {
+        padding: 2rem 1.5rem;
+    }
+
+    .title {
+        font-size: 1.7rem;
+    }
+
+    .avatarCircle {
+        width: 100px;
+        height: 100px;
+    }
+
+    .avatarInitials {
+        font-size: 2.4rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        min-height: calc(100vh - 55px - 160px);
+        padding: 1rem 0.8rem;
+    }
+
+    .card {
+        padding: 1.5rem 1rem;
+        border-top-width: 4px;
+    }
+
+    .title {
+        font-size: 1.4rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .avatarCircle {
+        width: 80px;
+        height: 80px;
+        border-width: 3px;
+    }
+
+    .avatarInitials {
+        font-size: 2rem;
+    }
+
+    .avatarName {
+        font-size: 1rem;
+    }
+
+    .form {
+        gap: 1.2rem;
+    }
+
+    .input {
+        padding: 0.7rem 0.9rem;
+        font-size: 0.95rem;
+    }
+
+    .actionRow {
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .actionRow .btn-primary,
+    .cancelBtn {
+        width: 100%;
+        padding: 0.7rem 1rem;
+        font-size: 1rem;
+    }
+
+    .logoutSection {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .card {
+        padding: 1.2rem 0.8rem;
+    }
+
+    .avatarCircle {
+        width: 70px;
+        height: 70px;
+    }
+
+    .avatarInitials {
+        font-size: 1.6rem;
+    }
+}

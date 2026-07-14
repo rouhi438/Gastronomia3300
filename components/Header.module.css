@@ -112,6 +112,18 @@
     background-color: var(--bg);
 }
 
+.userIconLink {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    color: inherit;
+    transition: opacity 0.2s;
+}
+
+.userIconLink:hover {
+    opacity: 0.8;
+}
+
 .userIcon {
     background-color: var(--green);
     border-radius: 50%;
@@ -204,8 +216,8 @@
     }
 
     .mobileMenu {
-        top: 60px;
-        height: calc(100vh - 60px);
+        top: 80px;
+        height: calc(100vh - 80px);
     }
 
     .navDesktop {
@@ -231,12 +243,12 @@
     }
 
     .header {
-        height: 55px;
+        height: 80px;
         padding: 0.4rem 1rem;
     }
 
     .mobileMenu {
-        top: 55px;
-        height: calc(100vh - 55px);
+        top: 80px;
+        height: calc(100vh - 80px);
     }
 }
