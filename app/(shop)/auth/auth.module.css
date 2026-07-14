@@ -1,0 +1,174 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 90px - 100px);
+    padding: 2rem 1rem;
+}
+
+.card {
+    background-color: var(--bg-card);
+    padding: 2rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 420px;
+    border-top: 4px solid var(--green);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 0.3rem;
+}
+
+.subtitle {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+/* ===== Toggle Buttons ===== */
+.toggleWrapper {
+    display: flex;
+    background-color: var(--bg);
+    border-radius: var(--radius);
+    padding: 0.25rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.toggleBtn {
+    flex: 1;
+    padding: 0.6rem;
+    border: none;
+    border-radius: var(--radius);
+    font-weight: bold;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.toggleBtn.active {
+    background-color: var(--green);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 146, 70, 0.3);
+}
+
+/* ===== Form ===== */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.label {
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.passwordWrapper {
+    position: relative;
+    width: 100%;
+}
+
+.passwordWrapper .input {
+    width: 100%;
+    padding-right: 3rem;
+    /* فضا برای آیکون چشم */
+}
+
+.eyeBtn {
+    position: absolute;
+    right: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.2rem;
+    transition: color 0.2s;
+}
+
+.eyeBtn:hover {
+    color: var(--text-primary);
+}
+
+.input {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background-color: var(--bg);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(0, 146, 70, 0.2);
+}
+
+
+/* ===== Footer Text ===== */
+.footerText {
+    margin-top: 1.5rem;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.textLink {
+    background: none;
+    border: none;
+    color: var(--green);
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 1rem;
+}
+
+.textLink:hover {
+    color: var(--red);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .container {
+        min-height: calc(100vh - 60px - 180px);
+        padding: 1rem;
+    }
+
+    .card {
+        padding: 1.5rem;
+    }
+
+    .title {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        min-height: calc(100vh - 55px - 160px);
+        padding: 0.8rem;
+    }
+
+    .card {
+        padding: 1rem;
+    }
+}

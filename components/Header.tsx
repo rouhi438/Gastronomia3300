@@ -54,13 +54,17 @@ export default function Header() {
             <span>Kurv</span>
           </Link>
 
-          <button
-            onClick={handleAuth}
-            className={`${styles.navLink} ${isLoggedIn ? styles.loggedIn : ""}`}
-          >
-            <User size={18} />
-            <span>{isLoggedIn ? "Log ud" : "Log ind / Opret"}</span>
-          </button>
+          {isLoggedIn ? (
+            <button onClick={handleAuth} className={styles.navLink}>
+              <User size={18} />
+              <span>Log ud</span>
+            </button>
+          ) : (
+            <Link href="/auth" className={styles.navLink}>
+              <User size={18} />
+              <span>Log ind / Opret</span>
+            </Link>
+          )}
         </nav>
 
         <div className={styles.rightSection}>
@@ -122,10 +126,21 @@ export default function Header() {
               <ShoppingCart size={20} />
               <span>Kurv</span>
             </Link>
-            <button onClick={handleAuth} className={styles.mobileNavLink}>
-              <User size={20} />
-              <span>{isLoggedIn ? "Log ud" : "Log ind / Opret"}</span>
-            </button>
+            {isLoggedIn ? (
+              <button onClick={handleAuth} className={styles.mobileNavLink}>
+                <User size={20} />
+                <span>Log ud</span>
+              </button>
+            ) : (
+              <Link
+                href="/auth"
+                className={styles.mobileNavLink}
+                onClick={closeMenu}
+              >
+                <User size={20} />
+                <span>Log ind / Opret</span>
+              </Link>
+            )}
           </nav>
         </div>
       </div>
