@@ -1,5 +1,6 @@
 import { menuData } from "@/data/menu";
 import styles from "./MenuGrid.module.css";
+import { Pizza } from "lucide-react";
 
 export default function MenuGrid() {
   const grouped = menuData.reduce(
@@ -14,26 +15,26 @@ export default function MenuGrid() {
 
   const categoryOrder = [
     "pizza",
-    "Vegetarian",
-    "Indbagt Pizza",
-    "AlaCarte",
+    "vegetar",
+    "indbagt",
+    "ala-Carte",
     "burger",
     "pasta",
     "salad",
-    "sides",
-    "extras",
+    "tilbehør",
+    "ekstra",
   ];
 
   const categoryTitles: Record<string, string> = {
     pizza: "Pizza",
     Vegetarian: "Vegetar Pizza",
-    "Indbagt Pizza": "Indbagt Pizza",
-    AlaCarte: "Ala Carte",
+    indbagt: "Indbagt Pizza",
+    "ala-Carte": "Ala Carte",
     burger: "Burger",
     pasta: "Pasta",
     salad: "Salat",
-    sides: "Tilbehør",
-    extras: "Ekstra",
+    tilbehør: "Tilbehør",
+    ekstra: "Ekstra",
   };
 
   return (
@@ -51,6 +52,24 @@ export default function MenuGrid() {
             <div className={styles.grid}>
               {items.map((item) => (
                 <div key={item.id} className={styles.card}>
+                  <div className={styles.imageWrapper}>
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className={styles.image}
+                      />
+                    ) : (
+                      <div className={styles.placeholder}>
+                        <Pizza size={40} className={styles.placeholderIcon} />
+                        <span className={styles.placeholderText}>
+                          Billede kommer
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ===== CARD CONTENT ===== */}
                   <div className={styles.cardHeader}>
                     <h3 className={styles.itemName}>
                       {item.id}. {item.name}
@@ -61,7 +80,9 @@ export default function MenuGrid() {
                       </span>
                     )}
                   </div>
+
                   <p className={styles.description}>{item.description}</p>
+
                   <div className={styles.priceDetails}>
                     {item.prices.family && (
                       <span className={styles.priceFamily}>
@@ -84,12 +105,8 @@ export default function MenuGrid() {
                       </span>
                     )}
                   </div>
-                  <button
-                    className="btn-secondary"
-                    style={{ marginTop: "1rem", width: "100%" }}
-                  >
-                    Tilføj til kurv
-                  </button>{" "}
+
+                  <button className="btn-secondary">Tilføj til kurv</button>
                 </div>
               ))}
             </div>

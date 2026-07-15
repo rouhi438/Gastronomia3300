@@ -1,0 +1,311 @@
+.menuPage {
+    display: flex;
+    min-height: calc(100vh - 90px);
+    background-color: var(--bg);
+    transition: background-color 0.3s ease;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+    width: 240px;
+    min-height: 100%;
+    background-color: var(--bg-card);
+    border-right: 1px solid var(--border-color);
+    padding: 2rem 1rem;
+    flex-shrink: 0;
+    position: sticky;
+    top: 90px;
+    height: calc(100vh - 90px);
+    overflow-y: auto;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.categoryNav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.categoryBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    width: 100%;
+    text-align: left;
+    position: relative;
+}
+
+.categoryBtn:hover {
+    background-color: var(--bg);
+    color: var(--text-primary);
+    transform: translateX(4px);
+}
+
+.categoryBtn.active {
+    background: linear-gradient(135deg, var(--green) 0%, #007a3a 100%);
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(0, 146, 70, 0.4);
+    transform: translateX(4px);
+}
+
+.categoryBtn.active::after {
+    content: "";
+    position: absolute;
+    right: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 30px;
+    background-color: var(--green);
+    border-radius: 4px;
+}
+
+.categoryBtn svg {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+}
+
+.categoryBtn span {
+    white-space: nowrap;
+}
+
+/* ===== CARDS SECTION ===== */
+.cardsSection {
+    flex: 1;
+    padding: 2rem 1.5rem;
+    overflow-y: auto;
+    max-height: calc(100vh - 90px);
+}
+
+.cardsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+/* ===== CARD ===== */
+.card {
+    background-color: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border-top: 4px solid var(--green);
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s, background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: scale(1.02);
+}
+
+/* ===== IMAGE PLACEHOLDER ===== */
+.imageWrapper {
+    width: 100%;
+    height: 200px;
+    background-color: var(--bg);
+    border-radius: var(--radius) var(--radius) 0 0;
+    overflow: hidden;
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+}
+
+.image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    color: var(--text-muted);
+    background-color: var(--bg);
+    width: 100%;
+    height: 100%;
+}
+
+.placeholderIcon {
+    opacity: 0.3;
+}
+
+.placeholderText {
+    font-size: 0.75rem;
+    font-weight: bold;
+    opacity: 0.5;
+}
+
+/* ===== CARD CONTENT ===== */
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+}
+
+.itemName {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.priceNormal {
+    color: var(--red);
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.3rem;
+}
+
+.priceDetails {
+    margin-top: 0.8rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.priceFamily {
+    margin-right: 1rem;
+}
+
+.priceChildren {
+    margin-right: 1rem;
+}
+
+.deepPan {
+    color: var(--green);
+    font-weight: bold;
+}
+
+.priceFixed {
+    font-weight: bold;
+    color: var(--red);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+    .menuPage {
+        flex-direction: column;
+        min-height: calc(100vh - 60px);
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        min-height: auto;
+        position: sticky;
+        top: 60px;
+        z-index: 10;
+        background-color: var(--bg-card);
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: 0.8rem 1rem;
+        overflow-x: auto;
+        overflow-y: hidden;
+        display: flex;
+        align-items: center;
+    }
+
+    .categoryNav {
+        flex-direction: row;
+        gap: 0.6rem;
+        flex-wrap: nowrap;
+    }
+
+    .categoryBtn {
+        flex-shrink: 0;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+        border-radius: 30px;
+        width: auto;
+        text-align: center;
+        background-color: var(--bg);
+        border: 1px solid var(--border-color);
+        transform: none !important;
+    }
+
+    .categoryBtn.active {
+        background: var(--green);
+        color: #ffffff;
+        border-color: var(--green);
+        box-shadow: 0 2px 10px rgba(0, 146, 70, 0.3);
+        transform: none !important;
+    }
+
+    .categoryBtn.active::after {
+        display: none;
+    }
+
+    .categoryBtn:hover {
+        transform: none !important;
+        background-color: var(--bg);
+    }
+
+    .categoryBtn.active:hover {
+        background-color: var(--green);
+        opacity: 0.9;
+    }
+
+    .cardsSection {
+        padding: 1rem;
+        max-height: none;
+        overflow-y: visible;
+    }
+
+    .cardsGrid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .cardsGrid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+    }
+
+    .card {
+        padding: 0.8rem;
+    }
+
+    .imageWrapper {
+        height: 120px;
+    }
+
+    .itemName {
+        font-size: 0.95rem;
+    }
+
+    .priceNormal {
+        font-size: 0.95rem;
+    }
+
+    .description {
+        font-size: 0.8rem;
+    }
+
+    .priceDetails {
+        font-size: 0.75rem;
+    }
+}
