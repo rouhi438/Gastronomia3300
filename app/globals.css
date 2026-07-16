@@ -17,7 +17,7 @@ body {
     --bg: #f9f9f9;
     --bg-card: #ffffff;
     --bg-header: #ffffff;
-    --bg-footer: #1a1a1a;
+    --bg-footer: #f0f0f0;
     --text-primary: #1a1a1a;
     --text-secondary: #333333;
     --text-muted: #555555;
@@ -35,7 +35,7 @@ body {
     --bg-footer: #0a0a0a;
     --text-primary: #f0f0f0;
     --text-secondary: #cccccc;
-    --text-muted: #aaaaaa;
+    --text-muted: #888888;
     --border-color: #333333;
     --shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
     --overlay: rgba(0, 0, 0, 0.7);

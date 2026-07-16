@@ -1,10 +1,11 @@
 .footer {
     background-color: var(--dark);
-    color: var(--light-bg);
+    color: var(--text-primary);
     padding: 2rem;
     text-align: center;
     border-top: 4px solid var(--red);
     margin-top: 2rem;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .content {
@@ -18,17 +19,17 @@
 .brand {
     font-weight: bold;
     font-size: 1.1rem;
-    color: #ffffff;
+    color: var(--green);
 }
 
 .info {
-    color: #cccccc;
+    color: var(--text-secondary);
 }
 
 .copyright {
     margin-top: 1rem;
     font-size: 0.85rem;
-    color: #888888;
-    border-top: 1px solid #333;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-color);
     padding-top: 1rem;
 }

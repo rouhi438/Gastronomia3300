@@ -128,7 +128,7 @@ export default function MenuPage() {
 
               <button
                 className="btn-secondary"
-                style={{ marginTop: "1rem", width: "100%" }}
+                style={{ marginTop: "auto", width: "100%" }}
               >
                 Tilføj til kurv
               </button>
