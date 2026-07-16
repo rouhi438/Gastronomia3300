@@ -3,7 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import CartDrawer from "./CartDrawer";
 import { useTheme } from "next-themes";
+import { useCart } from "@/context/CartContext";
 import { Home, User, ShoppingCart, Menu, X, Moon, Sun } from "lucide-react";
 import styles from "./Header.module.css";
 
@@ -11,11 +13,15 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [language, setLanguage] = useState<"da" | "en">("da");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { totalItems } = useCart();
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
   const toggleLanguage = () => {
     setLanguage((prev) => (prev === "da" ? "en" : "da"));
   };
@@ -24,10 +30,13 @@ export default function Header() {
     setIsLoggedIn(!isLoggedIn);
     setIsMenuOpen(false);
   };
+
   const closeMenu = () => setIsMenuOpen(false);
+
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
+
   return (
     <>
       <header className={styles.header}>
@@ -49,10 +58,19 @@ export default function Header() {
             <span>Hjem</span>
           </Link>
 
-          <Link href="/cart" className={styles.navLink}>
-            <ShoppingCart size={18} />
+          <button
+            className={styles.navLink}
+            onClick={() => setIsCartOpen(true)}
+            aria-label="Open cart"
+          >
+            <div className={styles.cartIconWrapper}>
+              <ShoppingCart size={18} />
+              {totalItems > 0 && (
+                <span className={styles.cartBadge}>{totalItems}</span>
+              )}
+            </div>
             <span>Kurv</span>
-          </Link>
+          </button>
 
           {isLoggedIn ? (
             <button onClick={handleAuth} className={styles.navLink}>
@@ -68,6 +86,7 @@ export default function Header() {
         </nav>
 
         <div className={styles.rightSection}>
+          {/* Language switcher */}
           <div className={styles.langSwitcher}>
             <button
               onClick={toggleLanguage}
@@ -82,6 +101,7 @@ export default function Header() {
               EN
             </button>
           </div>
+
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
@@ -91,12 +111,14 @@ export default function Header() {
             {mounted &&
               (theme === "dark" ? <Sun size={20} /> : <Moon size={20} />)}
           </button>
+
+          {/* User icon */}
           <Link href="/profile" className={styles.userIconLink}>
             <div className={styles.userIcon}>
               <User size={18} />
             </div>
           </Link>
-          {/* Hamburger button (mobile only) */}
+
           <button
             className={styles.hamburger}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -106,7 +128,7 @@ export default function Header() {
           </button>
         </div>
       </header>
-      {/* ===== MOBILE MENU (Slide from right) ===== */}
+      {/* === MOBILE MENU ===== */}
       <div
         className={`${styles.mobileMenu} ${isMenuOpen ? styles.open : ""}`}
         onClick={closeMenu}
@@ -120,14 +142,21 @@ export default function Header() {
               <Home size={20} />
               <span>Hjem</span>
             </Link>
-            <Link
-              href="/cart"
+            <button
               className={styles.mobileNavLink}
-              onClick={closeMenu}
+              onClick={() => {
+                setIsCartOpen(true);
+                closeMenu();
+              }}
             >
-              <ShoppingCart size={20} />
+              <div className={styles.cartIconWrapper}>
+                <ShoppingCart size={20} />
+                {totalItems > 0 && (
+                  <span className={styles.cartBadge}>{totalItems}</span>
+                )}
+              </div>
               <span>Kurv</span>
-            </Link>
+            </button>
             {isLoggedIn ? (
               <button onClick={handleAuth} className={styles.mobileNavLink}>
                 <User size={20} />
@@ -146,6 +175,7 @@ export default function Header() {
           </nav>
         </div>
       </div>
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </>
   );
 }

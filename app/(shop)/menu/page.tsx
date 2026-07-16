@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { menuData } from "@/data/menu";
+import { menuData, type MenuItem } from "@/data/menu";
+import { useCart } from "@/context/CartContext";
 import {
   Pizza,
   Utensils,
@@ -28,6 +29,7 @@ const categories = [
 ];
 
 export default function MenuPage() {
+  const { addItem } = useCart();
   const [activeCategory, setActiveCategory] = useState("alle");
 
   const filteredItems = useMemo(() => {
@@ -45,6 +47,20 @@ export default function MenuPage() {
 
     return menuData.filter((item) => item.category === activeCategory);
   }, [activeCategory]);
+
+  const handleAddToCart = (item: MenuItem) => {
+    console.log("🛒 Add to cart clicked:", item.name, item.id);
+    const price =
+      item.prices.normal || item.prices.fixed || item.prices.children || 0;
+    addItem({
+      id: item.id,
+      name: item.name,
+      price: price,
+      size: "normal",
+      deepPan: false,
+      image: item.image || "",
+    });
+  };
 
   return (
     <div className={styles.menuPage}>
@@ -129,6 +145,7 @@ export default function MenuPage() {
               <button
                 className="btn-secondary"
                 style={{ marginTop: "auto", width: "100%" }}
+                onClick={() => handleAddToCart(item)}
               >
                 Tilføj til kurv
               </button>

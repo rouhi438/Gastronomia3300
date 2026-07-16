@@ -66,6 +66,32 @@
     gap: 0.8rem;
 }
 
+.cartIconWrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cartBadge {
+    position: absolute;
+    top: -10px;
+    right: -5px;
+    background-color: var(--red);
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(206, 43, 55, 0.4);
+    line-height: 1;
+    pointer-events: none;
+}
+
 .langSwitcher {
     display: flex;
     align-items: center;
@@ -232,7 +258,7 @@
 
 }
 
-/* ===== RESPONSIVE: Very small screens ===== */
+/* ===== RESPONSIVE ==*/
 @media (max-width: 480px) {
     .brandName {
         display: none;
