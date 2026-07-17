@@ -71,9 +71,7 @@ export default function MenuGrid() {
 
                   {/* ===== CARD CONTENT ===== */}
                   <div className={styles.cardHeader}>
-                    <h3 className={styles.itemName}>
-                      {item.id}. {item.name}
-                    </h3>
+                    <h3 className={styles.itemName}>{item.name}</h3>
                     {item.prices.normal && (
                       <span className={styles.priceNormal}>
                         {item.prices.normal} kr.

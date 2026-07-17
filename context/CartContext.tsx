@@ -7,6 +7,7 @@ import {
   useEffect,
   ReactNode,
 } from "react";
+import type { Extra } from "@/data/menu";
 
 export interface CartItem {
   id: number;
@@ -16,6 +17,7 @@ export interface CartItem {
   size?: "normal" | "family" | "children";
   deepPan?: boolean;
   image?: string;
+  extras?: Extra[];
 }
 
 interface CartContextType {
@@ -38,7 +40,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (saved) {
       try {
         setItems(JSON.parse(saved));
-      } catch (_) {
+      } catch {
         setItems([]);
       }
     }
@@ -54,7 +56,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         (item) =>
           item.id === newItem.id &&
           item.size === newItem.size &&
-          item.deepPan === newItem.deepPan,
+          item.deepPan === newItem.deepPan &&
+          JSON.stringify(item.extras) === JSON.stringify(newItem.extras),
       );
       if (existing) {
         return prev.map((item) =>
@@ -85,7 +88,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
-
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (

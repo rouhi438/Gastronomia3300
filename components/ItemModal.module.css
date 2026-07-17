@@ -1,0 +1,318 @@
+/* ============================================================
+   OVERLAY
+   ============================================================ */
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+
+.modal {
+    background-color: var(--bg-card);
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    position: relative;
+    transition: background-color 0.3s ease;
+}
+
+/* ============================================================
+   CLOSE BUTTON
+   ============================================================ */
+
+.closeBtn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: background 0.2s;
+}
+
+.closeBtn:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* ============================================================
+   IMAGE (Top)
+   ============================================================ */
+
+.imageContainer {
+    width: 100%;
+    padding: 1.5rem 1.5rem 0 1.5rem;
+    height: 180px;
+    background-color: var(--bg);
+    border-radius: var(--radius) var(--radius) 0 0;
+    flex-shrink: 0;
+}
+
+.modalImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.modalPlaceholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg);
+    color: var(--text-muted);
+}
+
+.modalPlaceholderIcon {
+    opacity: 0.3;
+}
+
+/* ============================================================
+   CONTENT
+   ============================================================ */
+
+.content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.basePrice {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* ============================================================
+   SECTIONS (Size & Extras)
+   ============================================================ */
+
+.section {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+}
+
+.sectionTitle {
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.6rem;
+    font-size: 0.95rem;
+}
+
+/* ===== SIZE OPTIONS ===== */
+
+.sizeOptions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.sizeBtn {
+    flex: 1;
+    min-width: 100px;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    font-weight: 500;
+}
+
+.sizeBtn:hover {
+    border-color: var(--green);
+}
+
+.sizeBtn.active {
+    border-color: var(--green);
+    background-color: var(--green);
+    color: #ffffff;
+}
+
+.sizePrice {
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+/* ===== EXTRAS ===== */
+
+.extrasGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 150px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.extraItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.3rem 0;
+    color: var(--text-primary);
+}
+
+.extraItem input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--green);
+    cursor: pointer;
+}
+
+.extraPrice {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+/* ============================================================
+   FOOTER (Quantity + Add Button)
+   ============================================================ */
+
+.footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.quantity {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--bg);
+    border-radius: var(--radius);
+    padding: 0.2rem;
+}
+
+.qtyBtn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-primary);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qtyBtn:hover {
+    background-color: var(--border-color);
+}
+
+.qtyNumber {
+    font-weight: 600;
+    font-size: 1rem;
+    min-width: 24px;
+    text-align: center;
+    color: var(--text-primary);
+}
+
+.addBtn {
+    flex: 1;
+    background-color: var(--green);
+    color: #ffffff;
+    border: none;
+    padding: 0.75rem 1.2rem;
+    border-radius: var(--radius);
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+}
+
+.addBtn:hover {
+    opacity: 0.85;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 480px) {
+    .modal {
+        max-height: 95vh;
+        border-radius: var(--radius) var(--radius) 0 0;
+        align-self: flex-end;
+    }
+
+
+
+    .content {
+        padding: 1.2rem;
+        gap: 0.8rem;
+    }
+
+    .title {
+        font-size: 1.25rem;
+    }
+
+    .sizeBtn {
+        min-width: 80px;
+        padding: 0.5rem 0.8rem;
+        font-size: 0.85rem;
+    }
+
+    .footer {
+        flex-direction: column;
+    }
+
+    .addBtn {
+        width: 100%;
+    }
+
+    .extrasGrid {
+        max-height: 120px;
+    }
+}

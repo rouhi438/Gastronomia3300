@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import { menuData, type MenuItem } from "@/data/menu";
-import { useCart } from "@/context/CartContext";
 import {
   Pizza,
   Utensils,
@@ -13,6 +12,7 @@ import {
   Cherry,
   Plus,
 } from "lucide-react";
+import ItemModal from "@/components/ItemModal";
 import styles from "./menu.module.css";
 
 const categories = [
@@ -29,8 +29,9 @@ const categories = [
 ];
 
 export default function MenuPage() {
-  const { addItem } = useCart();
   const [activeCategory, setActiveCategory] = useState("alle");
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredItems = useMemo(() => {
     if (activeCategory === "alle") return menuData;
@@ -48,111 +49,83 @@ export default function MenuPage() {
     return menuData.filter((item) => item.category === activeCategory);
   }, [activeCategory]);
 
-  const handleAddToCart = (item: MenuItem) => {
-    console.log("🛒 Add to cart clicked:", item.name, item.id);
-    const price =
-      item.prices.normal || item.prices.fixed || item.prices.children || 0;
-    addItem({
-      id: item.id,
-      name: item.name,
-      price: price,
-      size: "normal",
-      deepPan: false,
-      image: item.image || "",
-    });
+  const handleCardClick = (item: MenuItem) => {
+    setSelectedItem(item);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedItem(null);
   };
 
   return (
-    <div className={styles.menuPage}>
-      {/* ===== SIDEBAR (Desktop) / HORIZONTAL SCROLL (Mobile) ===== */}
-      <aside className={styles.sidebar}>
-        <nav className={styles.categoryNav}>
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              className={`${styles.categoryBtn} ${
-                activeCategory === cat.id ? styles.active : ""
-              }`}
-              onClick={() => setActiveCategory(cat.id)}
-            >
-              {cat.icon}
-              <span>{cat.label}</span>
-            </button>
-          ))}
-        </nav>
-      </aside>
-
-      {/* ===== CARDS GRID ===== */}
-      <section className={styles.cardsSection}>
-        <div className={styles.cardsGrid}>
-          {filteredItems.map((item) => (
-            <div key={item.id} className={styles.card}>
-              {/* Image placeholder */}
-              <div className={styles.imageWrapper}>
-                {item.image ? (
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className={styles.image}
-                  />
-                ) : (
-                  <div className={styles.placeholder}>
-                    <Pizza size={40} className={styles.placeholderIcon} />
-                    <span className={styles.placeholderText}>
-                      Billede kommer
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Card content */}
-              <div className={styles.cardHeader}>
-                <h3 className={styles.itemName}>
-                  {item.id}. {item.name}
-                </h3>
-                {item.prices.normal && (
-                  <span className={styles.priceNormal}>
-                    {item.prices.normal} kr.
-                  </span>
-                )}
-              </div>
-
-              <p className={styles.description}>{item.description}</p>
-
-              <div className={styles.priceDetails}>
-                {item.prices.family && (
-                  <span className={styles.priceFamily}>
-                    🏠 Fam. {item.prices.family} kr.
-                  </span>
-                )}
-                {item.prices.children && (
-                  <span className={styles.priceChildren}>
-                    👶 Børn {item.prices.children} kr.
-                  </span>
-                )}
-                {item.deepPanExtra && (
-                  <span className={styles.deepPan}>
-                    +{item.deepPanExtra} kr. Deep pan
-                  </span>
-                )}
-                {item.prices.fixed && (
-                  <span className={styles.priceFixed}>
-                    {item.prices.fixed} kr.
-                  </span>
-                )}
-              </div>
-
+    <>
+      <div className={styles.menuPage}>
+        {/* ===== SIDEBAR ===== */}
+        <aside className={styles.sidebar}>
+          <nav className={styles.categoryNav}>
+            {categories.map((cat) => (
               <button
-                className="btn-secondary"
-                style={{ marginTop: "auto", width: "100%" }}
-                onClick={() => handleAddToCart(item)}
+                key={cat.id}
+                className={`${styles.categoryBtn} ${
+                  activeCategory === cat.id ? styles.active : ""
+                }`}
+                onClick={() => setActiveCategory(cat.id)}
               >
-                Tilføj til kurv
+                {cat.icon}
+                <span>{cat.label}</span>
               </button>
-            </div>
-          ))}
-        </div>
-      </section>
-    </div>
+            ))}
+          </nav>
+        </aside>
+
+        {/* ===== CARDS GRID ===== */}
+        <section className={styles.cardsSection}>
+          <div className={styles.cardsGrid}>
+            {filteredItems.map((item) => {
+              const price = item.prices.normal ?? item.prices.fixed ?? 0;
+
+              return (
+                <div
+                  key={item.id}
+                  className={styles.card}
+                  onClick={() => handleCardClick(item)}
+                >
+                  <div className={styles.cardContent}>
+                    <h3 className={styles.itemName}>{item.name}</h3>
+                    <p className={styles.itemDesc}>{item.description}</p>
+                    <p className={styles.itemPrice}>{price} kr,-</p>
+                  </div>
+                  <div className={styles.imageWrapper}>
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className={styles.image}
+                      />
+                    ) : (
+                      <div className={styles.placeholder}>
+                        <Pizza size={40} className={styles.placeholderIcon} />
+                      </div>
+                    )}
+                    <div className={styles.plusIcon}>
+                      <Plus size={20} strokeWidth={3} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </div>
+
+      {/* ===== ITEM MODAL ===== */}
+      <ItemModal
+        item={selectedItem}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+      />
+    </>
   );
 }

@@ -1,3 +1,10 @@
+// data/menu.ts
+
+export interface Extra {
+  name: string;
+  price: number;
+}
+
 export interface MenuItem {
   id: number;
   name: string;
@@ -13,14 +20,53 @@ export interface MenuItem {
   };
   deepPanExtra?: number;
   image?: string;
+  extras?: Extra[];
 }
+
+export const extrasList: Extra[] = [
+  // ===== 5 kr. =====
+  { name: "Chilli", price: 5 },
+  { name: "Dressing", price: 5 },
+  { name: "Salat", price: 5 },
+  { name: "Flød", price: 5 },
+  { name: "Hvidløg", price: 5 },
+
+  // ===== 10 kr. =====
+  { name: "Chilli (Pommes)", price: 10 },
+  { name: "Mayonaise", price: 10 },
+  { name: "Remoulade", price: 10 },
+  { name: "Ketchup", price: 10 },
+  { name: "Bearnaise", price: 10 },
+  { name: "Dressing (Pommes)", price: 10 },
+  { name: "Æg", price: 10 },
+  { name: "Ananas", price: 10 },
+  { name: "Bearnaisesauce", price: 10 },
+  { name: "Champignon", price: 10 },
+  { name: "Jalapenos", price: 10 },
+  { name: "Løg", price: 10 },
+  { name: "Oliven", price: 10 },
+  { name: "Kartoffelskiver", price: 10 },
+  { name: "Paprika", price: 10 },
+  { name: "Rucolasalat", price: 10 },
+  { name: "Tomatsauce", price: 10 },
+  { name: "Gorgonzola", price: 10 },
+
+  // ===== 15 kr. =====
+  { name: "Bacon", price: 15 },
+  { name: "Kødsauce", price: 15 },
+  { name: "Kødstrimler", price: 15 },
+  { name: "Kylling", price: 15 },
+  { name: "Kebab", price: 15 },
+  { name: "Skinke", price: 15 },
+  { name: "Pepperoni", price: 15 },
+];
 
 export const menuData: MenuItem[] = [
   // ============================================================
-  // 1-26: ALL PIZZAS (mainCategory: "pizza")
+  // 1-26: ALL PIZZAS
   // ============================================================
 
-  // ----- 1: MARGHERITA (Vegetar) -----
+  // 1: MARGHERITA (Vegetar)
   {
     id: 1,
     name: "MARGHERITA",
@@ -31,8 +77,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 65, family: 130, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 2: TUNNA -----
+  // 2: TUNNA
   {
     id: 2,
     name: "TUNNA",
@@ -42,8 +89,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 3: PEPPERONI -----
+  // 3: PEPPERONI
   {
     id: 3,
     name: "PEPPERONI",
@@ -53,8 +101,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 80, family: 160, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 4: VESUVIO -----
+  // 4: VESUVIO
   {
     id: 4,
     name: "VESUVIO",
@@ -64,8 +113,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 80, family: 160, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 5: HAWAII -----
+  // 5: HAWAII
   {
     id: 5,
     name: "HAWAII",
@@ -75,8 +125,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 6: CAPRICCIOSA -----
+  // 6: CAPRICCIOSA
   {
     id: 6,
     name: "CAPRICCIOSA",
@@ -86,8 +137,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 7: VICHINGA -----
+  // 7: VICHINGA
   {
     id: 7,
     name: "VICHINGA",
@@ -97,8 +149,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 8: KARRY -----
+  // 8: KARRY
   {
     id: 8,
     name: "KARRY",
@@ -108,8 +161,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 9: POLLO E PESTO -----
+  // 9: POLLO E PESTO
   {
     id: 9,
     name: "POLLO E PESTO",
@@ -119,8 +173,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 10: MESSICANO -----
+  // 10: MESSICANO
   {
     id: 10,
     name: "MESSICANO",
@@ -130,8 +185,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 90, family: 180, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 11: BLOGNESE -----
+  // 11: BLOGNESE
   {
     id: 11,
     name: "BLOGNESE",
@@ -141,8 +197,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 80, family: 160, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 12: PANCETTA -----
+  // 12: PANCETTA
   {
     id: 12,
     name: "PANCETTA",
@@ -152,8 +209,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 13: TORINO -----
+  // 13: TORINO
   {
     id: 13,
     name: "TORINO",
@@ -163,8 +221,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 80, family: 160, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 14: MIX -----
+  // 14: MIX
   {
     id: 14,
     name: "MIX",
@@ -175,8 +234,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 105, family: 210, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 15: MILANO -----
+  // 15: MILANO
   {
     id: 15,
     name: "MILANO",
@@ -186,8 +246,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 16: BEARNAISE PIZZA -----
+  // 16: BEARNAISE PIZZA
   {
     id: 16,
     name: "BEARNAISE PIZZA",
@@ -197,8 +258,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 17: PUNJABI PIZZA -----
+  // 17: PUNJABI PIZZA
   {
     id: 17,
     name: "PUNJABI PIZZA",
@@ -208,8 +270,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 95, family: 190, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 18: QUATTRO FORMAGGI (Vegetar) -----
+  // 18: QUATTRO FORMAGGI (Vegetar)
   {
     id: 18,
     name: "QUATTRO FORMAGGI",
@@ -220,8 +283,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 19: PARMA CON RUCOLA -----
+  // 19: PARMA CON RUCOLA
   {
     id: 19,
     name: "PARMA CON RUCOLA",
@@ -231,8 +295,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 20: PIZZA SALATA -----
+  // 20: PIZZA SALATA
   {
     id: 20,
     name: "PIZZA SALATA",
@@ -243,8 +308,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 21: RUSTICA (Vegetar) -----
+  // 21: RUSTICA (Vegetar)
   {
     id: 21,
     name: "RUSTICA",
@@ -256,8 +322,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 22: BARI -----
+  // 22: BARI
   {
     id: 22,
     name: "BARI",
@@ -267,8 +334,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 23: PATATE (Vegetar) -----
+  // 23: PATATE (Vegetar)
   {
     id: 23,
     name: "PATATE",
@@ -280,8 +348,9 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
+    extras: extrasList,
   },
-  // ----- 24: CALZONA (Indbagt) -----
+  // 24: CALZONA (Indbagt)
   {
     id: 24,
     name: "CALZONA",
@@ -291,8 +360,9 @@ export const menuData: MenuItem[] = [
     subCategory: "indbagt",
     prices: { fixed: 85 },
     image: "",
+    extras: extrasList,
   },
-  // ----- 25: HALV INDBAGT (Indbagt) -----
+  // 25: HALV INDBAGT (Indbagt)
   {
     id: 25,
     name: "HALV INDBAGT",
@@ -302,8 +372,9 @@ export const menuData: MenuItem[] = [
     subCategory: "indbagt",
     prices: { fixed: 85 },
     image: "",
+    extras: extrasList,
   },
-  // ----- 26: SANDWICH (Indbagt) -----
+  // 26: SANDWICH (Indbagt)
   {
     id: 26,
     name: "SANDWICH",
@@ -314,6 +385,7 @@ export const menuData: MenuItem[] = [
     subCategory: "indbagt",
     prices: { fixed: 60 },
     image: "",
+    extras: extrasList,
   },
 
   // ============================================================
