@@ -66,7 +66,6 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
       id: item.id,
       name: item.name,
       price: sizePrice + extrasTotal,
-      quantity,
       size: selectedSize === "deepPan" ? "normal" : selectedSize,
       deepPan: selectedSize === "deepPan",
       image: item.image || "",
