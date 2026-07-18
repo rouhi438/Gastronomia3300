@@ -85,32 +85,39 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        {/* ===== CLOSE BUTTON ===== */}
-        <button className={styles.closeBtn} onClick={onClose}>
-          <X size={24} />
-        </button>
-
-        {/* ===== IMAGE (Top) ===== */}
-        <div className={styles.imageContainer}>
-          {item.image ? (
-            <img
-              src={item.image}
-              alt={item.name}
-              className={styles.modalImage}
-            />
-          ) : (
-            <div className={styles.modalPlaceholder}>
-              <Pizza size={56} className={styles.modalPlaceholderIcon} />
-            </div>
-          )}
+        <div className={styles.modalHeader}>
+          <button className={styles.closeBtn} onClick={onClose}>
+            <X size={24} />
+          </button>
         </div>
 
-        {/* ===== CONTENT ===== */}
-        <div className={styles.content}>
-          <h2 className={styles.title}>{item.name}</h2>
-          <p className={styles.description}>{item.description}</p>
+        {/* ===== SCROLLABLE BODY ===== */}
+        <div className={styles.modalBody}>
+          {/* Image */}
+          <div className={styles.imageContainer}>
+            {item.image ? (
+              <img
+                src={item.image}
+                alt={item.name}
+                className={styles.modalImage}
+              />
+            ) : (
+              <div className={styles.modalPlaceholder}>
+                <Pizza size={56} className={styles.modalPlaceholderIcon} />
+              </div>
+            )}
+          </div>
 
-          {/* ===== SIZE OPTIONS ===== */}
+          {/* ===== STICKY TITLE  ===== */}
+          <h2 className={styles.stickyTitle}>{item.name}</h2>
+
+          {/* Description & Price */}
+          <div className={styles.section}>
+            <p className={styles.description}>{item.description}</p>
+            <p className={styles.basePrice}>Fra {basePrice} kr.</p>
+          </div>
+
+          {/* Size Options */}
           <div className={styles.section}>
             <h4 className={styles.sectionTitle}>Størrelse</h4>
             <div className={styles.sizeOptions}>
@@ -133,7 +140,7 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
             </div>
           </div>
 
-          {/* ===== EXTRAS ===== */}
+          {/* Extras */}
           {item.extras && item.extras.length > 0 && (
             <div className={styles.section}>
               <h4 className={styles.sectionTitle}>Tilbehør</h4>
@@ -157,7 +164,7 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
             </div>
           )}
 
-          {/* ===== QUANTITY & ADD BUTTON ===== */}
+          {/* Quantity & Add Button */}
           <div className={styles.footer}>
             <div className={styles.quantity}>
               <button
@@ -174,7 +181,6 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
                 <Plus size={18} />
               </button>
             </div>
-
             <button className={styles.addBtn} onClick={handleAddToCart}>
               Tilføj til ordre · {totalPrice} kr.
             </button>
