@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import CartDrawer from "./CartDrawer";
 import { useTheme } from "next-themes";
 import { useCart } from "@/context/CartContext";
+import { useCartUI } from "@/context/CartUIContext";
 import { Home, User, ShoppingCart, Menu, X, Moon, Sun } from "lucide-react";
 import styles from "./Header.module.css";
 
@@ -13,10 +14,10 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [language, setLanguage] = useState<"da" | "en">("da");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { totalItems } = useCart();
+  const { isCartOpen, openCart, closeCart } = useCartUI();
 
   useEffect(() => {
     setMounted(true);
@@ -60,7 +61,7 @@ export default function Header() {
 
           <button
             className={styles.navLink}
-            onClick={() => setIsCartOpen(true)}
+            onClick={openCart}
             aria-label="Open cart"
           >
             <div className={styles.cartIconWrapper}>
@@ -86,7 +87,6 @@ export default function Header() {
         </nav>
 
         <div className={styles.rightSection}>
-          {/* Language switcher */}
           <div className={styles.langSwitcher}>
             <button
               onClick={toggleLanguage}
@@ -102,7 +102,6 @@ export default function Header() {
             </button>
           </div>
 
-          {/* Theme toggle */}
           <button
             onClick={toggleTheme}
             className={styles.themeToggle}
@@ -112,7 +111,6 @@ export default function Header() {
               (theme === "dark" ? <Sun size={20} /> : <Moon size={20} />)}
           </button>
 
-          {/* User icon */}
           <Link href="/profile" className={styles.userIconLink}>
             <div className={styles.userIcon}>
               <User size={18} />
@@ -128,7 +126,8 @@ export default function Header() {
           </button>
         </div>
       </header>
-      {/* === MOBILE MENU ===== */}
+
+      {/* ===== MOBILE MENU ===== */}
       <div
         className={`${styles.mobileMenu} ${isMenuOpen ? styles.open : ""}`}
         onClick={closeMenu}
@@ -145,7 +144,7 @@ export default function Header() {
             <button
               className={styles.mobileNavLink}
               onClick={() => {
-                setIsCartOpen(true);
+                openCart();
                 closeMenu();
               }}
             >
@@ -175,7 +174,9 @@ export default function Header() {
           </nav>
         </div>
       </div>
-      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+
+      {/* ===== CART DRAWER ===== */}
+      <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
     </>
   );
 }

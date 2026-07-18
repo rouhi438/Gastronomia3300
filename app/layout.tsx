@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Providers } from "./providers";
 import { CartProvider } from "@/context/CartContext";
+import { CartUIProvider } from "@/context/CartUIContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +18,9 @@ export default function RootLayout({
     <html lang="da" suppressHydrationWarning>
       <body>
         <Providers>
-          <CartProvider>{children}</CartProvider>
+          <CartProvider>
+            <CartUIProvider>{children}</CartUIProvider>
+          </CartProvider>
         </Providers>
       </body>
     </html>

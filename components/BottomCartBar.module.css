@@ -1,0 +1,109 @@
+/*   BOTTOM CART BAR */
+
+.bar {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    z-index: 1000;
+    border-radius: 50px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding: 0.8rem 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 2px solid var(--green);
+    background-color: #ffffff;
+    color: #1a1a1a;
+}
+
+.bar:hover {
+    transform: scale(1.02);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+/* ===== Dark Mode ===== */
+.dark .bar {
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    border-color: var(--green);
+}
+
+.content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.left {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    color: inherit;
+}
+
+.icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    color: inherit;
+}
+
+.label {
+    font-size: 0.95rem;
+}
+
+.count {
+    font-size: 0.9rem;
+}
+
+.right {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.total {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--green);
+}
+
+.arrow {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (min-width: 769px) {
+    .bar {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .bar {
+        bottom: 12px;
+        left: 12px;
+        right: 12px;
+        padding: 0.6rem 1rem;
+        border-radius: 30px;
+        border-width: 1.5px;
+    }
+
+    .label {
+        font-size: 0.85rem;
+    }
+
+    .count {
+        font-size: 0.75rem;
+    }
+
+    .total {
+        font-size: 0.95rem;
+    }
+}
