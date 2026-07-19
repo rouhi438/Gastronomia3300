@@ -141,7 +141,7 @@ export default function Header() {
               <Home size={20} />
               <span>Hjem</span>
             </Link>
-            <button
+            {/* <button
               className={styles.mobileNavLink}
               onClick={() => {
                 openCart();
@@ -155,12 +155,22 @@ export default function Header() {
                 )}
               </div>
               <span>Kurv</span>
-            </button>
+            </button> */}
             {isLoggedIn ? (
-              <button onClick={handleAuth} className={styles.mobileNavLink}>
-                <User size={20} />
-                <span>Log ud</span>
-              </button>
+              <>
+                <Link
+                  href="/profile"
+                  className={styles.mobileNavLink}
+                  onClick={closeMenu}
+                >
+                  <User size={20} />
+                  <span>Min profil</span>
+                </Link>
+                <button onClick={handleAuth} className={styles.mobileNavLink}>
+                  <User size={20} />
+                  <span>Log ud</span>
+                </button>
+              </>
             ) : (
               <Link
                 href="/auth"
