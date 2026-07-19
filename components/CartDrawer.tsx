@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { X, Plus, Minus } from "lucide-react";
 import styles from "./CartDrawer.module.css";
+import Image from "next/image";
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -28,7 +29,22 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
         <div className={styles.body}>
           {items.length === 0 ? (
-            <p className={styles.empty}>Din kurv er tom.</p>
+            //<p className={styles.empty}>Din kurv er tom.</p>
+            <div className={styles.emptyState}>
+              <Image
+                src="/images/cat.png"
+                alt="Tom Indkøbskurv"
+                width={300}
+                height={450}
+              />
+              <Link
+                href="/menu"
+                onClick={onClose}
+                className={styles.backToShopBtn}
+              >
+                Fortsæt med at handle
+              </Link>
+            </div>
           ) : (
             <>
               <ul className={styles.list}>
