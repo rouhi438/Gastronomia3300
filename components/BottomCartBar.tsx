@@ -3,12 +3,15 @@
 import { useCart } from "@/context/CartContext";
 import { useCartUI } from "@/context/CartUIContext";
 import { ShoppingBag } from "lucide-react";
+import { usePathname } from "next/navigation";
 import styles from "./BottomCartBar.module.css";
 
 export default function BottomCartBar() {
+  const pathname = usePathname();
   const { totalItems, totalPrice } = useCart();
   const { openCart } = useCartUI();
 
+  if (pathname === "/checkout") return null;
   if (totalItems === 0) return null;
 
   return (

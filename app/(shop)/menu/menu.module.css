@@ -204,10 +204,10 @@
 
 .plusIcon {
     position: absolute;
-    bottom: -8px;
-    right: -8px;
-    width: 35px;
-    height: 35px;
+    bottom: -12px;
+    right: -12px;
+    width: 40px;
+    height: 40px;
     background-color: var(--green);
     color: #ffffff;
     border-radius: 50%;
@@ -219,8 +219,8 @@
 }
 
 .plusIcon svg {
-    margin-left: 5px;
-    margin-top: 5px;
+    margin-left: 6px;
+    margin-top: 6px;
 }
 
 .card:hover .plusIcon {
@@ -359,12 +359,7 @@
         font-size: 0.8rem;
     }
 
-    .plusIcon {
-        width: 28px;
-        height: 28px;
-        bottom: 6px;
-        right: 6px;
-    }
+
 
     .plusIcon svg {
         width: 16px;
