@@ -10,6 +10,7 @@ import {
 import type { Extra } from "@/data/menu";
 
 export interface CartItem {
+  cartId: string; 
   id: number;
   name: string;
   price: number;
@@ -22,9 +23,13 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "quantity">) => void;
-  removeItem: (id: number) => void;
-  updateQuantity: (id: number, quantity: number) => void;
+  addItem: (item: Omit<CartItem, "quantity" | "cartId">) => void;
+  updateItem: (
+    cartId: string,
+    item: Omit<CartItem, "quantity" | "cartId">,
+  ) => void; 
+  removeItem: (cartId: string) => void; 
+  updateQuantity: (cartId: string, quantity: number) => void; 
   clearCart: () => void;
   totalPrice: number;
   totalItems: number;
@@ -50,35 +55,56 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("cart", JSON.stringify(items));
   }, [items]);
 
-  const addItem = (newItem: Omit<CartItem, "quantity">) => {
+  const addItem = (newItem: Omit<CartItem, "quantity" | "cartId">) => {
     setItems((prev) => {
-      const existing = prev.find(
+      const existingIndex = prev.findIndex(
         (item) =>
           item.id === newItem.id &&
           item.size === newItem.size &&
           item.deepPan === newItem.deepPan &&
           JSON.stringify(item.extras) === JSON.stringify(newItem.extras),
       );
-      if (existing) {
-        return prev.map((item) =>
-          item === existing ? { ...item, quantity: item.quantity + 1 } : item,
-        );
+
+      if (existingIndex !== -1) {
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          quantity: updated[existingIndex].quantity + 1,
+        };
+        return updated;
       }
-      return [...prev, { ...newItem, quantity: 1 }];
+
+      const cartId = crypto.randomUUID();
+      return [...prev, { ...newItem, quantity: 1, cartId }];
     });
   };
 
-  const removeItem = (id: number) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+  const updateItem = (
+    cartId: string,
+    updatedItem: Omit<CartItem, "quantity" | "cartId">,
+  ) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.cartId === cartId
+          ? { ...updatedItem, quantity: item.quantity, cartId: item.cartId }
+          : item,
+      ),
+    );
   };
 
-  const updateQuantity = (id: number, quantity: number) => {
+  const removeItem = (cartId: string) => {
+    setItems((prev) => prev.filter((item) => item.cartId !== cartId));
+  };
+
+  const updateQuantity = (cartId: string, quantity: number) => {
     if (quantity <= 0) {
-      setItems((prev) => prev.filter((item) => item.id !== id));
+      setItems((prev) => prev.filter((item) => item.cartId !== cartId));
       return;
     }
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, quantity } : item)),
+      prev.map((item) =>
+        item.cartId === cartId ? { ...item, quantity } : item,
+      ),
     );
   };
 
@@ -95,6 +121,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       value={{
         items,
         addItem,
+        updateItem,
         removeItem,
         updateQuantity,
         clearCart,

@@ -1,24 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Plus, Minus, Pizza } from "lucide-react";
 import type { MenuItem, Extra } from "@/data/menu";
 import { useCart } from "@/context/CartContext";
 import styles from "./ItemModal.module.css";
 
+export type SizeOption = "normal" | "family" | "children" | "deepPan";
+
 interface ItemModalProps {
   item: MenuItem | null;
   isOpen: boolean;
   onClose: () => void;
+  initialExtras?: Extra[];
+  initialSize?: SizeOption;
+  editingCartId?: string | null;
 }
 
-type SizeOption = "normal" | "family" | "children" | "deepPan";
-
-export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
-  const { addItem } = useCart();
-  const [selectedSize, setSelectedSize] = useState<SizeOption>("normal");
-  const [selectedExtras, setSelectedExtras] = useState<Extra[]>([]);
+export default function ItemModal({
+  item,
+  isOpen,
+  onClose,
+  initialExtras = [],
+  initialSize = "normal",
+  editingCartId = null,
+}: ItemModalProps) {
+  const { addItem, updateItem } = useCart();
+  const [selectedSize, setSelectedSize] = useState<SizeOption>(initialSize);
+  const [selectedExtras, setSelectedExtras] = useState<Extra[]>(initialExtras);
   const [quantity, setQuantity] = useState(1);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedSize(initialSize);
+      setSelectedExtras(initialExtras);
+      setQuantity(1);
+    } else {
+      setSelectedSize("normal");
+      setSelectedExtras([]);
+      setQuantity(1);
+    }
+  }, [isOpen]);
 
   if (!isOpen || !item) return null;
 
@@ -57,9 +79,8 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
     );
   };
 
-  // ===== محاسبه‌ی قیمت اکستراها با توجه به سایز =====
+  // Calculate extras total with family multiplier
   const extrasTotal = selectedExtras.reduce((sum, extra) => {
-    // اگر سایز Family است، قیمت اکسترا دو برابر شود
     const price = selectedSize === "family" ? extra.price * 2 : extra.price;
     return sum + price;
   }, 0);
@@ -68,14 +89,13 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
   const totalPrice = (sizePrice + extrasTotal) * quantity;
 
   const handleAddToCart = () => {
-    // محاسبه مجدد برای اطمینان
     const finalExtrasPrice = selectedExtras.reduce((sum, extra) => {
       const price = selectedSize === "family" ? extra.price * 2 : extra.price;
       return sum + price;
     }, 0);
     const finalPrice = sizePrice + finalExtrasPrice;
 
-    addItem({
+    const payload = {
       id: item.id,
       name: item.name,
       price: finalPrice,
@@ -83,11 +103,15 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
       deepPan: selectedSize === "deepPan",
       image: item.image || "",
       extras: selectedExtras,
-    });
+    };
+
+    if (editingCartId) {
+      updateItem(editingCartId, payload);
+    } else {
+      addItem(payload);
+    }
+
     onClose();
-    setQuantity(1);
-    setSelectedExtras([]);
-    setSelectedSize("normal");
   };
 
   const availableSizes: SizeOption[] = ["normal", "family", "children"];
@@ -98,13 +122,14 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        {/* ===== HEADER ===== */}
         <div className={styles.modalHeader}>
           <button className={styles.closeBtn} onClick={onClose}>
             <X size={24} />
           </button>
         </div>
 
-        {/* ===== SCROLLABLE BODY ===== */}
+        {/* ===== BODY ===== */}
         <div className={styles.modalBody}>
           {/* Image */}
           <div className={styles.imageContainer}>
@@ -121,10 +146,10 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
             )}
           </div>
 
-          {/* ===== STICKY TITLE ===== */}
+          {/* Sticky Title */}
           <h2 className={styles.stickyTitle}>{item.name}</h2>
 
-          {/* Description & Price */}
+          {/* Description & Base Price */}
           <div className={styles.section}>
             <p className={styles.description}>{item.description}</p>
             <p className={styles.basePrice}>Fra {basePrice} kr.</p>
@@ -181,7 +206,7 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
             </div>
           )}
 
-          {/* Quantity & Add Button */}
+          {/* Quantity & Action Button */}
           <div className={styles.footer}>
             <div className={styles.quantity}>
               <button
@@ -200,7 +225,8 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
             </div>
 
             <button className={styles.addBtn} onClick={handleAddToCart}>
-              Tilføj til ordre · {totalPrice} kr.
+              {editingCartId ? "Opdater ordre" : "Tilføj til ordre"} ·{" "}
+              {totalPrice} kr.
             </button>
           </div>
         </div>
