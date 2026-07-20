@@ -57,15 +57,28 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
     );
   };
 
-  const extrasTotal = selectedExtras.reduce((sum, e) => sum + e.price, 0);
+  // ===== محاسبه‌ی قیمت اکستراها با توجه به سایز =====
+  const extrasTotal = selectedExtras.reduce((sum, extra) => {
+    // اگر سایز Family است، قیمت اکسترا دو برابر شود
+    const price = selectedSize === "family" ? extra.price * 2 : extra.price;
+    return sum + price;
+  }, 0);
+
   const sizePrice = sizePriceMap[selectedSize] || 0;
   const totalPrice = (sizePrice + extrasTotal) * quantity;
 
   const handleAddToCart = () => {
+    // محاسبه مجدد برای اطمینان
+    const finalExtrasPrice = selectedExtras.reduce((sum, extra) => {
+      const price = selectedSize === "family" ? extra.price * 2 : extra.price;
+      return sum + price;
+    }, 0);
+    const finalPrice = sizePrice + finalExtrasPrice;
+
     addItem({
       id: item.id,
       name: item.name,
-      price: sizePrice + extrasTotal,
+      price: finalPrice,
       size: selectedSize === "deepPan" ? "normal" : selectedSize,
       deepPan: selectedSize === "deepPan",
       image: item.image || "",
@@ -108,7 +121,7 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
             )}
           </div>
 
-          {/* ===== STICKY TITLE  ===== */}
+          {/* ===== STICKY TITLE ===== */}
           <h2 className={styles.stickyTitle}>{item.name}</h2>
 
           {/* Description & Price */}
@@ -145,21 +158,25 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
             <div className={styles.section}>
               <h4 className={styles.sectionTitle}>Tilbehør</h4>
               <div className={styles.extrasGrid}>
-                {item.extras.map((extra) => (
-                  <label key={extra.name} className={styles.extraItem}>
-                    <input
-                      type="checkbox"
-                      checked={selectedExtras.some(
-                        (e) => e.name === extra.name,
-                      )}
-                      onChange={() => toggleExtra(extra)}
-                    />
-                    <span>{extra.name}</span>
-                    <span className={styles.extraPrice}>
-                      +{extra.price} kr.
-                    </span>
-                  </label>
-                ))}
+                {item.extras.map((extra) => {
+                  const displayPrice =
+                    selectedSize === "family" ? extra.price * 2 : extra.price;
+                  return (
+                    <label key={extra.name} className={styles.extraItem}>
+                      <input
+                        type="checkbox"
+                        checked={selectedExtras.some(
+                          (e) => e.name === extra.name,
+                        )}
+                        onChange={() => toggleExtra(extra)}
+                      />
+                      <span>{extra.name}</span>
+                      <span className={styles.extraPrice}>
+                        +{displayPrice} kr.
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -181,6 +198,7 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
                 <Plus size={18} />
               </button>
             </div>
+
             <button className={styles.addBtn} onClick={handleAddToCart}>
               Tilføj til ordre · {totalPrice} kr.
             </button>
