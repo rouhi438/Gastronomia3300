@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, Plus, Minus, Pizza } from "lucide-react";
 import type { MenuItem, Extra } from "@/data/menu";
+import { extraGroups } from "@/data/menu";
 import { useCart } from "@/context/CartContext";
 import styles from "./ItemModal.module.css";
 
@@ -30,15 +31,37 @@ export default function ItemModal({
   const [selectedExtras, setSelectedExtras] = useState<Extra[]>(initialExtras);
   const [quantity, setQuantity] = useState(1);
 
+  // Keep track of previous values to avoid infinite loop
+  const prevExtrasRef = useRef<Extra[]>(initialExtras);
+  const prevSizeRef = useRef<SizeOption>(initialSize);
+
+  // Only update state when modal opens and values have actually changed
   useEffect(() => {
     if (isOpen) {
-      setSelectedSize(initialSize);
-      setSelectedExtras(initialExtras);
+      const sizeChanged = prevSizeRef.current !== initialSize;
+      const extrasChanged =
+        JSON.stringify(prevExtrasRef.current) !== JSON.stringify(initialExtras);
+
+      if (sizeChanged) {
+        setSelectedSize(initialSize);
+        prevSizeRef.current = initialSize;
+      }
+      if (extrasChanged) {
+        setSelectedExtras(initialExtras);
+        prevExtrasRef.current = initialExtras;
+      }
       setQuantity(1);
-    } else {
+    }
+  }, [isOpen, initialSize, initialExtras]);
+
+  // Reset when modal closes
+  useEffect(() => {
+    if (!isOpen) {
       setSelectedSize("normal");
       setSelectedExtras([]);
       setQuantity(1);
+      prevSizeRef.current = "normal";
+      prevExtrasRef.current = [];
     }
   }, [isOpen]);
 
@@ -71,7 +94,19 @@ export default function ItemModal({
     }
   };
 
+  // ==================
+  // TOGGLE EXTRAS
+  // ==============
+  const isRadioGroup =
+    item.extraGroupId === "proteinChoice" || item.extraGroupId === "drinkSizes";
+
   const toggleExtra = (extra: Extra) => {
+    if (isRadioGroup) {
+      // Radio: only one selection
+      setSelectedExtras([extra]);
+      return;
+    }
+    // Checkbox: toggle
     setSelectedExtras((prev) =>
       prev.find((e) => e.name === extra.name)
         ? prev.filter((e) => e.name !== extra.name)
@@ -79,7 +114,7 @@ export default function ItemModal({
     );
   };
 
-  // Calculate extras total with family multiplier
+  // CALCULATE PRICES
   const extrasTotal = selectedExtras.reduce((sum, extra) => {
     const price = selectedSize === "family" ? extra.price * 2 : extra.price;
     return sum + price;
@@ -88,6 +123,7 @@ export default function ItemModal({
   const sizePrice = sizePriceMap[selectedSize] || 0;
   const totalPrice = (sizePrice + extrasTotal) * quantity;
 
+  // ADD TO CART
   const handleAddToCart = () => {
     const finalExtrasPrice = selectedExtras.reduce((sum, extra) => {
       const price = selectedSize === "family" ? extra.price * 2 : extra.price;
@@ -114,22 +150,26 @@ export default function ItemModal({
     onClose();
   };
 
+  // AVAILABLE SIZES
   const availableSizes: SizeOption[] = ["normal", "family", "children"];
   if (item.deepPanExtra !== undefined && item.deepPanExtra > 0) {
     availableSizes.push("deepPan");
   }
+  // EXTRAS TO DISPLAY
+  const extrasToDisplay = extraGroups[item.extraGroupId] || [];
 
+  // RENDER
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        {/* ===== HEADER ===== */}
+        {/* HEADER */}
         <div className={styles.modalHeader}>
           <button className={styles.closeBtn} onClick={onClose}>
             <X size={24} />
           </button>
         </div>
 
-        {/* ===== BODY ===== */}
+        {/* BODY */}
         <div className={styles.modalBody}>
           {/* Image */}
           <div className={styles.imageContainer}>
@@ -155,44 +195,51 @@ export default function ItemModal({
             <p className={styles.basePrice}>Fra {basePrice} kr.</p>
           </div>
 
-          {/* Size Options */}
-          <div className={styles.section}>
-            <h4 className={styles.sectionTitle}>Størrelse</h4>
-            <div className={styles.sizeOptions}>
-              {availableSizes.map((size) => {
-                const price = sizePriceMap[size];
-                if (price === undefined || price === 0) return null;
-                return (
-                  <button
-                    key={size}
-                    className={`${styles.sizeBtn} ${
-                      selectedSize === size ? styles.active : ""
-                    }`}
-                    onClick={() => setSelectedSize(size)}
-                  >
-                    {getSizeLabel(size)}
-                    <span className={styles.sizePrice}>{price} kr.</span>
-                  </button>
-                );
-              })}
+          {/* Size Options (only for items with size) */}
+          {availableSizes.length > 0 && (
+            <div className={styles.section}>
+              <h4 className={styles.sectionTitle}>Størrelse</h4>
+              <div className={styles.sizeOptions}>
+                {availableSizes.map((size) => {
+                  const price = sizePriceMap[size];
+                  if (price === undefined || price === 0) return null;
+                  return (
+                    <button
+                      key={size}
+                      className={`${styles.sizeBtn} ${
+                        selectedSize === size ? styles.active : ""
+                      }`}
+                      onClick={() => setSelectedSize(size)}
+                    >
+                      {getSizeLabel(size)}
+                      <span className={styles.sizePrice}>{price} kr.</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Extras */}
-          {item.extras && item.extras.length > 0 && (
+          {extrasToDisplay.length > 0 && (
             <div className={styles.section}>
-              <h4 className={styles.sectionTitle}>Tilbehør</h4>
+              <h4 className={styles.sectionTitle}>
+                {isRadioGroup ? "Vælg en" : "Tilbehør"}
+              </h4>
               <div className={styles.extrasGrid}>
-                {item.extras.map((extra) => {
+                {extrasToDisplay.map((extra) => {
                   const displayPrice =
                     selectedSize === "family" ? extra.price * 2 : extra.price;
+                  const isSelected = selectedExtras.some(
+                    (e) => e.name === extra.name,
+                  );
+
                   return (
                     <label key={extra.name} className={styles.extraItem}>
                       <input
-                        type="checkbox"
-                        checked={selectedExtras.some(
-                          (e) => e.name === extra.name,
-                        )}
+                        type={isRadioGroup ? "radio" : "checkbox"}
+                        name={isRadioGroup ? "extraSelection" : undefined}
+                        checked={isSelected}
                         onChange={() => toggleExtra(extra)}
                       />
                       <span>{extra.name}</span>
