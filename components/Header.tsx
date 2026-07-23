@@ -1,42 +1,61 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import CartDrawer from "./CartDrawer";
+import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useCart } from "@/context/CartContext";
-import { useCartUI } from "@/context/CartUIContext";
+import { useCartUI } from "@/context/CartUIContext"; // ← استفاده از Context برای سبد خرید
 import { Home, User, ShoppingCart, Menu, X, Moon, Sun } from "lucide-react";
+import CartDrawer from "./CartDrawer"; // ← ایمپورت CartDrawer
 import styles from "./Header.module.css";
 
 export default function Header() {
+  const router = useRouter();
+  const { isCartOpen, openCart, closeCart } = useCartUI(); // ← فقط یک بار
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState("");
   const [language, setLanguage] = useState<"da" | "en">("da");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { totalItems } = useCart();
-  const { isCartOpen, openCart, closeCart } = useCartUI();
 
   useEffect(() => {
     setMounted(true);
+
+    const token = localStorage.getItem("access_token");
+    const user = localStorage.getItem("user");
+    if (token && user) {
+      setIsLoggedIn(true);
+      try {
+        const parsed = JSON.parse(user);
+        setUserName(parsed.user_metadata?.full_name || parsed.email || "");
+      } catch {
+        setUserName("");
+      }
+    }
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user");
+    setIsLoggedIn(false);
+    setUserName("");
+    router.push("/");
+  };
 
   const toggleLanguage = () => {
     setLanguage((prev) => (prev === "da" ? "en" : "da"));
   };
 
-  const handleAuth = () => {
-    setIsLoggedIn(!isLoggedIn);
-    setIsMenuOpen(false);
-  };
-
-  const closeMenu = () => setIsMenuOpen(false);
-
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
+
+  const closeMenu = () => setIsMenuOpen(false);
 
   return (
     <>
@@ -59,11 +78,7 @@ export default function Header() {
             <span>Hjem</span>
           </Link>
 
-          <button
-            className={styles.navLink}
-            onClick={openCart}
-            aria-label="Open cart"
-          >
+          <button className={styles.navLink} onClick={openCart}>
             <div className={styles.cartIconWrapper}>
               <ShoppingCart size={18} />
               {totalItems > 0 && (
@@ -74,10 +89,15 @@ export default function Header() {
           </button>
 
           {isLoggedIn ? (
-            <button onClick={handleAuth} className={styles.navLink}>
-              <User size={18} />
-              <span>Log ud</span>
-            </button>
+            <>
+              <Link href="/profile" className={styles.navLink}>
+                <User size={18} />
+                <span>{userName || "Profil"}</span>
+              </Link>
+              <button onClick={handleLogout} className={styles.navLink}>
+                <span>Log ud</span>
+              </button>
+            </>
           ) : (
             <Link href="/auth" className={styles.navLink}>
               <User size={18} />
@@ -102,11 +122,7 @@ export default function Header() {
             </button>
           </div>
 
-          <button
-            onClick={toggleTheme}
-            className={styles.themeToggle}
-            aria-label="Toggle theme"
-          >
+          <button onClick={toggleTheme} className={styles.themeToggle}>
             {mounted &&
               (theme === "dark" ? <Sun size={20} /> : <Moon size={20} />)}
           </button>
@@ -120,14 +136,13 @@ export default function Header() {
           <button
             className={styles.hamburger}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
           >
             {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
       </header>
 
-      {/* ===== MOBILE MENU ===== */}
+      {/* Mobile Menu */}
       <div
         className={`${styles.mobileMenu} ${isMenuOpen ? styles.open : ""}`}
         onClick={closeMenu}
@@ -141,21 +156,16 @@ export default function Header() {
               <Home size={20} />
               <span>Hjem</span>
             </Link>
-            {/* <button
+            <button
               className={styles.mobileNavLink}
               onClick={() => {
                 openCart();
                 closeMenu();
               }}
             >
-              <div className={styles.cartIconWrapper}>
-                <ShoppingCart size={20} />
-                {totalItems > 0 && (
-                  <span className={styles.cartBadge}>{totalItems}</span>
-                )}
-              </div>
+              <ShoppingCart size={20} />
               <span>Kurv</span>
-            </button> */}
+            </button>
             {isLoggedIn ? (
               <>
                 <Link
@@ -166,7 +176,13 @@ export default function Header() {
                   <User size={20} />
                   <span>Min profil</span>
                 </Link>
-                <button onClick={handleAuth} className={styles.mobileNavLink}>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    closeMenu();
+                  }}
+                  className={styles.mobileNavLink}
+                >
                   <User size={20} />
                   <span>Log ud</span>
                 </button>
@@ -185,7 +201,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* ===== CART DRAWER ===== */}
+      {/* Cart Drawer */}
       <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
     </>
   );

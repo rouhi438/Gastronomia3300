@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
-import { useRouter } from "next/navigation"; // برای هدایت بعد از ثبت سفارش
-import { X, Check, Truck, Home, CreditCard, Wallet } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Truck, Home, CreditCard, Wallet } from "lucide-react";
 import styles from "./checkout.module.css";
 
 type DeliveryMethod = "pickup" | "delivery";
@@ -13,8 +13,8 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, totalPrice, clearCart } = useCart();
   const [mounted, setMounted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // فقط در کلاینت رندر شود
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -33,7 +33,8 @@ export default function CheckoutPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // SUBMIT ORDER TO API
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (items.length === 0) {
@@ -41,24 +42,47 @@ export default function CheckoutPage() {
       return;
     }
 
-    const order = {
-      id: Date.now(),
-      items,
-      total: totalPrice,
-      customer: form,
-      delivery,
-      payment,
-      status: "modtaget",
-      createdAt: new Date().toISOString(),
-    };
+    setIsSubmitting(true);
 
-    const orders = JSON.parse(localStorage.getItem("orders") || "[]");
-    orders.push(order);
-    localStorage.setItem("orders", JSON.stringify(orders));
+    try {
+      const orderData = {
+        total_price: totalPrice,
+        delivery_method: delivery,
+        payment_method: payment,
+        customer_name: form.name,
+        customer_phone: form.phone,
+        customer_address: delivery === "delivery" ? form.address : null,
+        items: items.map((item) => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          size: item.size || "normal",
+          extras: item.extras?.map((e) => e.name) || [],
+        })),
+      };
 
-    alert("Tak for din bestilling! Vi har modtaget din ordre.");
-    clearCart();
-    router.push("/"); //
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to create order");
+      }
+
+      alert(`Tak for din bestilling! Ordre #${result.order_id} er modtaget.`);
+      clearCart();
+      router.push("/");
+    } catch (error: any) {
+      alert(`Fejl ved oprettelse af ordre: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!mounted) {
@@ -186,8 +210,12 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <button type="submit" className={styles.submitBtn}>
-              Gennemfør bestilling
+            <button
+              type="submit"
+              className={styles.submitBtn}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Sender..." : "Gennemfør bestilling"}
             </button>
           </form>
 
@@ -195,7 +223,7 @@ export default function CheckoutPage() {
             <h3>Din ordre</h3>
             <ul className={styles.itemList}>
               {items.map((item, index) => {
-                const uniqueKey = `${item.id}-${item.size || ""}-${item.deepPan ? "dp" : ""}-${item.extras?.map((e) => e.name).join("-") || ""}-${index}`;
+                const uniqueKey = `${item.cartId || index}`;
                 return (
                   <li key={uniqueKey} className={styles.summaryItem}>
                     <div>

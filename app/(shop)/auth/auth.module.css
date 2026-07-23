@@ -85,7 +85,6 @@
 .passwordWrapper .input {
     width: 100%;
     padding-right: 3rem;
-    /* فضا برای آیکون چشم */
 }
 
 .eyeBtn {
@@ -144,6 +143,16 @@
 
 .textLink:hover {
     color: var(--red);
+}
+
+.errorMsg {
+    background-color: #fee2e2;
+    color: #dc2626;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    border: 1px solid #fca5a5;
+    margin-bottom: 1rem;
 }
 
 /* ===== Responsive ===== */

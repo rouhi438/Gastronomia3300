@@ -1,37 +1,75 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
 import styles from "./auth.module.css";
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true); // true = login, false = register
+  const router = useRouter();
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
     if (!isLogin && password !== confirmPassword) {
-      alert("Adgangskoderne er ikke ens. Prøv igen.");
+      setError("Adgangskoderne er ikke ens. Prøv igen.");
+      setLoading(false);
       return;
     }
 
-    if (isLogin) {
-      alert(`Log ind med: ${email}`);
-    } else {
-      alert(`Opret bruger med: ${email}`);
+    const endpoint = isLogin ? "/api/auth/login" : "/api/auth/admin-register";
+    const payload = isLogin
+      ? { email, password }
+      : { email, password, full_name: fullName, phone };
+
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Noget gik galt");
+      }
+
+      // ===== Login success =====
+      if (isLogin) {
+        localStorage.setItem("access_token", data.session.access_token);
+        localStorage.setItem("refresh_token", data.session.refresh_token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        router.push("/");
+      } else {
+        // Register success
+        alert("Bruger oprettet! Log ind nu.");
+        setIsLogin(true);
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        setFullName("");
+        setPhone("");
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        {/* Title */}
         <h1 className={styles.title}>{isLogin ? "Log ind" : "Opret bruger"}</h1>
         <p className={styles.subtitle}>
           {isLogin
@@ -39,7 +77,8 @@ export default function AuthPage() {
             : "Opret en konto og få adgang til vores menu."}
         </p>
 
-        {/* Toggle between Login and Register */}
+        {error && <div className={styles.errorMsg}>{error}</div>}
+
         <div className={styles.toggleWrapper}>
           <button
             className={`${styles.toggleBtn} ${isLogin ? styles.active : ""}`}
@@ -55,82 +94,96 @@ export default function AuthPage() {
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className={styles.form}>
+          {!isLogin && (
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>Fulde navn</label>
+              <input
+                type="text"
+                className={styles.input}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                placeholder="Mads Jensen"
+                autoComplete="given-name"
+              />
+            </div>
+          )}
+
           <div className={styles.inputGroup}>
             <label className={styles.label}>E-mail</label>
             <input
               type="email"
+              name="email"
               className={styles.input}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="din@email.dk"
+              autoComplete="email"
             />
           </div>
 
           <div className={styles.inputGroup}>
             <label className={styles.label}>Adgangskode</label>
-            <div className={styles.passwordWrapper}>
-              <input
-                type={showPassword ? "text" : "password"}
-                className={styles.input}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                className={styles.eyeBtn}
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={
-                  showPassword ? "Skjul adgangskode" : "Vis adgangskode"
-                }
-              >
-                {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
-              </button>
-            </div>
+            <input
+              type="password"
+              name="password"
+              className={styles.input}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="••••••••"
+              autoComplete={isLogin ? "current-password" : "new-password"}
+            />
           </div>
 
           {!isLogin && (
             <div className={styles.inputGroup}>
               <label className={styles.label}>Gentag adgangskode</label>
-              <div className={styles.passwordWrapper}>
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  className={styles.input}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  className={styles.eyeBtn}
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  aria-label={
-                    showConfirmPassword
-                      ? "Skjul adgangskode"
-                      : "Vis adgangskode"
-                  }
-                >
-                  {showConfirmPassword ? (
-                    <Eye size={20} />
-                  ) : (
-                    <EyeOff size={20} />
-                  )}
-                </button>
-              </div>
+              <input
+                type="password"
+                name="password"
+                className={styles.input}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                autoComplete={isLogin ? "current-password" : "new-password"}
+              />
             </div>
           )}
 
-          <button type="submit" className="btn-primary">
-            {isLogin ? "Log ind" : "Opret konto"}
+          {!isLogin && (
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>Telefon</label>
+              <input
+                type="tel"
+                name="tel"
+                className={styles.input}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+45 12 34 56 78"
+                autoComplete="tel"
+              />
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="btn-primary"
+            style={{
+              width: "100%",
+              marginTop: "0.5rem",
+              padding: "0.8rem",
+              fontSize: "1.1rem",
+            }}
+            disabled={loading}
+          >
+            {loading ? "Sender..." : isLogin ? "Log ind" : "Opret konto"}
           </button>
         </form>
 
-        {/* Extra toggle link (text) */}
         <div className={styles.footerText}>
           {isLogin ? (
             <p>

@@ -1,3 +1,5 @@
+/* PROFILE PAGE */
+
 .container {
     display: flex;
     justify-content: center;
@@ -8,103 +10,103 @@
     transition: background-color 0.3s ease;
 }
 
-
 .card {
     width: 100%;
-    max-width: 480px;
+    max-width: 500px;
     background-color: var(--bg-card);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    padding: 2.5rem 2rem 2rem;
-    border-top: 6px solid var(--green);
+    padding: 2rem;
+    border-top: 4px solid var(--green);
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-
 .title {
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 700;
     color: var(--text-primary);
     text-align: center;
-    margin-bottom: 2rem;
-    letter-spacing: -0.5px;
+    margin-bottom: 1.5rem;
 }
 
-/* ===================
-   AVATAR SECTION (text-based)
-   =================== */
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+}
+
+/* ===== AVATAR ===== */
 .avatarSection {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 2.2rem;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .avatarCircle {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 4px solid var(--green);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s ease;
 }
 
 .avatarCircle:hover {
     transform: scale(1.02);
-    box-shadow: 0 6px 20px rgba(0, 146, 70, 0.25);
 }
 
 .avatarInitials {
-    font-size: 3rem;
+    font-size: 2.5rem;
     font-weight: 700;
     color: #ffffff;
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     user-select: none;
     line-height: 1;
 }
 
 .avatarName {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: var(--text-primary);
     margin: 0;
 }
 
+/* ===== FORM ===== */
 .form {
     display: flex;
     flex-direction: column;
-    gap: 1.4rem;
-    margin-top: 0.5rem;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .inputGroup {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.2rem;
 }
 
 .label {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
+    gap: 0.4rem;
     font-weight: 600;
+    font-size: 0.9rem;
     color: var(--text-secondary);
 }
 
 .input {
-    width: 100%;
-    padding: 0.85rem 1rem;
-    font-size: 1rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
     background-color: var(--bg);
     color: var(--text-primary);
-    border: 1.5px solid var(--border-color);
-    border-radius: var(--radius);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .input:focus {
@@ -114,53 +116,21 @@
 }
 
 .input:disabled {
-    opacity: 0.65;
+    opacity: 0.6;
     cursor: not-allowed;
 }
 
-.passwordSection {
-    margin: 0.25rem 0 0.25rem;
-}
-
-.passwordToggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: none;
-    border: none;
-    color: var(--green);
-    font-weight: 600;
-    font-size: 0.95rem;
-    padding: 0.3rem 0;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-.passwordToggle:hover {
-    color: var(--red);
-    text-decoration: underline;
-}
-
-/* =================
-   ACTION BUTTONS
-   =================*/
+/* ===== ACTION ROW ===== */
 .actionRow {
     display: flex;
     gap: 0.8rem;
     margin-top: 0.5rem;
 }
 
-.actionRow .btn-primary {
-    flex: 1;
-    padding: 0.85rem 1rem;
-    font-size: 1.05rem;
-    text-align: center;
-}
-
 .cancelBtn {
     flex: 1;
-    padding: 0.85rem 1rem;
-    font-size: 1.05rem;
+    padding: 0.7rem 1rem;
+    font-size: 1rem;
     font-weight: 600;
     background-color: transparent;
     color: var(--text-secondary);
@@ -176,11 +146,53 @@
     border-color: var(--red);
 }
 
-.logoutSection {
-    margin-top: 2rem;
-    text-align: center;
-    padding-top: 1.2rem;
+/* ===== CHANGE PASSWORD SECTION ===== */
+.passwordSection {
     border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.passwordTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.8rem;
+}
+
+.passwordForm {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+/* ===== MESSAGES ===== */
+.errorMsg {
+    background-color: #fee2e2;
+    color: #dc2626;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    border: 1px solid #fca5a5;
+    margin-bottom: 0.5rem;
+}
+
+.successMsg {
+    background-color: #dcfce7;
+    color: #16a34a;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    border: 1px solid #86efac;
+    margin-bottom: 0.5rem;
+}
+
+/* ===== LOGOUT ===== */
+.logoutSection {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
 }
 
 .logoutBtn {
@@ -192,7 +204,7 @@
     padding: 0.4rem 1.2rem;
     border-radius: var(--radius);
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.2s ease;
 }
 
 .logoutBtn:hover {
@@ -200,98 +212,38 @@
     text-decoration: underline;
 }
 
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .container {
         min-height: calc(100vh - 60px - 180px);
-        padding: 1.5rem 1rem;
+        padding: 1rem;
     }
 
     .card {
-        padding: 2rem 1.5rem;
-    }
-
-    .title {
-        font-size: 1.7rem;
+        padding: 1.5rem;
     }
 
     .avatarCircle {
-        width: 100px;
-        height: 100px;
+        width: 80px;
+        height: 80px;
     }
 
     .avatarInitials {
-        font-size: 2.4rem;
+        font-size: 2rem;
     }
 }
 
 @media (max-width: 480px) {
     .container {
         min-height: calc(100vh - 55px - 160px);
-        padding: 1rem 0.8rem;
+        padding: 0.8rem;
     }
 
     .card {
-        padding: 1.5rem 1rem;
-        border-top-width: 4px;
-    }
-
-    .title {
-        font-size: 1.4rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .avatarCircle {
-        width: 80px;
-        height: 80px;
-        border-width: 3px;
-    }
-
-    .avatarInitials {
-        font-size: 2rem;
-    }
-
-    .avatarName {
-        font-size: 1rem;
-    }
-
-    .form {
-        gap: 1.2rem;
-    }
-
-    .input {
-        padding: 0.7rem 0.9rem;
-        font-size: 0.95rem;
+        padding: 1rem;
     }
 
     .actionRow {
         flex-direction: column;
-        gap: 0.6rem;
-    }
-
-    .actionRow .btn-primary,
-    .cancelBtn {
-        width: 100%;
-        padding: 0.7rem 1rem;
-        font-size: 1rem;
-    }
-
-    .logoutSection {
-        margin-top: 1.5rem;
-        padding-top: 1rem;
-    }
-}
-
-@media (max-width: 360px) {
-    .card {
-        padding: 1.2rem 0.8rem;
-    }
-
-    .avatarCircle {
-        width: 70px;
-        height: 70px;
-    }
-
-    .avatarInitials {
-        font-size: 1.6rem;
     }
 }
