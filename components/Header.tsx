@@ -6,14 +6,14 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useCart } from "@/context/CartContext";
-import { useCartUI } from "@/context/CartUIContext"; // ← استفاده از Context برای سبد خرید
+import { useCartUI } from "@/context/CartUIContext";
 import { Home, User, ShoppingCart, Menu, X, Moon, Sun } from "lucide-react";
-import CartDrawer from "./CartDrawer"; // ← ایمپورت CartDrawer
+import CartDrawer from "./CartDrawer";
 import styles from "./Header.module.css";
 
 export default function Header() {
   const router = useRouter();
-  const { isCartOpen, openCart, closeCart } = useCartUI(); // ← فقط یک بار
+  const { isCartOpen, openCart, closeCart } = useCartUI();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [language, setLanguage] = useState<"da" | "en">("da");
@@ -57,6 +57,28 @@ export default function Header() {
 
   const closeMenu = () => setIsMenuOpen(false);
 
+  // ===== Helper functions for avatar =====
+  const getInitials = (name: string) => {
+    if (!name) return "?";
+    const parts = name.trim().split(" ");
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (
+      parts[0].charAt(0) + parts[parts.length - 1].charAt(0)
+    ).toUpperCase();
+  };
+
+  const getAvatarColor = (name: string) => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue}, 60%, 50%)`;
+  };
+
+  const initials = getInitials(userName);
+  const avatarColor = getAvatarColor(userName || "User");
+
   return (
     <>
       <header className={styles.header}>
@@ -91,7 +113,6 @@ export default function Header() {
           {isLoggedIn ? (
             <>
               <Link href="/profile" className={styles.navLink}>
-                <User size={18} />
                 <span>{userName || "Profil"}</span>
               </Link>
               <button onClick={handleLogout} className={styles.navLink}>
@@ -127,11 +148,23 @@ export default function Header() {
               (theme === "dark" ? <Sun size={20} /> : <Moon size={20} />)}
           </button>
 
-          <Link href="/profile" className={styles.userIconLink}>
-            <div className={styles.userIcon}>
-              <User size={18} />
-            </div>
-          </Link>
+          {/* ===== Avatar / User Icon ===== */}
+          {isLoggedIn ? (
+            <Link href="/profile" className={styles.userIconLink}>
+              <div
+                className={styles.userAvatar}
+                style={{ backgroundColor: avatarColor }}
+              >
+                {initials}
+              </div>
+            </Link>
+          ) : (
+            <Link href="/auth" className={styles.userIconLink}>
+              <div className={styles.userIcon}>
+                <User size={18} />
+              </div>
+            </Link>
+          )}
 
           <button
             className={styles.hamburger}
