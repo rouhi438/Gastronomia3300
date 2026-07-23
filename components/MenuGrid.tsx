@@ -21,6 +21,7 @@ export default function MenuGrid({ onCardClick }: MenuGridProps) {
 
   const categoryOrder = [
     "pizza",
+    "indbagt pizza",
     "ala-carte",
     "hovedretter",
     "pasta",
@@ -35,6 +36,7 @@ export default function MenuGrid({ onCardClick }: MenuGridProps) {
 
   const categoryTitles: Record<string, string> = {
     pizza: "Pizza",
+    "indbagt pizza": "Indbagt Pizza",
     "ala-carte": "Ala Carte",
     hovedretter: "Hovedretter",
     pasta: "Pasta",

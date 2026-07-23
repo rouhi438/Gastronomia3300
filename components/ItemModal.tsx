@@ -31,11 +31,9 @@ export default function ItemModal({
   const [selectedExtras, setSelectedExtras] = useState<Extra[]>(initialExtras);
   const [quantity, setQuantity] = useState(1);
 
-  // Keep track of previous values to avoid infinite loop
   const prevExtrasRef = useRef<Extra[]>(initialExtras);
   const prevSizeRef = useRef<SizeOption>(initialSize);
 
-  // Only update state when modal opens and values have actually changed
   useEffect(() => {
     if (isOpen) {
       const sizeChanged = prevSizeRef.current !== initialSize;
@@ -52,9 +50,8 @@ export default function ItemModal({
       }
       setQuantity(1);
     }
-  }, [isOpen, initialSize, initialExtras]);
+  }, [isOpen]);
 
-  // Reset when modal closes
   useEffect(() => {
     if (!isOpen) {
       setSelectedSize("normal");
@@ -71,7 +68,7 @@ export default function ItemModal({
     item.prices.normal ?? item.prices.fixed ?? item.prices.children ?? 0;
 
   const sizePriceMap: Record<SizeOption, number> = {
-    normal: item.prices.normal ?? 0,
+    normal: item.prices.normal ?? item.prices.fixed ?? 0,
     family: item.prices.family ?? 0,
     children: item.prices.children ?? 0,
     deepPan: (item.prices.normal ?? 0) + (item.deepPanExtra ?? 0),
@@ -94,19 +91,14 @@ export default function ItemModal({
     }
   };
 
-  // ==================
-  // TOGGLE EXTRAS
-  // ==============
   const isRadioGroup =
     item.extraGroupId === "proteinChoice" || item.extraGroupId === "drinkSizes";
 
   const toggleExtra = (extra: Extra) => {
     if (isRadioGroup) {
-      // Radio: only one selection
       setSelectedExtras([extra]);
       return;
     }
-    // Checkbox: toggle
     setSelectedExtras((prev) =>
       prev.find((e) => e.name === extra.name)
         ? prev.filter((e) => e.name !== extra.name)
@@ -114,7 +106,6 @@ export default function ItemModal({
     );
   };
 
-  // CALCULATE PRICES
   const extrasTotal = selectedExtras.reduce((sum, extra) => {
     const price = selectedSize === "family" ? extra.price * 2 : extra.price;
     return sum + price;
@@ -123,7 +114,6 @@ export default function ItemModal({
   const sizePrice = sizePriceMap[selectedSize] || 0;
   const totalPrice = (sizePrice + extrasTotal) * quantity;
 
-  // ADD TO CART
   const handleAddToCart = () => {
     const finalExtrasPrice = selectedExtras.reduce((sum, extra) => {
       const price = selectedSize === "family" ? extra.price * 2 : extra.price;
@@ -135,6 +125,7 @@ export default function ItemModal({
       id: item.id,
       name: item.name,
       price: finalPrice,
+      quantity: quantity,
       size: selectedSize === "deepPan" ? "normal" : selectedSize,
       deepPan: selectedSize === "deepPan",
       image: item.image || "",
@@ -150,28 +141,34 @@ export default function ItemModal({
     onClose();
   };
 
-  // AVAILABLE SIZES
-  const availableSizes: SizeOption[] = ["normal", "family", "children"];
-  if (item.deepPanExtra !== undefined && item.deepPanExtra > 0) {
-    availableSizes.push("deepPan");
+  const hasSizeOptions =
+    (item.prices.normal !== undefined && item.prices.normal !== null) ||
+    item.extraGroupId === "drinkSizes";
+
+  const availableSizes: SizeOption[] = [];
+  if (item.prices.normal !== undefined) {
+    availableSizes.push("normal");
+    if (item.prices.family !== undefined) availableSizes.push("family");
+    if (item.prices.children !== undefined) availableSizes.push("children");
+    if (item.deepPanExtra !== undefined && item.deepPanExtra > 0) {
+      availableSizes.push("deepPan");
+    }
+  } else if (item.extraGroupId === "drinkSizes") {
+    availableSizes.push("normal");
   }
-  // EXTRAS TO DISPLAY
+
   const extrasToDisplay = extraGroups[item.extraGroupId] || [];
 
-  // RENDER
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        {/* HEADER */}
         <div className={styles.modalHeader}>
           <button className={styles.closeBtn} onClick={onClose}>
             <X size={24} />
           </button>
         </div>
 
-        {/* BODY */}
         <div className={styles.modalBody}>
-          {/* Image */}
           <div className={styles.imageContainer}>
             {item.image ? (
               <img
@@ -186,17 +183,14 @@ export default function ItemModal({
             )}
           </div>
 
-          {/* Sticky Title */}
           <h2 className={styles.stickyTitle}>{item.name}</h2>
 
-          {/* Description & Base Price */}
           <div className={styles.section}>
             <p className={styles.description}>{item.description}</p>
             <p className={styles.basePrice}>Fra {basePrice} kr.</p>
           </div>
 
-          {/* Size Options (only for items with size) */}
-          {availableSizes.length > 0 && (
+          {hasSizeOptions && availableSizes.length > 0 && (
             <div className={styles.section}>
               <h4 className={styles.sectionTitle}>Størrelse</h4>
               <div className={styles.sizeOptions}>
@@ -220,7 +214,6 @@ export default function ItemModal({
             </div>
           )}
 
-          {/* Extras */}
           {extrasToDisplay.length > 0 && (
             <div className={styles.section}>
               <h4 className={styles.sectionTitle}>
@@ -233,7 +226,6 @@ export default function ItemModal({
                   const isSelected = selectedExtras.some(
                     (e) => e.name === extra.name,
                   );
-
                   return (
                     <label key={extra.name} className={styles.extraItem}>
                       <input
@@ -253,7 +245,6 @@ export default function ItemModal({
             </div>
           )}
 
-          {/* Quantity & Action Button */}
           <div className={styles.footer}>
             <div className={styles.quantity}>
               <button

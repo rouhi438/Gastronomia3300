@@ -10,7 +10,7 @@ import {
 import type { Extra } from "@/data/menu";
 
 export interface CartItem {
-  cartId: string; 
+  cartId: string;
   id: number;
   name: string;
   price: number;
@@ -23,13 +23,13 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "quantity" | "cartId">) => void;
+  addItem: (item: Omit<CartItem, "cartId">) => void;
   updateItem: (
     cartId: string,
-    item: Omit<CartItem, "quantity" | "cartId">,
-  ) => void; 
-  removeItem: (cartId: string) => void; 
-  updateQuantity: (cartId: string, quantity: number) => void; 
+    item: Omit<CartItem, "cartId" | "quantity">,
+  ) => void;
+  removeItem: (cartId: string) => void;
+  updateQuantity: (cartId: string, quantity: number) => void;
   clearCart: () => void;
   totalPrice: number;
   totalItems: number;
@@ -55,7 +55,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("cart", JSON.stringify(items));
   }, [items]);
 
-  const addItem = (newItem: Omit<CartItem, "quantity" | "cartId">) => {
+  const addItem = (newItem: Omit<CartItem, "cartId">) => {
     setItems((prev) => {
       const existingIndex = prev.findIndex(
         (item) =>
@@ -69,19 +69,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const updated = [...prev];
         updated[existingIndex] = {
           ...updated[existingIndex],
-          quantity: updated[existingIndex].quantity + 1,
+          quantity: updated[existingIndex].quantity + (newItem.quantity || 1), // ← استفاده از quantity
         };
         return updated;
       }
 
       const cartId = crypto.randomUUID();
-      return [...prev, { ...newItem, quantity: 1, cartId }];
+      return [...prev, { ...newItem, quantity: newItem.quantity || 1, cartId }];
     });
   };
 
   const updateItem = (
     cartId: string,
-    updatedItem: Omit<CartItem, "quantity" | "cartId">,
+    updatedItem: Omit<CartItem, "cartId" | "quantity">,
   ) => {
     setItems((prev) =>
       prev.map((item) =>

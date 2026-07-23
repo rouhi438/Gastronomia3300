@@ -18,6 +18,7 @@ import styles from "./menu.module.css";
 const categories = [
   { id: "alle", label: "Alle", icon: <Pizza size={18} /> },
   { id: "pizza", label: "Pizza", icon: <Pizza size={18} /> },
+  { id: "indbagt", label: "Indbagt Pizza", icon: <Pizza size={18} /> },
   { id: "ala-carte", label: "Ala Carte", icon: <Utensils size={18} /> },
   { id: "hovedretter", label: "Hovedretter", icon: <Beef size={18} /> },
   { id: "pasta", label: "Pasta", icon: <Soup size={18} /> },

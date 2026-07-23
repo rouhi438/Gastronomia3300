@@ -81,7 +81,10 @@ export const extraGroups = {
     { name: "Falafel", price: 0 },
     { name: "Skinke", price: 0 },
   ],
-
+  nachosProtein: [
+    { name: "Kebab", price: 0 },
+    { name: "Kylling", price: 0 },
+  ],
   // No extras
   none: [],
 };
@@ -465,7 +468,7 @@ export const menuData: MenuItem[] = [
     category: "hovedretter",
     prices: { fixed: 85 },
     image: "",
-    extraGroupId: "proteinChoice",
+    extraGroupId: "nachosProtein",
   },
   // 36-39: PASTA
   {
