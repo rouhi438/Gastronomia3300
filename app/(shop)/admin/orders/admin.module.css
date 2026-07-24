@@ -1,4 +1,3 @@
-/* ===== CONTAINER ===== */
 .container {
     padding: 2rem;
     max-width: 1200px;
@@ -8,7 +7,6 @@
     transition: background-color 0.3s ease;
 }
 
-/* ===== TITLE ===== */
 .title {
     font-size: 2rem;
     font-weight: 700;
@@ -18,7 +16,6 @@
     padding-bottom: 0.5rem;
 }
 
-/* ===== LOADING & ERROR ===== */
 .loading {
     padding: 2rem;
     text-align: center;
@@ -36,14 +33,12 @@
     font-size: 1.1rem;
 }
 
-/* ===== ORDER LIST ===== */
 .orderList {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-/* ===== ORDER CARD ===== */
 .orderCard {
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
@@ -53,7 +48,6 @@
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-/* ===== ORDER HEADER ===== */
 .orderHeader {
     display: flex;
     justify-content: space-between;
@@ -62,7 +56,6 @@
     gap: 0.5rem;
 }
 
-/* ===== ORDER LEFT ===== */
 .orderLeft {
     flex: 1;
 }
@@ -84,16 +77,11 @@
     margin: 0.2rem 0;
 }
 
-.orderCustomer strong {
-    font-weight: 600;
-}
-
 .orderCustomer span {
     margin-left: 0.5rem;
     color: var(--text-muted);
 }
 
-/* ===== ORDER RIGHT ===== */
 .orderRight {
     text-align: right;
     flex-shrink: 0;
@@ -141,7 +129,6 @@
     color: var(--red);
 }
 
-/* ===== ORDER ITEMS ===== */
 .orderItems {
     margin-top: 0.8rem;
 }
@@ -169,7 +156,6 @@
     margin-left: 0.3rem;
 }
 
-/* ===== STATUS BUTTONS ===== */
 .statusButtons {
     margin-top: 1rem;
     display: flex;
@@ -201,7 +187,6 @@
     color: var(--text-muted);
 }
 
-/* ===== Notification ===== */
 .notification {
     background-color: #10b981;
     color: #ffffff;
@@ -213,142 +198,6 @@
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     animation: slideDown 0.4s ease;
     text-align: center;
-}
-
-/* ===== ESTIMATED TIME ===== */
-.estimatedTime {
-    margin-top: 0.3rem;
-    color: var(--green);
-    font-weight: 600;
-    font-size: 0.95rem;
-}
-
-/* ===== ACTION BUTTONS ===== */
-.actionButtons {
-    margin-top: 1rem;
-    display: flex;
-    gap: 0.8rem;
-    flex-wrap: wrap;
-}
-
-.acceptBtn {
-    padding: 0.5rem 1.5rem;
-    background-color: #10b981;
-    color: #ffffff;
-    border: none;
-    border-radius: var(--radius);
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.2s;
-}
-
-.acceptBtn:hover {
-    opacity: 0.85;
-}
-
-.cancelBtn {
-    padding: 0.5rem 1.5rem;
-    background-color: #ef4444;
-    color: #ffffff;
-    border: none;
-    border-radius: var(--radius);
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.2s;
-}
-
-.cancelBtn:hover {
-    opacity: 0.85;
-}
-
-/* ===== TIME OPTIONS ===== */
-.timeOptions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    padding: 0.5rem 0;
-}
-
-.timeOptions span {
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.timeBtn {
-    padding: 0.3rem 1rem;
-    background-color: #3b82f6;
-    color: #ffffff;
-    border: none;
-    border-radius: var(--radius);
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.2s;
-}
-
-.timeBtn:hover {
-    opacity: 0.85;
-}
-
-.timeBtnCancel {
-    padding: 0.3rem 1rem;
-    background-color: #6b7280;
-    color: #ffffff;
-    border: none;
-    border-radius: var(--radius);
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.2s;
-}
-
-.timeBtnCancel:hover {
-    opacity: 0.85;
-}
-
-/* ===== STATUS BUTTONS (for accepted/ready) ===== */
-.statusBtn {
-    padding: 0.3rem 1.2rem;
-    background-color: #10b981;
-    color: #ffffff;
-    border: none;
-    border-radius: var(--radius);
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.2s;
-}
-
-.statusBtn:hover {
-    opacity: 0.85;
-}
-
-.statusBtnComplete {
-    padding: 0.3rem 1.2rem;
-    background-color: #8b5cf6;
-    color: #ffffff;
-    border: none;
-    border-radius: var(--radius);
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.2s;
-}
-
-.statusBtnComplete:hover {
-    opacity: 0.85;
-}
-
-.statusBtnCancel {
-    padding: 0.3rem 1.2rem;
-    background-color: #ef4444;
-    color: #ffffff;
-    border: none;
-    border-radius: var(--radius);
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.2s;
-}
-
-.statusBtnCancel:hover {
-    opacity: 0.85;
 }
 
 @keyframes slideDown {
@@ -363,7 +212,6 @@
     }
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .container {
         padding: 1rem;
