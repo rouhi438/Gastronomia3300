@@ -1,0 +1,251 @@
+/* ===== CONTAINER ===== */
+.container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: var(--bg);
+    min-height: 100vh;
+    transition: background-color 0.3s ease;
+}
+
+/* ===== TITLE ===== */
+.title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    border-bottom: 3px solid var(--green);
+    padding-bottom: 0.5rem;
+}
+
+/* ===== LOADING & ERROR ===== */
+.loading {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.error {
+    padding: 2rem;
+    text-align: center;
+    color: var(--red);
+}
+
+.empty {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+/* ===== ORDER LIST ===== */
+.orderList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* ===== ORDER CARD ===== */
+.orderCard {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    background-color: var(--bg-card);
+    box-shadow: var(--shadow);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ===== ORDER HEADER ===== */
+.orderHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* ===== ORDER LEFT ===== */
+.orderLeft {
+    flex: 1;
+}
+
+.orderId {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.orderDate {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0.1rem 0;
+}
+
+.orderCustomer {
+    color: var(--text-primary);
+    margin: 0.2rem 0;
+}
+
+.orderCustomer strong {
+    font-weight: 600;
+}
+
+.orderCustomer span {
+    margin-left: 0.5rem;
+    color: var(--text-muted);
+}
+
+/* ===== ORDER RIGHT ===== */
+.orderRight {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.statusBadge {
+    display: inline-block;
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    background-color: var(--bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.statusBadge.modtaget {
+    background-color: #fef3c7;
+    color: #b45309;
+    border-color: #f59e0b;
+}
+
+.statusBadge.in_progress {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+    border-color: #3b82f6;
+}
+
+.statusBadge.ready {
+    background-color: #d1fae5;
+    color: #065f46;
+    border-color: #10b981;
+}
+
+.statusBadge.completed {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border-color: #9ca3af;
+}
+
+.orderTotal {
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-top: 0.3rem;
+    color: var(--red);
+}
+
+/* ===== ORDER ITEMS ===== */
+.orderItems {
+    margin-top: 0.8rem;
+}
+
+.orderItemsList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.orderItemsList li {
+    padding: 0.3rem 0;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.itemSize {
+    color: var(--text-muted);
+    margin-left: 0.3rem;
+}
+
+.itemExtras {
+    color: var(--text-muted);
+    margin-left: 0.3rem;
+}
+
+/* ===== STATUS BUTTONS ===== */
+.statusButtons {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.statusBtn {
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.statusBtn:hover:not(:disabled) {
+    background-color: var(--green);
+    color: #ffffff;
+    border-color: var(--green);
+}
+
+.statusBtn:disabled {
+    opacity: 0.5;
+    cursor: default;
+    background-color: var(--border-color);
+    color: var(--text-muted);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .title {
+        font-size: 1.5rem;
+    }
+
+    .orderHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .orderRight {
+        text-align: left;
+        width: 100%;
+    }
+
+    .statusButtons {
+        flex-wrap: wrap;
+    }
+
+    .statusBtn {
+        flex: 1;
+        min-width: 60px;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0.8rem;
+    }
+
+    .orderCard {
+        padding: 0.8rem;
+    }
+
+    .orderId {
+        font-size: 1rem;
+    }
+
+    .orderTotal {
+        font-size: 1rem;
+    }
+}
