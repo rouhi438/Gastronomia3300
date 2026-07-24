@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./admin.module.css";
 
-type OrderStatus = "modtaget" | "in_progress" | "ready" | "completed";
+type OrderStatus = "pending" | "accepted" | "ready" | "completed" | "cancelled";
 
 interface OrderItem {
   id: number;
@@ -22,15 +22,17 @@ interface Order {
   customer_address: string | null;
   total_price: number;
   status: OrderStatus;
+  estimated_time: number | null;
   created_at: string;
   order_items: OrderItem[];
 }
 
 const statusLabels: Record<OrderStatus, string> = {
-  modtaget: "Modtaget",
-  in_progress: "I gang",
+  pending: "Afventer",
+  accepted: "Accepteret",
   ready: "Klar",
   completed: "Leveret",
+  cancelled: "Annulleret",
 };
 
 export default function AdminOrdersPage() {
@@ -39,7 +41,7 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notification, setNotification] = useState<string | null>(null);
-  const prevOrderCountRef = useRef<number>(0);
+  const prevPendingCountRef = useRef<number>(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const playBeep = () => {
@@ -81,17 +83,23 @@ export default function AdminOrdersPage() {
       const data = await res.json();
       const newOrders = data.orders || [];
 
-      if (showNotification && prevOrderCountRef.current > 0) {
-        const newCount = newOrders.length;
-        if (newCount > prevOrderCountRef.current) {
+      // Check for new pending orders
+      if (showNotification && prevPendingCountRef.current > 0) {
+        const newPending = newOrders.filter(
+          (o: Order) => o.status === "pending",
+        );
+        const prevPending = prevPendingCountRef.current;
+        if (newPending.length > prevPending) {
+          const count = newPending.length - prevPending;
           playBeep();
-          setNotification(
-            `🛎️ ${newCount - prevOrderCountRef.current} ny ordre modtaget!`,
-          );
+          setNotification(`🛎️ ${count} ny ordre modtaget!`);
           setTimeout(() => setNotification(null), 5000);
         }
       }
-      prevOrderCountRef.current = newOrders.length;
+
+      prevPendingCountRef.current = newOrders.filter(
+        (o: Order) => o.status === "pending",
+      ).length;
       setOrders(newOrders);
     } catch (err: any) {
       setError(err.message);
@@ -163,6 +171,11 @@ export default function AdminOrdersPage() {
                     )}
                     <span>• {order.customer_phone}</span>
                   </p>
+                  {order.estimated_time && (
+                    <p className={styles.estimatedTime}>
+                      ⏱️ Forventet tid: {order.estimated_time} min
+                    </p>
+                  )}
                 </div>
                 <div className={styles.orderRight}>
                   <span
@@ -173,6 +186,7 @@ export default function AdminOrdersPage() {
                   <p className={styles.orderTotal}>{order.total_price} kr.</p>
                 </div>
               </div>
+
               <div className={styles.orderItems}>
                 <ul className={styles.orderItemsList}>
                   {order.order_items.map((item) => (
@@ -190,19 +204,23 @@ export default function AdminOrdersPage() {
                   ))}
                 </ul>
               </div>
+
               <div className={styles.statusButtons}>
                 {(
                   [
-                    "modtaget",
-                    "in_progress",
+                    "pending",
+                    "accepted",
                     "ready",
                     "completed",
+                    "cancelled",
                   ] as OrderStatus[]
                 ).map((status) => (
                   <button
                     key={status}
                     onClick={() => updateStatus(order.id, status)}
-                    disabled={order.status === status}
+                    disabled={
+                      order.status === status || order.status === "cancelled"
+                    }
                     className={styles.statusBtn}
                   >
                     {statusLabels[status]}

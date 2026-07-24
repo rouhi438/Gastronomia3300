@@ -7,6 +7,7 @@
     transition: background-color 0.3s ease;
 }
 
+/* ===== TITLE ===== */
 .title {
     font-size: 2rem;
     font-weight: 700;
@@ -16,6 +17,7 @@
     padding-bottom: 0.5rem;
 }
 
+/* ===== LOADING & ERROR ===== */
 .loading {
     padding: 2rem;
     text-align: center;
@@ -33,12 +35,14 @@
     font-size: 1.1rem;
 }
 
+/* ===== ORDER LIST ===== */
 .orderList {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
+/* ===== ORDER CARD ===== */
 .orderCard {
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
@@ -48,6 +52,7 @@
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
+/* ===== ORDER HEADER ===== */
 .orderHeader {
     display: flex;
     justify-content: space-between;
@@ -82,11 +87,28 @@
     color: var(--text-muted);
 }
 
+/* ===== ESTIMATED TIME ===== */
+.estimatedTime {
+    margin-top: 0.3rem;
+    color: var(--green);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* ===== ORDER RIGHT===== */
 .orderRight {
     text-align: right;
     flex-shrink: 0;
 }
 
+.orderTotal {
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-top: 0.3rem;
+    color: var(--red);
+}
+
+/* ===== STATUS BADGE ===== */
 .statusBadge {
     display: inline-block;
     padding: 0.2rem 0.8rem;
@@ -98,22 +120,22 @@
     border: 1px solid var(--border-color);
 }
 
-.statusBadge.modtaget {
+.statusBadge.pending {
     background-color: #fef3c7;
     color: #b45309;
     border-color: #f59e0b;
 }
 
-.statusBadge.in_progress {
-    background-color: #dbeafe;
-    color: #1d4ed8;
-    border-color: #3b82f6;
-}
-
-.statusBadge.ready {
+.statusBadge.accepted {
     background-color: #d1fae5;
     color: #065f46;
     border-color: #10b981;
+}
+
+.statusBadge.ready {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+    border-color: #3b82f6;
 }
 
 .statusBadge.completed {
@@ -122,13 +144,13 @@
     border-color: #9ca3af;
 }
 
-.orderTotal {
-    font-weight: 700;
-    font-size: 1.2rem;
-    margin-top: 0.3rem;
-    color: var(--red);
+.statusBadge.cancelled {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-color: #ef4444;
 }
 
+/* ===== ORDER ITEMS ===== */
 .orderItems {
     margin-top: 0.8rem;
 }
@@ -156,6 +178,7 @@
     margin-left: 0.3rem;
 }
 
+/* ===== STATUS BUTTONS ===== */
 .statusButtons {
     margin-top: 1rem;
     display: flex;
@@ -182,11 +205,12 @@
 
 .statusBtn:disabled {
     opacity: 0.5;
-    cursor: default;
+    cursor: not-allowed;
     background-color: var(--border-color);
     color: var(--text-muted);
 }
 
+/* ===== NOTIFICATION BANNER ===== */
 .notification {
     background-color: #10b981;
     color: #ffffff;
@@ -211,6 +235,10 @@
         transform: translateY(0);
     }
 }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 
 @media (max-width: 768px) {
     .container {
