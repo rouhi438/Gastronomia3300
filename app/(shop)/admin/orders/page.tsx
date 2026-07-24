@@ -83,7 +83,6 @@ export default function AdminOrdersPage() {
       const data = await res.json();
       const newOrders = data.orders || [];
 
-      // Check for new pending orders
       if (showNotification && prevPendingCountRef.current > 0) {
         const newPending = newOrders.filter(
           (o: Order) => o.status === "pending",
@@ -140,6 +139,63 @@ export default function AdminOrdersPage() {
       fetchOrders(false);
     } catch (err: any) {
       alert(err.message);
+    }
+  };
+
+  // ===== PRINT KITCHEN RECEIPT =====
+  const printReceipt = (order: Order) => {
+    const printContent = `
+      <html>
+        <head>
+          <title>Køkkenbon #${order.id}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 2rem; max-width: 400px; margin: 0 auto; }
+            h1 { font-size: 1.5rem; text-align: center; border-bottom: 2px solid #000; padding-bottom: 0.5rem; }
+            .meta { font-size: 0.9rem; color: #555; margin-bottom: 1rem; }
+            .meta span { display: block; }
+            ul { list-style: none; padding: 0; }
+            li { padding: 0.3rem 0; border-bottom: 1px solid #eee; }
+            .item-extras { font-size: 0.8rem; color: #666; margin-left: 0.5rem; }
+            .footer { margin-top: 1.5rem; text-align: center; font-size: 0.8rem; color: #888; border-top: 1px solid #ddd; padding-top: 0.5rem; }
+            @media print {
+              body { margin: 0; padding: 1rem; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>🧾 Køkkenbon #${order.id}</h1>
+          <div class="meta">
+            <span>📅 ${new Date(order.created_at).toLocaleString("da-DK")}</span>
+            <span>👤 ${order.customer_name}</span>
+          </div>
+          <ul>
+            ${order.order_items
+              .map(
+                (item) => `
+              <li>
+                ${item.quantity}× ${item.item_name}
+                ${item.size && item.size !== "normal" ? `<span style="font-size:0.8rem;color:#666;"> (${item.size})</span>` : ""}
+                ${item.extras && item.extras.length > 0 ? `<span class="item-extras">(+${item.extras.join(", ")})</span>` : ""}
+              </li>
+            `,
+              )
+              .join("")}
+          </ul>
+          <div class="footer">
+            📍 Gastronomia 3300 — ${new Date().toLocaleDateString("da-DK")}
+          </div>
+          <script>
+            window.print();
+          <\/script>
+        </body>
+      </html>
+    `;
+
+    const win = window.open("", "_blank", "width=400,height=600");
+    if (win) {
+      win.document.write(printContent);
+      win.document.close();
     }
   };
 
@@ -205,7 +261,17 @@ export default function AdminOrdersPage() {
                 </ul>
               </div>
 
-              <div className={styles.statusButtons}>
+              {/* ===== ORDER ACTIONS (Buttons) ===== */}
+              <div className={styles.orderActions}>
+                {/* ===== PRINT BUTTON ===== */}
+                <button
+                  className={styles.printBtn}
+                  onClick={() => printReceipt(order)}
+                >
+                  🖨️ Køkkenbon
+                </button>
+
+                {/* ===== STATUS BUTTONS ===== */}
                 {(
                   [
                     "pending",

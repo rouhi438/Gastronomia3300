@@ -236,6 +236,35 @@
     }
 }
 
+/* ===== ORDER ACTIONS ===== */
+.orderActions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* ===== PRINT BUTTON ===== */
+.printBtn {
+    padding: 0.3rem 1rem;
+    background-color: #6b7280;
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.printBtn:hover {
+    background-color: #4b5563;
+}
+
 /* ============================================================
    RESPONSIVE
    ============================================================ */
