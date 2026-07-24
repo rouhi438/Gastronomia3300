@@ -28,24 +28,21 @@ export default function Header() {
 
     const token = localStorage.getItem("access_token");
     const user = localStorage.getItem("user");
+
     if (token && user) {
       setIsLoggedIn(true);
       try {
         const parsed = JSON.parse(user);
         setUserName(parsed.user_metadata?.full_name || parsed.email || "");
+        setUserRole(parsed.user_metadata?.role || null);
       } catch {
         setUserName("");
+        setUserRole(null);
       }
-    }
-  }, []);
-  // admin role
-  useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user) {
-      try {
-        const parsed = JSON.parse(user);
-        setUserRole(parsed.user_metadata?.role || null);
-      } catch {}
+    } else {
+      setIsLoggedIn(false);
+      setUserName("");
+      setUserRole(null);
     }
   }, []);
 
