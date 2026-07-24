@@ -42,6 +42,25 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     fetchOrders();
   }, []);
+  // showing error page  users other than Admin
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    const user = localStorage.getItem("user");
+
+    if (!token || !user) {
+      router.push("/auth");
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(user);
+      if (parsed.user_metadata?.role !== "admin") {
+        router.push("/");
+      }
+    } catch {
+      router.push("/");
+    }
+  }, [router]);
 
   const fetchOrders = async () => {
     const token = localStorage.getItem("access_token");

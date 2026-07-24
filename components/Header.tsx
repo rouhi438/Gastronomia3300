@@ -21,6 +21,7 @@ export default function Header() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { totalItems } = useCart();
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -35,6 +36,16 @@ export default function Header() {
       } catch {
         setUserName("");
       }
+    }
+  }, []);
+  // admin role
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      try {
+        const parsed = JSON.parse(user);
+        setUserRole(parsed.user_metadata?.role || null);
+      } catch {}
     }
   }, []);
 
@@ -109,7 +120,11 @@ export default function Header() {
             </div>
             <span>Kurv</span>
           </button>
-
+          {isLoggedIn && userRole === "admin" && (
+            <Link href="/admin/orders" className={styles.navLink}>
+              <span>📋 Admin</span>
+            </Link>
+          )}
           {isLoggedIn ? (
             <>
               <Link href="/profile" className={styles.navLink}>
@@ -199,6 +214,15 @@ export default function Header() {
               <ShoppingCart size={20} />
               <span>Kurv</span>
             </button>
+            {isLoggedIn && userRole === "admin" && (
+              <Link
+                href="/admin/orders"
+                className={styles.mobileNavLink}
+                onClick={closeMenu}
+              >
+                <span>📋 Admin</span>
+              </Link>
+            )}
             {isLoggedIn ? (
               <>
                 <Link
