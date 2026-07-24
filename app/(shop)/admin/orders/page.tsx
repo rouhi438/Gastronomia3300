@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./admin.module.css";
 
@@ -38,31 +38,36 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [notification, setNotification] = useState<string | null>(null);
+  const prevOrderCountRef = useRef<number>(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-  // showing error page  users other than Admin
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    const user = localStorage.getItem("user");
-
-    if (!token || !user) {
-      router.push("/auth");
-      return;
-    }
-
+  // ===== Play beep sound =====
+  const playBeep = () => {
     try {
-      const parsed = JSON.parse(user);
-      if (parsed.user_metadata?.role !== "admin") {
-        router.push("/");
-      }
-    } catch {
-      router.push("/");
+      const audioCtx = new (
+        window.AudioContext || (window as any).webkitAudioContext
+      )();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.frequency.value = 800;
+      oscillator.type = "sine";
+      gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioCtx.currentTime + 0.2,
+      );
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.2);
+    } catch (_) {
+      // AudioContext not supported – ignore
     }
-  }, [router]);
+  };
 
-  const fetchOrders = async () => {
+  // ===== Fetch orders =====
+  const fetchOrders = async (showNotification = false) => {
     const token = localStorage.getItem("access_token");
     if (!token) {
       router.push("/auth");
@@ -82,7 +87,21 @@ export default function AdminOrdersPage() {
       }
 
       const data = await res.json();
-      setOrders(data.orders);
+      const newOrders = data.orders || [];
+
+      // ===== Check for new orders =====
+      if (showNotification && prevOrderCountRef.current > 0) {
+        const newCount = newOrders.length;
+        if (newCount > prevOrderCountRef.current) {
+          const newOrderCount = newCount - prevOrderCountRef.current;
+          playBeep();
+          setNotification(`🛎️ ${newOrderCount} ny ordre modtaget!`);
+          setTimeout(() => setNotification(null), 5000);
+        }
+      }
+
+      prevOrderCountRef.current = newOrders.length;
+      setOrders(newOrders);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -90,6 +109,32 @@ export default function AdminOrdersPage() {
     }
   };
 
+  // ===== Initial fetch + Polling =====
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      router.push("/auth");
+      return;
+    }
+
+    // Initial fetch
+    fetchOrders(false);
+
+    // Start polling every 10 seconds
+    intervalRef.current = setInterval(() => {
+      fetchOrders(true);
+    }, 10000);
+
+    // Cleanup
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [router]);
+
+  // ===== Update order status =====
   const updateStatus = async (orderId: number, newStatus: OrderStatus) => {
     const token = localStorage.getItem("access_token");
     if (!token) return;
@@ -109,7 +154,8 @@ export default function AdminOrdersPage() {
         throw new Error(data.error || "Failed to update status");
       }
 
-      fetchOrders();
+      // Refresh orders
+      fetchOrders(false);
     } catch (err: any) {
       alert(err.message);
     }
@@ -125,6 +171,11 @@ export default function AdminOrdersPage() {
 
   return (
     <div className={styles.container}>
+      {/* ===== Notification Banner ===== */}
+      {notification && (
+        <div className={styles.notification}>{notification}</div>
+      )}
+
       <h1 className={styles.title}>Ordreoversigt</h1>
 
       {orders.length === 0 ? (
