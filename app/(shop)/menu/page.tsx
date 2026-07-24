@@ -4,13 +4,16 @@ import { useState, useMemo } from "react";
 import { menuData, type MenuItem } from "@/data/menu";
 import {
   Pizza,
-  Utensils,
+  UtensilsCrossed,
   Salad,
-  Coffee,
-  Beef,
+  CupSoda,
+  Sandwich,
+  Hamburger,
   Soup,
   Cherry,
   Plus,
+  Baby,
+  ChefHat,
 } from "lucide-react";
 import ItemModal from "@/components/ItemModal";
 import styles from "./menu.module.css";
@@ -19,15 +22,19 @@ const categories = [
   { id: "alle", label: "Alle", icon: <Pizza size={18} /> },
   { id: "pizza", label: "Pizza", icon: <Pizza size={18} /> },
   { id: "indbagt", label: "Indbagt Pizza", icon: <Pizza size={18} /> },
-  { id: "ala-carte", label: "Ala Carte", icon: <Utensils size={18} /> },
-  { id: "hovedretter", label: "Hovedretter", icon: <Beef size={18} /> },
+  { id: "ala-carte", label: "Ala Carte", icon: <Sandwich size={18} /> },
+  {
+    id: "hovedretter",
+    label: "Hovedretter",
+    icon: <ChefHat size={18} />,
+  },
   { id: "pasta", label: "Pasta", icon: <Soup size={18} /> },
   { id: "salad", label: "Salat", icon: <Salad size={18} /> },
   { id: "fries", label: "Pommes Frites", icon: <Cherry size={18} /> },
-  { id: "børn", label: "Børn menu", icon: <Coffee size={18} /> },
-  { id: "burger", label: "Burger", icon: <Beef size={18} /> },
-  { id: "menuer", label: "Menuer", icon: <Utensils size={18} /> },
-  { id: "drikke", label: "Drikkevarer", icon: <Coffee size={18} /> },
+  { id: "børn", label: "Børn menu", icon: <Baby size={18} /> },
+  { id: "burger", label: "Burger", icon: <Hamburger size={18} /> },
+  { id: "menuer", label: "Menuer", icon: <UtensilsCrossed size={18} /> },
+  { id: "drikke", label: "Drikkevarer", icon: <CupSoda size={18} /> },
   { id: "dyppelse", label: "Ekstra dyppelse", icon: <Plus size={18} /> },
 ];
 
