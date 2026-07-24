@@ -34,7 +34,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { status } = await request.json();
+    const { status, estimated_time } = await request.json();
 
     if (!status) {
       return NextResponse.json(
@@ -43,14 +43,24 @@ export async function PATCH(
       );
     }
 
-    const validStatuses = ["modtaget", "in_progress", "ready", "completed"];
+    const validStatuses = [
+      "pending",
+      "accepted",
+      "ready",
+      "completed",
+      "cancelled",
+    ];
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
-
+    // update object
+    const updateData: any = { status };
+    if (estimated_time !== undefined && status === "accepted") {
+      updateData.estimated_time = estimated_time;
+    }
     const { data: updatedOrder, error: updateError } = await supabase
       .from("orders")
-      .update({ status })
+      .update(updateData)
       .eq("id", orderId)
       .select()
       .single();

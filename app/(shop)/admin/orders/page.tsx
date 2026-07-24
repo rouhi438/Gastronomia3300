@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./admin.module.css";
 
-type OrderStatus = "modtaget" | "in_progress" | "ready" | "completed";
+type OrderStatus = "pending" | "accepted" | "ready" | "completed" | "cancelled";
 
 interface OrderItem {
   id: number;
@@ -22,16 +22,28 @@ interface Order {
   customer_address: string | null;
   total_price: number;
   status: OrderStatus;
+  estimated_time: number | null;
   created_at: string;
   order_items: OrderItem[];
 }
 
 const statusLabels: Record<OrderStatus, string> = {
-  modtaget: "Modtaget",
-  in_progress: "I gang",
+  pending: "Afventer",
+  accepted: "Accepteret",
   ready: "Klar",
   completed: "Leveret",
+  cancelled: "Annulleret",
 };
+
+const statusColors: Record<OrderStatus, string> = {
+  pending: "#f59e0b",
+  accepted: "#3b82f6",
+  ready: "#10b981",
+  completed: "#6b7280",
+  cancelled: "#ef4444",
+};
+
+const timeOptions = [15, 20, 30, 45, 60];
 
 export default function AdminOrdersPage() {
   const router = useRouter();
@@ -39,6 +51,7 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notification, setNotification] = useState<string | null>(null);
+  const [showTimeOptions, setShowTimeOptions] = useState<number | null>(null);
   const prevOrderCountRef = useRef<number>(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -89,18 +102,23 @@ export default function AdminOrdersPage() {
       const data = await res.json();
       const newOrders = data.orders || [];
 
-      // ===== Check for new orders =====
+      // ===== Check for new pending orders =====
       if (showNotification && prevOrderCountRef.current > 0) {
-        const newCount = newOrders.length;
-        if (newCount > prevOrderCountRef.current) {
-          const newOrderCount = newCount - prevOrderCountRef.current;
+        const newPending = newOrders.filter(
+          (o: Order) => o.status === "pending",
+        );
+        const prevPending = prevOrderCountRef.current;
+        if (newPending.length > prevPending) {
+          const count = newPending.length - prevPending;
           playBeep();
-          setNotification(`🛎️ ${newOrderCount} ny ordre modtaget!`);
+          setNotification(`🛎️ ${count} ny ordre modtaget!`);
           setTimeout(() => setNotification(null), 5000);
         }
       }
 
-      prevOrderCountRef.current = newOrders.length;
+      prevOrderCountRef.current = newOrders.filter(
+        (o: Order) => o.status === "pending",
+      ).length;
       setOrders(newOrders);
     } catch (err: any) {
       setError(err.message);
@@ -117,15 +135,12 @@ export default function AdminOrdersPage() {
       return;
     }
 
-    // Initial fetch
     fetchOrders(false);
 
-    // Start polling every 10 seconds
     intervalRef.current = setInterval(() => {
       fetchOrders(true);
     }, 10000);
 
-    // Cleanup
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -134,7 +149,67 @@ export default function AdminOrdersPage() {
     };
   }, [router]);
 
-  // ===== Update order status =====
+  // ===== Accept order (show time options) =====
+  const handleAccept = (orderId: number) => {
+    setShowTimeOptions(orderId);
+  };
+
+  // ===== Confirm accept with time =====
+  const handleConfirmAccept = async (orderId: number, minutes: number) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: "accepted", estimated_time: minutes }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to accept order");
+      }
+
+      setShowTimeOptions(null);
+      fetchOrders(false);
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  // ===== Cancel order =====
+  const handleCancel = async (orderId: number) => {
+    if (!confirm("Er du sikker på, at du vil annullere denne ordre?")) return;
+
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: "cancelled" }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to cancel order");
+      }
+
+      fetchOrders(false);
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  // ===== Update status (for ready/completed) =====
   const updateStatus = async (orderId: number, newStatus: OrderStatus) => {
     const token = localStorage.getItem("access_token");
     if (!token) return;
@@ -154,7 +229,6 @@ export default function AdminOrdersPage() {
         throw new Error(data.error || "Failed to update status");
       }
 
-      // Refresh orders
       fetchOrders(false);
     } catch (err: any) {
       alert(err.message);
@@ -197,6 +271,11 @@ export default function AdminOrdersPage() {
                     )}
                     <span>• {order.customer_phone}</span>
                   </p>
+                  {order.estimated_time && (
+                    <p className={styles.estimatedTime}>
+                      ⏱️ Forventet tid: {order.estimated_time} min
+                    </p>
+                  )}
                 </div>
 
                 <div className={styles.orderRight}>
@@ -227,25 +306,80 @@ export default function AdminOrdersPage() {
                 </ul>
               </div>
 
-              <div className={styles.statusButtons}>
-                {(
-                  [
-                    "modtaget",
-                    "in_progress",
-                    "ready",
-                    "completed",
-                  ] as OrderStatus[]
-                ).map((status) => (
+              {/* ===== Action Buttons ===== */}
+              {order.status === "pending" && (
+                <div className={styles.actionButtons}>
+                  {showTimeOptions === order.id ? (
+                    <div className={styles.timeOptions}>
+                      <span>Vælg tid:</span>
+                      {timeOptions.map((min) => (
+                        <button
+                          key={min}
+                          className={styles.timeBtn}
+                          onClick={() => handleConfirmAccept(order.id, min)}
+                        >
+                          {min} min
+                        </button>
+                      ))}
+                      <button
+                        className={styles.timeBtnCancel}
+                        onClick={() => setShowTimeOptions(null)}
+                      >
+                        Annuller
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        className={styles.acceptBtn}
+                        onClick={() => handleAccept(order.id)}
+                      >
+                        ✅ Acceptér
+                      </button>
+                      <button
+                        className={styles.cancelBtn}
+                        onClick={() => handleCancel(order.id)}
+                      >
+                        ❌ Annuller
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {order.status === "accepted" && (
+                <div className={styles.statusButtons}>
                   <button
-                    key={status}
-                    onClick={() => updateStatus(order.id, status)}
-                    disabled={order.status === status}
                     className={styles.statusBtn}
+                    onClick={() => updateStatus(order.id, "ready")}
                   >
-                    {statusLabels[status]}
+                    Markér som klar
                   </button>
-                ))}
-              </div>
+                  <button
+                    className={styles.statusBtnCancel}
+                    onClick={() => updateStatus(order.id, "cancelled")}
+                  >
+                    Annuller
+                  </button>
+                </div>
+              )}
+
+              {order.status === "ready" && (
+                <div className={styles.statusButtons}>
+                  <button
+                    className={styles.statusBtnComplete}
+                    onClick={() => updateStatus(order.id, "completed")}
+                  >
+                    Markér som leveret
+                  </button>
+                  <button
+                    className={styles.statusBtnCancel}
+                    onClick={() => updateStatus(order.id, "cancelled")}
+                  >
+                    Annuller
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

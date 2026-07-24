@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
         customer_name,
         customer_phone,
         customer_address: customer_address || null,
-        status: "modtaget",
+        status: "pending",
       })
       .select()
       .single();
