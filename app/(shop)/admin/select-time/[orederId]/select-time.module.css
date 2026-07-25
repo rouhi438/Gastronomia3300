@@ -1,52 +1,68 @@
-.container {
-    min-height: 100vh;
-    background-color: #f3f4f6;
+.overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 2rem;
+    justify-content: flex-end;
+    z-index: 1000;
+    padding: 1rem;
 }
 
-.card {
+.panel {
     background-color: #ffffff;
     border-radius: 16px;
-    padding: 2.5rem;
-    max-width: 500px;
+    padding: 2rem;
+    max-width: 420px;
     width: 100%;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(40px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 .title {
-    font-size: 2rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: #1f2937;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.3rem;
 }
 
 .subtitle {
     color: #6b7280;
-    font-size: 1.1rem;
-    margin-bottom: 2rem;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
 }
 
 .options {
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
-    margin-bottom: 2rem;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
 }
 
 .option {
     display: flex;
     align-items: center;
     gap: 0.8rem;
-    padding: 0.8rem 1.2rem;
+    padding: 0.7rem 1rem;
     border: 2px solid #e5e7eb;
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s;
-    font-size: 1.1rem;
     font-weight: 500;
     color: #1f2937;
 }
@@ -69,30 +85,34 @@
     background-color: #ecfdf5;
 }
 
+.error {
+    color: #dc2626;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    padding: 0.4rem;
+    background-color: #fee2e2;
+    border-radius: 8px;
+}
+
 .actions {
     display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
+    gap: 0.8rem;
 }
 
 .confirmBtn {
-    padding: 0.8rem 2.5rem;
+    flex: 1;
+    padding: 0.7rem;
     background-color: #10b981;
     color: #ffffff;
     border: none;
     border-radius: 50px;
-    font-size: 1.1rem;
     font-weight: 700;
     cursor: pointer;
-    transition: transform 0.2s, opacity 0.2s;
-    flex: 1;
-    min-width: 140px;
+    transition: opacity 0.2s;
 }
 
 .confirmBtn:hover:not(:disabled) {
-    transform: scale(1.02);
-    opacity: 0.9;
+    opacity: 0.85;
 }
 
 .confirmBtn:disabled {
@@ -101,22 +121,19 @@
 }
 
 .cancelBtn {
-    padding: 0.8rem 2.5rem;
+    flex: 1;
+    padding: 0.7rem;
     background-color: #ef4444;
     color: #ffffff;
     border: none;
     border-radius: 50px;
-    font-size: 1.1rem;
     font-weight: 700;
     cursor: pointer;
-    transition: transform 0.2s, opacity 0.2s;
-    flex: 1;
-    min-width: 140px;
+    transition: opacity 0.2s;
 }
 
 .cancelBtn:hover:not(:disabled) {
-    transform: scale(1.02);
-    opacity: 0.9;
+    opacity: 0.85;
 }
 
 .cancelBtn:disabled {
@@ -124,11 +141,28 @@
     cursor: not-allowed;
 }
 
-.error {
-    color: #dc2626;
-    font-size: 0.95rem;
-    margin-bottom: 1rem;
-    padding: 0.5rem;
-    background-color: #fee2e2;
-    border-radius: 8px;
+@media (max-width: 768px) {
+    .overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .panel {
+        max-width: 100%;
+        border-radius: 16px 16px 0 0;
+        padding: 1.5rem;
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(40px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
 }

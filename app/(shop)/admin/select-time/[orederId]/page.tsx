@@ -52,21 +52,22 @@ export default function SelectTimePage() {
         throw new Error(data.error || "Kunne ikke acceptere ordre");
       }
 
-      router.push("/admin/new-order");
+      // Auto print after successful accept
+      setTimeout(() => {
+        window.print();
+      }, 300);
+
+      router.push(`/admin/order-accepted/${orderId}?time=${selectedTime}`);
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    router.push("/admin/new-order");
-  };
-
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Vælg forventet tid</h1>
+    <div className={styles.overlay}>
+      <div className={styles.panel}>
+        <h2 className={styles.title}>Vælg forventet tid</h2>
         <p className={styles.subtitle}>
           Hvor lang tid tager det at lave denne ordre?
         </p>
@@ -94,14 +95,14 @@ export default function SelectTimePage() {
             onClick={handleConfirm}
             disabled={loading || !selectedTime}
           >
-            {loading ? "Sender..." : "✅ Bekræft tid"}
+            {loading ? "Sender..." : "Bekræft tid"}
           </button>
           <button
             className={styles.cancelBtn}
-            onClick={handleCancel}
+            onClick={() => router.push("/admin/new-order")}
             disabled={loading}
           >
-            ❌ Annuller
+            Annuller
           </button>
         </div>
       </div>

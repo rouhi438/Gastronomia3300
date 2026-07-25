@@ -1,0 +1,163 @@
+.container {
+    min-height: 100vh;
+    background-color: #f0fdf4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    padding: 2.5rem;
+    max-width: 550px;
+    width: 100%;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+.badge {
+    font-size: 3.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #10b981;
+    margin-bottom: 0.5rem;
+}
+
+.message {
+    font-size: 1.1rem;
+    color: #1f2937;
+    margin-bottom: 0.3rem;
+}
+
+.timeStamp {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.orderSummary {
+    text-align: left;
+    background-color: #f9fafb;
+    padding: 1rem 1.2rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.orderSummary h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    color: #1f2937;
+}
+
+.orderSummary p {
+    margin: 0.2rem 0;
+    font-size: 0.95rem;
+    color: #374151;
+}
+
+.orderSummary ul {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+}
+
+.orderSummary li {
+    padding: 0.2rem 0;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 0.9rem;
+    color: #1f2937;
+}
+
+.meta {
+    color: #6b7280;
+}
+
+.total {
+    font-weight: 600;
+    font-size: 1.1rem;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.total strong {
+    color: #10b981;
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.printBtn {
+    padding: 0.7rem 2rem;
+    background-color: #1f2937;
+    color: #ffffff;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.printBtn:hover {
+    opacity: 0.85;
+}
+
+.doneBtn {
+    padding: 0.7rem 2rem;
+    background-color: #10b981;
+    color: #ffffff;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.doneBtn:hover {
+    opacity: 0.85;
+}
+
+.loading,
+.error {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #6b7280;
+}
+
+@media print {
+    .container {
+        background-color: #ffffff;
+        padding: 1rem;
+    }
+
+    .card {
+        box-shadow: none;
+        padding: 1rem;
+    }
+
+    .actions {
+        display: none;
+    }
+
+    .badge {
+        font-size: 2.5rem;
+    }
+
+    .title {
+        font-size: 1.5rem;
+    }
+}
