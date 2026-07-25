@@ -1,6 +1,6 @@
 .container {
     min-height: 100vh;
-    background-color: #f0fdf4;
+    background-color: var(--bg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -8,12 +8,12 @@
 }
 
 .card {
-    background-color: #ffffff;
+    background-color: var(--bg-card);
     border-radius: 20px;
     padding: 2.5rem;
     max-width: 550px;
     width: 100%;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow);
     text-align: center;
 }
 
@@ -25,25 +25,25 @@
 .title {
     font-size: 2rem;
     font-weight: 700;
-    color: #10b981;
+    color: var(--green);
     margin-bottom: 0.5rem;
 }
 
 .message {
     font-size: 1.1rem;
-    color: #1f2937;
+    color: var(--text-primary);
     margin-bottom: 0.3rem;
 }
 
 .timeStamp {
-    color: #6b7280;
+    color: var(--text-muted);
     font-size: 0.95rem;
     margin-bottom: 1.5rem;
 }
 
 .orderSummary {
     text-align: left;
-    background-color: #f9fafb;
+    background-color: var(--bg);
     padding: 1rem 1.2rem;
     border-radius: 12px;
     margin-bottom: 1.5rem;
@@ -53,13 +53,13 @@
     margin-top: 0;
     margin-bottom: 0.5rem;
     font-size: 1rem;
-    color: #1f2937;
+    color: var(--text-primary);
 }
 
 .orderSummary p {
     margin: 0.2rem 0;
     font-size: 0.95rem;
-    color: #374151;
+    color: var(--text-primary);
 }
 
 .orderSummary ul {
@@ -70,25 +70,25 @@
 
 .orderSummary li {
     padding: 0.2rem 0;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--border-color);
     font-size: 0.9rem;
-    color: #1f2937;
+    color: var(--text-primary);
 }
 
 .meta {
-    color: #6b7280;
+    color: var(--text-muted);
 }
 
 .total {
     font-weight: 600;
     font-size: 1.1rem;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--border-color);
     padding-top: 0.5rem;
     margin-top: 0.5rem;
 }
 
 .total strong {
-    color: #10b981;
+    color: var(--green);
 }
 
 .actions {
@@ -100,8 +100,8 @@
 
 .printBtn {
     padding: 0.7rem 2rem;
-    background-color: #1f2937;
-    color: #ffffff;
+    background-color: var(--text-primary);
+    color: var(--bg-card);
     border: none;
     border-radius: 50px;
     font-weight: 600;
@@ -115,7 +115,7 @@
 
 .doneBtn {
     padding: 0.7rem 2rem;
-    background-color: #10b981;
+    background-color: var(--green);
     color: #ffffff;
     border: none;
     border-radius: 50px;
@@ -135,7 +135,7 @@
     align-items: center;
     justify-content: center;
     font-size: 1.2rem;
-    color: #6b7280;
+    color: var(--text-muted);
 }
 
 @media print {

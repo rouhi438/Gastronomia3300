@@ -1,6 +1,6 @@
 .container {
     min-height: 100vh;
-    background-color: #10b981;
+    background-color: var(--green);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -42,7 +42,7 @@
 .viewBtn {
     padding: 1rem 3rem;
     background-color: #ffffff;
-    color: #10b981;
+    color: var(--green);
     border: none;
     border-radius: 50px;
     font-size: 1.3rem;
