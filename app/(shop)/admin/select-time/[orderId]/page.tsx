@@ -33,7 +33,6 @@ export default function SelectTimePage() {
       router.push("/auth");
       return;
     }
-
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`, {
         method: "PATCH",
@@ -48,10 +47,14 @@ export default function SelectTimePage() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Kunne ikke acceptere ordre");
+        const text = await res.text(); // یا res.json() اگر JSON است
+        console.error("API error response:", text);
+        throw new Error(
+          `Kunne ikke acceptere ordre: ${res.status} ${res.statusText}`,
+        );
       }
 
+      const data = await res.json();
       // Auto print after successful accept
       setTimeout(() => {
         window.print();
@@ -59,7 +62,8 @@ export default function SelectTimePage() {
 
       router.push(`/admin/order-accepted/${orderId}?time=${selectedTime}`);
     } catch (err: any) {
-      setError(err.message);
+      console.error("Fetch error:", err);
+      setError(err.message || "Der opstod en fejl.");
       setLoading(false);
     }
   };
