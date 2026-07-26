@@ -2,12 +2,15 @@
 .container {
     max-width: 700px;
     margin: 0 auto;
-    padding: 2rem 1.5rem;
-    font-family: Arial, Helvetica, sans-serif;
-    background: #ffffff;
-    color: #1a1a1a;
-    font-size: 13px;
-    line-height: 1.5;
+    padding: 1.8rem 1.5rem;
+    font-family: 'Arial', 'Helvetica', sans-serif;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 12px;
+    line-height: 1.4;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: background 0.3s, color 0.3s;
 }
 
 /* ===== HEADER ===== */
@@ -16,76 +19,80 @@
     justify-content: space-between;
     align-items: flex-start;
     flex-wrap: wrap;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.3rem;
 }
 
 .brand h1 {
-    font-size: 20px;
+    font-size: 18px;
     margin: 0 0 2px 0;
     color: var(--green);
     letter-spacing: 0.5px;
 }
 
 .brand p {
-    margin: 2px 0;
-    color: #333;
-    font-size: 12px;
+    margin: 1px 0;
+    color: var(--text-secondary);
+    font-size: 11px;
 }
 
 .orderInfo {
     text-align: right;
-    font-size: 12px;
+    font-size: 11px;
+    color: var(--text-secondary);
 }
 
 .orderInfo p {
-    margin: 2px 0;
+    margin: 1px 0;
 }
 
 /* ===== DIVIDER ===== */
 .divider {
     border: none;
-    border-top: 1px dashed #ccc;
-    margin: 0.8rem 0;
+    border-top: 1px dashed var(--border-color);
+    margin: 0.5rem 0;
 }
 
 /* ===== ITEMS TABLE ===== */
 .itemsTable {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .itemsTable th {
     text-align: left;
-    border-bottom: 1px solid #ccc;
-    padding: 4px 0;
+    border-bottom: 1px solid var(--border-color);
+    padding: 3px 0;
     font-weight: 600;
+    font-size: 11px;
+    color: var(--text-secondary);
 }
 
 .itemsTable td {
-    padding: 4px 0;
-    border-bottom: 1px solid #eee;
+    padding: 3px 0;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
 }
 
 /* ===== BADGES ===== */
 .badge {
     display: inline-block;
-    background: #f0f0f0;
+    background: var(--bg);
     padding: 0 4px;
     border-radius: 3px;
-    font-size: 11px;
-    color: #555;
+    font-size: 10px;
+    color: var(--text-muted);
     margin-right: 2px;
 }
 
 .badgeExtras {
-    background: #e6f7e6;
+    background: rgba(0, 146, 70, 0.12);
     color: var(--green);
 }
 
 /* ===== TOTALS ===== */
 .totals {
-    margin-top: 0.5rem;
+    margin-top: 0.3rem;
     text-align: right;
 }
 
@@ -93,46 +100,55 @@
     display: flex;
     justify-content: flex-end;
     gap: 2rem;
-    padding: 2px 0;
+    padding: 1px 0;
+    font-size: 12px;
+    color: var(--text-primary);
 }
 
 .grandTotal {
-    font-size: 16px;
+    font-size: 15px;
     border-top: 2px solid var(--green);
-    padding-top: 6px;
-    margin-top: 4px;
+    padding-top: 4px;
+    margin-top: 2px;
 }
 
 /* ===== CUSTOMER INFO ===== */
 .customer {
-    margin-top: 0.8rem;
-    font-size: 12px;
+    margin-top: 0.6rem;
+    font-size: 11px;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 2px 1rem;
+    gap: 1px 1.5rem;
+    color: var(--text-primary);
 }
 
 .customer p {
-    margin: 2px 0;
+    margin: 1px 0;
+}
+
+.customer strong {
+    color: var(--text-secondary);
 }
 
 /* ===== FOOTER ===== */
 .footer {
-    margin-top: 1.5rem;
+    margin-top: 1rem;
     text-align: center;
-    font-size: 12px;
-    color: #555;
-    border-top: 1px solid #eee;
-    padding-top: 0.8rem;
+    font-size: 11px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.6rem;
 }
 
 .powered {
-    font-size: 10px;
-    color: #999;
-    margin-top: 2px;
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-top: 1px;
 }
 
-/* ===== PRINT STYLES ===== */
+/* ============================================================
+   PRINT STYLES (تنظیم برای یک صفحه A4)
+   ============================================================ */
 @media print {
     body * {
         visibility: hidden;
@@ -144,38 +160,66 @@
     }
 
     .container {
-        position: absolute;
+        position: fixed;
         left: 0;
         top: 0;
         width: 100%;
+        max-width: 100%;
         padding: 1.5rem 1.2rem;
+        background: #ffffff !important;
+        color: #1a1a1a !important;
+        margin: 0;
+        font-size: 11px;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        page-break-after: avoid;
     }
 
-    .divider {
-        border-top: 1px dashed #aaa;
+    .brand h1 {
+        color: #009246 !important;
+    }
+
+    .brand p,
+    .orderInfo p,
+    .customer p,
+    .totalRow,
+    .footer {
+        color: #1a1a1a !important;
     }
 
     .itemsTable td {
-        border-bottom: 1px solid #e0e0e0;
+        color: #1a1a1a !important;
+        border-bottom: 1px solid #e0e0e0 !important;
+    }
+
+    .itemsTable th {
+        color: #1a1a1a !important;
+        border-bottom: 1px solid #aaa !important;
+    }
+
+    .divider {
+        border-top: 1px dashed #999 !important;
     }
 
     .grandTotal {
-        border-top: 2px solid var(--green);
-    }
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 600px) {
-    .header {
-        flex-direction: column;
+        border-top: 2px solid #009246 !important;
     }
 
-    .orderInfo {
-        text-align: left;
-        margin-top: 0.5rem;
+    .badge {
+        background: #f0f0f0 !important;
+        color: #555 !important;
     }
 
-    .customer {
-        grid-template-columns: 1fr;
+    .badgeExtras {
+        background: #e6f7e6 !important;
+        color: #009246 !important;
+    }
+
+    .itemsTable tr {
+        page-break-inside: avoid;
+    }
+
+    .noPrint {
+        display: none !important;
     }
 }
