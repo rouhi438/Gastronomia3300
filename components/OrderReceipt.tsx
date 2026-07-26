@@ -43,15 +43,17 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
 
   const deliveryLabel =
     order.delivery_method === "pickup" ? "Afhentning" : "Levering";
-  const timeLabel = order.estimated_time
+  const customerTime = order.estimated_time
     ? `${order.estimated_time} min`
     : "Hurtigst muligt";
+
   const showAddress =
     order.delivery_method === "delivery" && order.customer_address;
+  const status = order.status === "accepted" ? "Accepteret" : order.status;
 
   return (
     <div className={styles.container}>
-      {/* ===== HEADER ===== */}
+      {/* ===== HEADER (COLUMN) ===== */}
       <div className={styles.header}>
         <div className={styles.brand}>
           <h1>{restaurantInfo.name}</h1>
@@ -73,7 +75,7 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
 
       <hr className={styles.divider} />
 
-      {/* ===== ORDER ITEMS ===== */}
+      {/* ===== ITEMS TABLE ===== */}
       <table className={styles.itemsTable}>
         <thead>
           <tr>
@@ -87,17 +89,23 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
           {order.order_items.map((item, index) => (
             <tr key={index}>
               <td>{item.quantity}</td>
-              <td>{item.name}</td>
               <td>
+                {item.name}
                 {item.size && item.size !== "normal" && (
-                  <span className={styles.badge}>{item.size}</span>
+                  <span className={styles.badge}> {item.size}</span>
                 )}
+                {/* ===== EXTRAS VERTICAL ===== */}
                 {item.extras && item.extras.length > 0 && (
-                  <span className={`${styles.badge} ${styles.badgeExtras}`}>
-                    (+{item.extras.join(", ")})
-                  </span>
+                  <div className={styles.extrasVertical}>
+                    {item.extras.map((extra, i) => (
+                      <span key={i} className={styles.extraItem}>
+                        • {extra}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </td>
+              <td></td>
               <td style={{ textAlign: "right" }}>
                 {item.unit_price * item.quantity} kr.
               </td>
@@ -126,7 +134,7 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
 
       <hr className={styles.divider} />
 
-      {/* ===== CUSTOMER INFO ===== */}
+      {/* ===== CUSTOMER INFO (COLUMN) ===== */}
       <div className={styles.customer}>
         <p>
           <strong>Kunde:</strong> {order.customer_name}
@@ -140,17 +148,21 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
           </p>
         )}
         <p>
-          <strong>Ønsket tid:</strong> {timeLabel}
+          <strong>Ønsket tid:</strong> {customerTime}
         </p>
         <p>
-          <strong>Status:</strong>{" "}
-          {order.status === "accepted" ? "Accepteret" : order.status}
+          <strong>Status:</strong> {status}
         </p>
       </div>
 
-      {/* ===== FOOTER ===== */}
+      {/* ===== FOOTER (COLUMN) ===== */}
       <div className={styles.footer}>
         <p>Tak for din bestilling!</p>
+        <p className={styles.acceptTime}>
+          {order.status === "accepted" && order.estimated_time
+            ? `Safarn til dig for ${order.estimated_time} minutter er accepteret.`
+            : "Din ordre er modtaget."}
+        </p>
         <p className={styles.powered}>Powered by Gastronomia 3300</p>
       </div>
     </div>

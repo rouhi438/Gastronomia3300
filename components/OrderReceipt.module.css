@@ -13,13 +13,13 @@
     transition: background 0.3s, color 0.3s;
 }
 
-/* ===== HEADER ===== */
+/* ===== HEADER (COLUMN) ===== */
 .header {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    margin-bottom: 0.3rem;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 0.5rem;
 }
 
 .brand h1 {
@@ -36,7 +36,7 @@
 }
 
 .orderInfo {
-    text-align: right;
+    margin-top: 0.3rem;
     font-size: 11px;
     color: var(--text-secondary);
 }
@@ -72,6 +72,7 @@
     padding: 3px 0;
     border-bottom: 1px solid var(--border-color);
     color: var(--text-primary);
+    vertical-align: top;
 }
 
 /* ===== BADGES ===== */
@@ -82,12 +83,21 @@
     border-radius: 3px;
     font-size: 10px;
     color: var(--text-muted);
-    margin-right: 2px;
+    margin-left: 3px;
 }
 
-.badgeExtras {
-    background: rgba(0, 146, 70, 0.12);
-    color: var(--green);
+/* ===== EXTRAS VERTICAL ===== */
+.extrasVertical {
+    display: flex;
+    flex-direction: column;
+    margin-top: 2px;
+    gap: 1px;
+}
+
+.extraItem {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-left: 4px;
 }
 
 /* ===== TOTALS ===== */
@@ -112,25 +122,25 @@
     margin-top: 2px;
 }
 
-/* ===== CUSTOMER INFO ===== */
+/* ===== CUSTOMER INFO (COLUMN) ===== */
 .customer {
     margin-top: 0.6rem;
     font-size: 11px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1px 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
     color: var(--text-primary);
 }
 
 .customer p {
-    margin: 1px 0;
+    margin: 0;
 }
 
 .customer strong {
     color: var(--text-secondary);
 }
 
-/* ===== FOOTER ===== */
+/* ===== FOOTER (COLUMN) ===== */
 .footer {
     margin-top: 1rem;
     text-align: center;
@@ -138,17 +148,26 @@
     color: var(--text-muted);
     border-top: 1px solid var(--border-color);
     padding-top: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.footer p {
+    margin: 0;
+}
+
+.acceptTime {
+    font-weight: 600;
+    color: var(--green);
 }
 
 .powered {
     font-size: 9px;
     color: var(--text-muted);
-    margin-top: 1px;
 }
 
-/* ============================================================
-   PRINT STYLES (تنظیم برای یک صفحه A4)
-   ============================================================ */
+/* PRINT STYLES */
 @media print {
     body * {
         visibility: hidden;
@@ -210,8 +229,11 @@
         color: #555 !important;
     }
 
-    .badgeExtras {
-        background: #e6f7e6 !important;
+    .extraItem {
+        color: #555 !important;
+    }
+
+    .acceptTime {
         color: #009246 !important;
     }
 
