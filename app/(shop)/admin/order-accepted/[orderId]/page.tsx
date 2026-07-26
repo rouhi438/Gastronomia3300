@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
+import OrderReceipt from "@/components/OrderReceipt";
 import styles from "./order-accepted.module.css";
 
 interface Order {
@@ -12,6 +13,7 @@ interface Order {
   total_price: number;
   status: string;
   estimated_time: number | null;
+  delivery_method: "pickup" | "delivery";
   created_at: string;
   order_items: {
     id: number;
@@ -100,59 +102,37 @@ export default function OrderAcceptedPage() {
   if (error) return <div className={styles.error}>Fejl: {error}</div>;
   if (!order) return <div className={styles.error}>Ingen ordre fundet.</div>;
 
-  const acceptedTime = new Date().toLocaleTimeString("da-DK", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  // ===== OrderReceipt =====
+  const receiptOrder = {
+    id: order.id,
+    created_at: order.created_at,
+    customer_name: order.customer_name,
+    customer_phone: order.customer_phone,
+    customer_address: order.customer_address,
+    delivery_method: order.delivery_method || "pickup",
+    estimated_time: order.estimated_time || null,
+    total_price: order.total_price,
+    status: order.status,
+    order_items: order.order_items.map((item) => ({
+      name: item.item_name,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      size: item.size,
+      extras: item.extras,
+    })),
+  };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.badge}>✅</div>
-        <h1 className={styles.title}>Ordre accepteret</h1>
-        <p className={styles.message}>
-          Ordre #{order.id} er accepteret og vil være klar om ca.{" "}
-          <strong>{estimatedTime} minutter</strong>.
-        </p>
-        <p className={styles.timeStamp}>Accepteret kl. {acceptedTime}</p>
-
-        <div className={styles.orderSummary}>
-          <h3>Ordre detaljer</h3>
-          <p>
-            <strong>{order.customer_name}</strong>
-            {order.customer_address && <span> • {order.customer_address}</span>}
-            <span> • {order.customer_phone}</span>
-          </p>
-          <ul>
-            {order.order_items.map((item) => (
-              <li key={item.id}>
-                {item.quantity}× {item.item_name}
-                {item.size && item.size !== "normal" && (
-                  <span className={styles.meta}> ({item.size})</span>
-                )}
-                {item.extras && item.extras.length > 0 && (
-                  <span className={styles.meta}>
-                    {" "}
-                    (+{item.extras.join(", ")})
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-          <p className={styles.total}>
-            I alt: <strong>{order.total_price} kr.</strong>
-          </p>
-        </div>
-
-        <div className={styles.actions}>
-          <button className={styles.printBtn} onClick={handlePrint}>
-            🖨️ Print
-          </button>
-          <button className={styles.doneBtn} onClick={handleGoBack}>
-            Tilbage til oversigt
-          </button>
-        </div>
+    <div className={styles.page}>
+      <div className={styles.actionsBar}>
+        <button className={styles.printBtn} onClick={handlePrint}>
+          🖨️ Print
+        </button>
+        <button className={styles.doneBtn} onClick={handleGoBack}>
+          Tilbage til oversigt
+        </button>
       </div>
+      <OrderReceipt order={receiptOrder} />
     </div>
   );
 }
