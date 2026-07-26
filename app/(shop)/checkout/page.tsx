@@ -77,7 +77,7 @@ export default function CheckoutPage() {
 
       alert(`Tak for din bestilling! Ordre #${result.order_id} er modtaget.`);
       clearCart();
-      router.push("/");
+      router.push("/admin/new-order");
     } catch (error: any) {
       alert(`Fejl ved oprettelse af ordre: ${error.message}`);
     } finally {
