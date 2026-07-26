@@ -29,19 +29,17 @@ export default function SelectTimePage() {
 
     setLoading(true);
     const token = localStorage.getItem("access_token");
-    const refreshToken = localStorage.getItem("refresh_token");
     if (!token) {
       router.push("/auth");
       return;
     }
 
     try {
-      const res = await fetch(`/api/admin/${orderId}`, {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
-          "X-Refresh-Token": refreshToken || "",
         },
         body: JSON.stringify({
           status: "accepted",
@@ -49,28 +47,17 @@ export default function SelectTimePage() {
         }),
       });
 
-      if (res.status === 401) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        router.push("/auth");
-        return;
-      }
-
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Kunne ikke acceptere ordre");
       }
 
-      setTimeout(() => window.print(), 300);
+      // ===== REDIRECT TO ORDER ACCEPTED PAGE WITH AUTO PRINT =====
       router.push(`/admin/order-accepted/${orderId}?time=${selectedTime}`);
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
     }
-  };
-
-  const handleCancel = () => {
-    router.push("/admin/new-order");
   };
 
   return (
@@ -108,7 +95,7 @@ export default function SelectTimePage() {
           </button>
           <button
             className={styles.cancelBtn}
-            onClick={handleCancel}
+            onClick={() => router.push("/admin/new-order")}
             disabled={loading}
           >
             Annuller
