@@ -24,22 +24,24 @@ export async function PATCH(
     // =Refresh token if needed =
     let validToken: string = token;
 
-    try {
-      const refreshedToken = await getValidToken(token, refreshToken);
+    if (refreshToken) {
+      try {
+        const refreshedToken = await getValidToken(token, refreshToken);
 
-      if (!refreshedToken) {
+        if (!refreshedToken) {
+          return NextResponse.json(
+            { error: "Session expired. Please login again." },
+            { status: 401 },
+          );
+        }
+
+        validToken = refreshedToken;
+      } catch {
         return NextResponse.json(
           { error: "Session expired. Please login again." },
           { status: 401 },
         );
       }
-
-      validToken = refreshedToken;
-    } catch {
-      return NextResponse.json(
-        { error: "Session expired. Please login again." },
-        { status: 401 },
-      );
     }
 
     // ==Verify user
@@ -80,7 +82,7 @@ export async function PATCH(
     }
 
     // ===== Build update data
-    const updateData: any = { status };
+    const updateData: Record<string, unknown> = { status };
     if (estimated_time !== undefined && status === "accepted") {
       updateData.estimated_time = estimated_time;
     }

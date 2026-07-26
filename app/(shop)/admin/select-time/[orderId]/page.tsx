@@ -29,6 +29,7 @@ export default function SelectTimePage() {
 
     setLoading(true);
     const token = localStorage.getItem("access_token");
+    const refreshToken = localStorage.getItem("refresh_token");
     if (!token) {
       router.push("/auth");
       return;
@@ -40,12 +41,20 @@ export default function SelectTimePage() {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          "X-Refresh-Token": refreshToken || "",
         },
         body: JSON.stringify({
           status: "accepted",
           estimated_time: selectedTime,
         }),
       });
+
+      if (res.status === 401) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        router.push("/auth");
+        return;
+      }
 
       if (!res.ok) {
         const data = await res.json();
@@ -54,8 +63,10 @@ export default function SelectTimePage() {
 
       // ===== REDIRECT TO ORDER ACCEPTED PAGE WITH AUTO PRINT =====
       router.push(`/admin/order-accepted/${orderId}?time=${selectedTime}`);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Kunne ikke acceptere ordre";
+      setError(message);
       setLoading(false);
     }
   };
