@@ -29,16 +29,19 @@ export default function SelectTimePage() {
 
     setLoading(true);
     const token = localStorage.getItem("access_token");
+    const refreshToken = localStorage.getItem("refresh_token");
     if (!token) {
       router.push("/auth");
       return;
     }
+
     try {
-      const res = await fetch(`/api/admin/orders/${orderId}`, {
+      const res = await fetch(`/api/admin/${orderId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          "X-Refresh-Token": refreshToken || "",
         },
         body: JSON.stringify({
           status: "accepted",
@@ -46,26 +49,28 @@ export default function SelectTimePage() {
         }),
       });
 
-      if (!res.ok) {
-        const text = await res.text(); // یا res.json() اگر JSON است
-        console.error("API error response:", text);
-        throw new Error(
-          `Kunne ikke acceptere ordre: ${res.status} ${res.statusText}`,
-        );
+      if (res.status === 401) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        router.push("/auth");
+        return;
       }
 
-      const data = await res.json();
-      // Auto print after successful accept
-      setTimeout(() => {
-        window.print();
-      }, 300);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Kunne ikke acceptere ordre");
+      }
 
+      setTimeout(() => window.print(), 300);
       router.push(`/admin/order-accepted/${orderId}?time=${selectedTime}`);
     } catch (err: any) {
-      console.error("Fetch error:", err);
-      setError(err.message || "Der opstod en fejl.");
+      setError(err.message);
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    router.push("/admin/new-order");
   };
 
   return (
@@ -103,7 +108,7 @@ export default function SelectTimePage() {
           </button>
           <button
             className={styles.cancelBtn}
-            onClick={() => router.push("/admin/new-order")}
+            onClick={handleCancel}
             disabled={loading}
           >
             Annuller

@@ -38,6 +38,7 @@ export default function OrderAcceptedPage() {
   useEffect(() => {
     const fetchOrder = async () => {
       const token = localStorage.getItem("access_token");
+      const refreshToken = localStorage.getItem("refresh_token");
       if (!token) {
         router.push("/auth");
         return;
@@ -45,12 +46,24 @@ export default function OrderAcceptedPage() {
 
       try {
         const res = await fetch("/api/admin/orders", {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "X-Refresh-Token": refreshToken || "",
+          },
         });
+
+        if (res.status === 401) {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          router.push("/auth");
+          return;
+        }
+
         if (!res.ok) {
           const data = await res.json();
           throw new Error(data.error || "Failed to fetch order");
         }
+
         const data = await res.json();
         const found = data.orders.find((o: Order) => o.id === Number(orderId));
         if (!found) throw new Error("Order not found");
@@ -65,7 +78,6 @@ export default function OrderAcceptedPage() {
     fetchOrder();
   }, [orderId, router]);
 
-  // Auto print after 500ms
   useEffect(() => {
     if (!loading && order && !printed) {
       const timer = setTimeout(() => {

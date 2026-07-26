@@ -44,7 +44,6 @@ export default function AdminOrdersPage() {
   const prevPendingCountRef = useRef<number>(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // ===== Play beep =====
   const playBeep = () => {
     try {
       const audioCtx = new (
@@ -63,12 +62,9 @@ export default function AdminOrdersPage() {
       );
       oscillator.start();
       oscillator.stop(audioCtx.currentTime + 0.2);
-    } catch (_) {
-      // Ignore if audio not supported
-    }
+    } catch (_) {}
   };
 
-  // ===== Fetch orders =====
   const fetchOrders = async (showNotification = false) => {
     const token = localStorage.getItem("access_token");
     const refreshToken = localStorage.getItem("refresh_token");
@@ -85,7 +81,6 @@ export default function AdminOrdersPage() {
         },
       });
 
-      // If token expired, redirect to login
       if (res.status === 401) {
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
@@ -101,7 +96,6 @@ export default function AdminOrdersPage() {
       const data = await res.json();
       const newOrders = data.orders || [];
 
-      // Check for new pending orders
       if (showNotification && prevPendingCountRef.current > 0) {
         const newPending = newOrders.filter(
           (o: Order) => o.status === "pending",
@@ -126,7 +120,6 @@ export default function AdminOrdersPage() {
     }
   };
 
-  // ===== Initial fetch + polling =====
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (!token) {
@@ -136,20 +129,18 @@ export default function AdminOrdersPage() {
 
     fetchOrders(false);
     intervalRef.current = setInterval(() => fetchOrders(true), 10000);
-
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [router]);
 
-  // ===== Update order status =====
   const updateStatus = async (orderId: number, newStatus: OrderStatus) => {
     const token = localStorage.getItem("access_token");
     const refreshToken = localStorage.getItem("refresh_token");
     if (!token) return;
 
     try {
-      const res = await fetch(`/api/admin/orders/${orderId}`, {
+      const res = await fetch(`/api/admin/${orderId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -171,14 +162,12 @@ export default function AdminOrdersPage() {
         throw new Error(data.error || "Failed to update status");
       }
 
-      // Refresh list after update
       fetchOrders(false);
     } catch (err: any) {
       alert(err.message);
     }
   };
 
-  // ===== Print kitchen receipt =====
   const printReceipt = (order: Order) => {
     const printContent = `
       <html>
@@ -193,10 +182,7 @@ export default function AdminOrdersPage() {
             li { padding: 0.3rem 0; border-bottom: 1px solid #eee; }
             .item-extras { font-size: 0.8rem; color: #666; margin-left: 0.5rem; }
             .footer { margin-top: 1.5rem; text-align: center; font-size: 0.8rem; color: #888; border-top: 1px solid #ddd; padding-top: 0.5rem; }
-            @media print {
-              body { margin: 0; padding: 1rem; }
-              .no-print { display: none; }
-            }
+            @media print { body { margin: 0; padding: 1rem; } }
           </style>
         </head>
         <body>
@@ -301,7 +287,6 @@ export default function AdminOrdersPage() {
               </div>
 
               <div className={styles.orderActions}>
-                {/* ===== PRINT BUTTON ===== */}
                 <button
                   className={styles.printBtn}
                   onClick={() => printReceipt(order)}
@@ -309,7 +294,6 @@ export default function AdminOrdersPage() {
                   🖨️ Køkkenbon
                 </button>
 
-                {/* ===== STATUS BUTTONS ===== */}
                 {(
                   [
                     "pending",
