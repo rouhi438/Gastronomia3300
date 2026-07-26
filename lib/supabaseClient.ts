@@ -27,3 +27,18 @@ export const supabaseAdmin =
   supabaseUrl && supabaseServiceKey
     ? createClient(supabaseUrl, supabaseServiceKey)
     : null;
+
+// auto refresh admin token
+export const getValidToken = async (
+  accessToken: string,
+  refreshToken: string,
+) => {
+  if (!supabase) throw new Error("Supabase client not configured");
+  const { data, error } = await supabase.auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+
+  if (error) throw new Error("Invalid token");
+  return data.session?.access_token;
+};

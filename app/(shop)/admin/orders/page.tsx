@@ -44,6 +44,7 @@ export default function AdminOrdersPage() {
   const prevPendingCountRef = useRef<number>(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // ===== Play beep =====
   const playBeep = () => {
     try {
       const audioCtx = new (
@@ -62,11 +63,15 @@ export default function AdminOrdersPage() {
       );
       oscillator.start();
       oscillator.stop(audioCtx.currentTime + 0.2);
-    } catch (_) {}
+    } catch (_) {
+      // Ignore if audio not supported
+    }
   };
 
+  // ===== Fetch orders =====
   const fetchOrders = async (showNotification = false) => {
     const token = localStorage.getItem("access_token");
+    const refreshToken = localStorage.getItem("refresh_token");
     if (!token) {
       router.push("/auth");
       return;
@@ -74,15 +79,29 @@ export default function AdminOrdersPage() {
 
     try {
       const res = await fetch("/api/admin/orders", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "X-Refresh-Token": refreshToken || "",
+        },
       });
+
+      // If token expired, redirect to login
+      if (res.status === 401) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        router.push("/auth");
+        return;
+      }
+
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Failed to fetch orders");
       }
+
       const data = await res.json();
       const newOrders = data.orders || [];
 
+      // Check for new pending orders
       if (showNotification && prevPendingCountRef.current > 0) {
         const newPending = newOrders.filter(
           (o: Order) => o.status === "pending",
@@ -107,42 +126,59 @@ export default function AdminOrdersPage() {
     }
   };
 
+  // ===== Initial fetch + polling =====
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (!token) {
       router.push("/auth");
       return;
     }
+
     fetchOrders(false);
     intervalRef.current = setInterval(() => fetchOrders(true), 10000);
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [router]);
 
+  // ===== Update order status =====
   const updateStatus = async (orderId: number, newStatus: OrderStatus) => {
     const token = localStorage.getItem("access_token");
+    const refreshToken = localStorage.getItem("refresh_token");
     if (!token) return;
+
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          "X-Refresh-Token": refreshToken || "",
         },
         body: JSON.stringify({ status: newStatus }),
       });
+
+      if (res.status === 401) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        router.push("/auth");
+        return;
+      }
+
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Failed to update status");
       }
+
+      // Refresh list after update
       fetchOrders(false);
     } catch (err: any) {
       alert(err.message);
     }
   };
 
-  // ===== PRINT KITCHEN RECEIPT =====
+  // ===== Print kitchen receipt =====
   const printReceipt = (order: Order) => {
     const printContent = `
       <html>
@@ -196,6 +232,8 @@ export default function AdminOrdersPage() {
     if (win) {
       win.document.write(printContent);
       win.document.close();
+    } else {
+      alert("Pop-up blokeret. Tillad pop-ups for at udskrive.");
     }
   };
 
@@ -208,6 +246,7 @@ export default function AdminOrdersPage() {
         <div className={styles.notification}>{notification}</div>
       )}
       <h1 className={styles.title}>Ordreoversigt</h1>
+
       {orders.length === 0 ? (
         <p className={styles.empty}>Ingen ordrer endnu.</p>
       ) : (
@@ -261,7 +300,6 @@ export default function AdminOrdersPage() {
                 </ul>
               </div>
 
-              {/* ===== ORDER ACTIONS (Buttons) ===== */}
               <div className={styles.orderActions}>
                 {/* ===== PRINT BUTTON ===== */}
                 <button

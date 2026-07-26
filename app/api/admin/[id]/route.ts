@@ -1,39 +1,64 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase, getValidToken } from "@/lib/supabaseClient";
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    if (!supabase) {
-      return NextResponse.json(
-        {
-          error:
-            "Supabase is not configured. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
-        },
-        { status: 500 },
-      );
-    }
-
-    const { id: orderId } = await params; // ← await
-
+    // =Get tokens from headers
     const token = request.headers.get("Authorization")?.replace("Bearer ", "");
+    const refreshToken = request.headers.get("X-Refresh-Token") || "";
+
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!supabase) {
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 500 },
+      );
+    }
+
+    // =Refresh token if needed =
+    let validToken: string = token;
+
+    try {
+      const refreshedToken = await getValidToken(token, refreshToken);
+
+      if (!refreshedToken) {
+        return NextResponse.json(
+          { error: "Session expired. Please login again." },
+          { status: 401 },
+        );
+      }
+
+      validToken = refreshedToken;
+    } catch {
+      return NextResponse.json(
+        { error: "Session expired. Please login again." },
+        { status: 401 },
+      );
+    }
+
+    // ==Verify user
     const { data: userData, error: userError } =
-      await supabase.auth.getUser(token);
+      await supabase.auth.getUser(validToken);
     if (userError || !userData.user) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
+    // =Check admin role =
     const role = userData.user.user_metadata?.role;
     if (role !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // ====Get order ID
+    const { id: orderId } = await params;
+
+    // ==Parse request body
     const { status, estimated_time } = await request.json();
 
     if (!status) {
@@ -53,11 +78,14 @@ export async function PATCH(
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
-    // update object
+
+    // ===== Build update data
     const updateData: any = { status };
     if (estimated_time !== undefined && status === "accepted") {
       updateData.estimated_time = estimated_time;
     }
+
+    // ===== 8. Update order in database =====
     const { data: updatedOrder, error: updateError } = await supabase
       .from("orders")
       .update(updateData)
