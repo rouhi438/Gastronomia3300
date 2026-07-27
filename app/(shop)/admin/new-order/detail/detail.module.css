@@ -1,145 +1,178 @@
 .container {
     min-height: 100vh;
-    background-color: var(--bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
+    background: var(--bg);
+    padding: 2rem 1rem;
 }
 
 .card {
-    background-color: var(--bg-card);
-    border-radius: 16px;
-    padding: 2rem;
-    max-width: 600px;
     width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
     box-shadow: var(--shadow);
 }
 
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.top {
+    padding: 1.5rem;
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.5rem;
-    margin-bottom: 0.5rem;
+}
+
+.orderHeading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
 }
 
 .orderId {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--text-primary);
     margin: 0;
-}
-
-.status {
-    background-color: #f59e0b;
-    color: #ffffff;
-    padding: 0.2rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.date {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    margin: 0 0 0.5rem 0;
-}
-
-.customer {
     color: var(--text-primary);
-    margin-bottom: 1rem;
+    font-size: 1.45rem;
+    font-weight: 800;
 }
 
-.customer span {
-    color: var(--text-muted);
-    margin-left: 0.3rem;
+.totalPrice {
+    color: var(--red);
+    font-size: 1.4rem;
+    white-space: nowrap;
+}
+
+.customerInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-top: 1.25rem;
+}
+
+.infoRow {
+    display: grid;
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.96rem;
+    line-height: 1.45;
+}
+
+.infoLabel {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.phone {
+    width: fit-content;
+    color: var(--green);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.phone:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 3px;
+    border-radius: 4px;
 }
 
 .items {
-    margin: 1rem 0;
-}
-
-.items ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.items li {
-    padding: 0.3rem 0;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 0.95rem;
-    color: var(--text-primary);
-}
-
-.meta {
-    color: var(--text-muted);
-}
-
-.total {
     display: flex;
-    justify-content: space-between;
-    font-size: 1.2rem;
-    font-weight: 600;
-    border-top: 2px solid var(--border-color);
-    padding-top: 1rem;
-    margin-top: 1rem;
+    flex-direction: column;
 }
 
-.total strong {
-    color: var(--green);
-}
-
-.actions {
-    display: flex;
+.item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 1rem;
-    margin-top: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
 }
 
-.acceptBtn {
-    flex: 1;
-    padding: 0.8rem;
-    background-color: var(--green);
-    color: #ffffff;
-    border: none;
-    border-radius: 50px;
-    font-size: 1.1rem;
+.itemMain {
+    min-width: 0;
+}
+
+.itemTitleRow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.quantity {
+    color: var(--text-primary);
     font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.2s;
 }
 
-.acceptBtn:hover:not(:disabled) {
-    opacity: 0.85;
+.itemName {
+    color: var(--text-primary);
+    font-size: 1rem;
 }
 
-.acceptBtn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.cancelBtn {
-    flex: 1;
-    padding: 0.8rem;
-    background-color: var(--red);
-    color: #ffffff;
-    border: none;
-    border-radius: 50px;
-    font-size: 1.1rem;
+.sizeBadge {
+    padding: 0.16rem 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--green) 45%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--green) 12%, transparent);
+    color: var(--green);
+    font-size: 0.72rem;
     font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.2s;
 }
 
-.cancelBtn:hover:not(:disabled) {
-    opacity: 0.85;
+.extras {
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+    margin-top: 0.5rem;
+    padding-left: 2rem;
 }
 
-.cancelBtn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.extra {
+    color: var(--green);
+    font-size: 0.88rem;
+    line-height: 1.4;
+}
+
+.itemPrice {
+    align-self: flex-start;
+    color: var(--red);
+    font-size: 1rem;
+    white-space: nowrap;
+}
+
+.orderFooter {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.footerRow {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.footerLabel {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.statusBadge {
+    width: fit-content;
+    padding: 0.24rem 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--green) 55%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--green) 12%, transparent);
+    color: var(--green);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.estimatedTime {
+    color: var(--green);
 }
 
 .loading,
@@ -148,6 +181,58 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
     color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    .card {
+        box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
+    }
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .top {
+        padding: 1.1rem;
+    }
+
+    .orderHeading {
+        align-items: flex-start;
+    }
+
+    .orderId,
+    .totalPrice {
+        font-size: 1.2rem;
+    }
+
+    .infoRow {
+        grid-template-columns: 65px minmax(0, 1fr);
+        font-size: 0.9rem;
+    }
+
+    .item {
+        padding: 1rem 1.1rem;
+        gap: 0.7rem;
+    }
+
+    .extras {
+        padding-left: 1.65rem;
+    }
+
+    .itemPrice {
+        font-size: 0.92rem;
+    }
+
+    .orderFooter {
+        padding: 1rem 1.1rem 1.25rem;
+    }
+
+    .footerRow {
+        grid-template-columns: 96px minmax(0, 1fr);
+        font-size: 0.9rem;
+    }
 }
