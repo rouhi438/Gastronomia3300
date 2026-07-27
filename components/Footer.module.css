@@ -33,3 +33,9 @@
     border-top: 1px solid var(--border-color);
     padding-top: 1rem;
 }
+
+@media print {
+    .footer {
+        display: none !important;
+    }
+}

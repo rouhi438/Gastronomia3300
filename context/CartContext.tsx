@@ -15,7 +15,7 @@ export interface CartItem {
   name: string;
   price: number;
   quantity: number;
-  size?: "normal" | "family" | "children";
+  size?: "normal" | "family" | "children" | "deepPan";
   deepPan?: boolean;
   image?: string;
   extras?: Extra[];

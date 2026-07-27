@@ -282,6 +282,18 @@
 
 @media print {
 
+    :global(html),
+    :global(body) {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+    }
+
+    :global(main) {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
     .container,
     .container * {
         visibility: visible;
@@ -299,7 +311,9 @@
         border-radius: 0 !important;
         box-shadow: none !important;
         font-size: 11px;
-        page-break-after: avoid;
+        break-after: auto;
+        page-break-after: auto;
+
     }
 
     .brand h1 {

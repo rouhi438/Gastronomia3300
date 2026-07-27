@@ -10,6 +10,7 @@ export default function ShopLayout({
 }) {
   return (
     <div
+      className="shop-layout"
       style={{
         display: "flex",
         flexDirection: "column",

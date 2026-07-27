@@ -296,3 +296,9 @@
         height: calc(100vh - 80px);
     }
 }
+
+@media print {
+    .header {
+        display: none !important;
+    }
+}

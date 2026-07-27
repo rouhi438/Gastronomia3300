@@ -107,3 +107,9 @@
         font-size: 0.95rem;
     }
 }
+
+@media print {
+    .bar {
+        display: none !important;
+    }
+}

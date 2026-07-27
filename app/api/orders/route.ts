@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       item_name: item.name,
       quantity: item.quantity,
       unit_price: item.price,
-      size: item.size || "normal",
+      size: item.deepPan ? "deepPan" : item.size || "normal",
       extras: item.extras || [],
     }));
 
