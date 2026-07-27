@@ -1,19 +1,21 @@
-/* components/OrderReceipt.module.css */
 .container {
     max-width: 700px;
     margin: 0 auto;
     padding: 1.8rem 1.5rem;
-    font-family: 'Arial', 'Helvetica', sans-serif;
+    font-family: "Arial", "Helvetica", sans-serif;
     background: var(--bg-card);
     color: var(--text-primary);
     font-size: 12px;
     line-height: 1.4;
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    transition: background 0.3s, color 0.3s;
+    transition:
+        background 0.3s,
+        color 0.3s;
 }
 
-/* ===== HEADER (COLUMN) ===== */
+/* ===== HEADER ===== */
+
 .header {
     display: flex;
     flex-direction: column;
@@ -23,9 +25,9 @@
 }
 
 .brand h1 {
-    font-size: 18px;
-    margin: 0 0 2px 0;
+    margin: 0 0 2px;
     color: var(--green);
+    font-size: 18px;
     letter-spacing: 0.5px;
 }
 
@@ -37,22 +39,56 @@
 
 .orderInfo {
     margin-top: 0.3rem;
-    font-size: 11px;
     color: var(--text-secondary);
+    font-size: 11px;
 }
 
 .orderInfo p {
     margin: 1px 0;
 }
 
+.orderTypeRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.orderTypeBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 9px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.pickupBadge {
+    color: #007d41;
+    background: rgba(0, 146, 70, 0.12);
+    border-color: rgba(0, 146, 70, 0.3);
+}
+
+.deliveryBadge {
+    color: #1d5fc4;
+    background: rgba(37, 99, 235, 0.12);
+    border-color: rgba(37, 99, 235, 0.3);
+}
+
 /* ===== DIVIDER ===== */
+
 .divider {
+    margin: 0.5rem 0;
     border: none;
     border-top: 1px dashed var(--border-color);
-    margin: 0.5rem 0;
 }
 
 /* ===== ITEMS TABLE ===== */
+
 .itemsTable {
     width: 100%;
     border-collapse: collapse;
@@ -60,47 +96,98 @@
 }
 
 .itemsTable th {
-    text-align: left;
-    border-bottom: 1px solid var(--border-color);
     padding: 3px 0;
-    font-weight: 600;
-    font-size: 11px;
     color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
 }
 
 .itemsTable td {
-    padding: 3px 0;
-    border-bottom: 1px solid var(--border-color);
+    padding: 5px 0;
     color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
     vertical-align: top;
 }
 
-/* ===== BADGES ===== */
-.badge {
-    display: inline-block;
-    background: var(--bg);
-    padding: 0 4px;
-    border-radius: 3px;
-    font-size: 10px;
-    color: var(--text-muted);
-    margin-left: 3px;
+.priceColumn {
+    text-align: right !important;
+    white-space: nowrap;
 }
 
-/* ===== EXTRAS VERTICAL ===== */
+/* ===== ITEM TITLE ===== */
+
+.itemTitleRow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.itemName {
+    font-weight: 500;
+}
+
+/* ===== BADGES ===== */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    color: var(--text-muted);
+    background: var(--bg);
+    border-radius: 999px;
+    font-size: 9px;
+    line-height: 1.2;
+}
+
+.proteinBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    color: var(--text-secondary);
+    background: rgba(128, 128, 128, 0.14);
+    border: 1px solid rgba(128, 128, 128, 0.2);
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+/* ===== EXTRAS ===== */
+
 .extrasVertical {
     display: flex;
     flex-direction: column;
-    margin-top: 2px;
     gap: 1px;
+    margin-top: 4px;
 }
 
 .extraItem {
-    font-size: 10px;
-    color: var(--text-muted);
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
     margin-left: 4px;
+    color: var(--green);
+    font-size: 10px;
+    line-height: 1.35;
+}
+
+.extraPlus {
+    min-width: 8px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.extraPrice {
+    font-size: 9px;
+    font-weight: 600;
+    opacity: 0.9;
 }
 
 /* ===== TOTALS ===== */
+
 .totals {
     margin-top: 0.3rem;
     text-align: right;
@@ -111,25 +198,26 @@
     justify-content: flex-end;
     gap: 2rem;
     padding: 1px 0;
-    font-size: 12px;
     color: var(--text-primary);
+    font-size: 12px;
 }
 
 .grandTotal {
-    font-size: 15px;
-    border-top: 2px solid var(--green);
-    padding-top: 4px;
     margin-top: 2px;
+    padding-top: 4px;
+    border-top: 2px solid var(--green);
+    font-size: 15px;
 }
 
-/* ===== CUSTOMER INFO (COLUMN) ===== */
+/* ===== CUSTOMER INFO ===== */
+
 .customer {
-    margin-top: 0.6rem;
-    font-size: 11px;
     display: flex;
     flex-direction: column;
     gap: 2px;
+    margin-top: 0.6rem;
     color: var(--text-primary);
+    font-size: 11px;
 }
 
 .customer p {
@@ -140,17 +228,18 @@
     color: var(--text-secondary);
 }
 
-/* ===== FOOTER (COLUMN) ===== */
+/* ===== FOOTER ===== */
+
 .footer {
-    margin-top: 1rem;
-    text-align: center;
-    font-size: 11px;
-    color: var(--text-muted);
-    border-top: 1px solid var(--border-color);
-    padding-top: 0.6rem;
     display: flex;
     flex-direction: column;
     gap: 4px;
+    margin-top: 1rem;
+    padding-top: 0.6rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+    font-size: 11px;
 }
 
 .footer p {
@@ -158,20 +247,40 @@
 }
 
 .acceptTime {
-    font-weight: 600;
     color: var(--green);
+    font-weight: 600;
 }
 
 .powered {
-    font-size: 9px;
     color: var(--text-muted);
+    font-size: 9px;
 }
 
-/* PRINT STYLES */
-@media print {
-    body * {
-        visibility: hidden;
+/* ===== MOBILE ===== */
+
+@media (max-width: 480px) {
+    .container {
+        padding: 1.4rem 1rem;
     }
+
+    .itemsTable th:nth-child(3),
+    .itemsTable td:nth-child(3) {
+        display: none;
+    }
+
+    .itemsTable th:first-child,
+    .itemsTable td:first-child {
+        width: 42px;
+    }
+
+    .priceColumn {
+        width: 70px;
+    }
+}
+
+/* ===== PRINT ===== */
+
+@media print {
 
     .container,
     .container * {
@@ -179,18 +288,17 @@
     }
 
     .container {
-        position: fixed;
-        left: 0;
         top: 0;
+        left: 0;
         width: 100%;
         max-width: 100%;
-        padding: 1.5rem 1.2rem;
-        background: #ffffff !important;
-        color: #1a1a1a !important;
         margin: 0;
-        font-size: 11px;
-        box-shadow: none !important;
+        padding: 1.5rem 1.2rem;
+        color: #1a1a1a !important;
+        background: #ffffff !important;
         border-radius: 0 !important;
+        box-shadow: none !important;
+        font-size: 11px;
         page-break-after: avoid;
     }
 
@@ -225,12 +333,37 @@
     }
 
     .badge {
-        background: #f0f0f0 !important;
         color: #555 !important;
+        background: #f0f0f0 !important;
     }
 
-    .extraItem {
-        color: #555 !important;
+    .proteinBadge {
+        color: #444 !important;
+        background: #eeeeee !important;
+        border-color: #d4d4d4 !important;
+    }
+
+    .orderTypeBadge {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .pickupBadge {
+        color: #007d41 !important;
+        background: #e9f7ef !important;
+        border-color: #a8d9bd !important;
+    }
+
+    .deliveryBadge {
+        color: #1d5fc4 !important;
+        background: #edf3ff !important;
+        border-color: #b8cdf5 !important;
+    }
+
+    .extraItem,
+    .extraPrice,
+    .extraPlus {
+        color: #009246 !important;
     }
 
     .acceptTime {
