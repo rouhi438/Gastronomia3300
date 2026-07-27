@@ -3,6 +3,7 @@
 export interface Extra {
   name: string;
   price: number;
+   groupId?: keyof typeof extraGroups;
 }
 
 export interface MenuItem {
@@ -21,6 +22,7 @@ export interface MenuItem {
   deepPanExtra?: number;
   image?: string;
   extraGroupId: keyof typeof extraGroups;
+  extraGroupIds?: (keyof typeof extraGroups)[];
 }
 
 // EXTRA GROUPS
@@ -383,6 +385,7 @@ export const menuData: MenuItem[] = [
     prices: { fixed: 75 },
     image: "",
     extraGroupId: "proteinChoice",
+    extraGroupIds: ["proteinChoice", "pizza"],
   },
 
   {
@@ -393,6 +396,7 @@ export const menuData: MenuItem[] = [
     prices: { fixed: 50 },
     image: "",
     extraGroupId: "proteinChoice",
+    extraGroupIds: ["proteinChoice", "pizza"],
   },
   {
     id: 28,
@@ -402,6 +406,7 @@ export const menuData: MenuItem[] = [
     prices: { fixed: 60 },
     image: "",
     extraGroupId: "proteinChoice",
+    extraGroupIds: ["proteinChoice", "pizza"],
   },
   {
     id: 29,
@@ -411,6 +416,7 @@ export const menuData: MenuItem[] = [
     prices: { fixed: 60 },
     image: "",
     extraGroupId: "proteinChoice",
+    extraGroupIds: ["proteinChoice", "pizza"],
   },
 
   // 30-36: HOVEDRETTER (Main Courses)

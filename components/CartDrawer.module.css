@@ -164,7 +164,28 @@
     font-weight: 500;
 }
 
-/* ===== EXTRAS COLUMN (ستونی با علامت +) ===== */
+.itemTitleRow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+.proteinLabel {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #b8b8b8;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+/* ===== EXTRAS COLUMN ===== */
 .extrasColumn {
     display: flex;
     flex-direction: column;

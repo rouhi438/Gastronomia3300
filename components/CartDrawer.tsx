@@ -81,6 +81,19 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <>
                 <ul className={styles.list}>
                   {items.map((item) => {
+                    const proteinChoice = item.extras?.find(
+                      (extra) =>
+                        extra.groupId === "proteinChoice" ||
+                        extra.groupId === "nachosProtein",
+                    );
+
+                    const paidExtras =
+                      item.extras?.filter(
+                        (extra) =>
+                          extra.groupId !== "proteinChoice" &&
+                          extra.groupId !== "nachosProtein",
+                      ) ?? [];
+
                     return (
                       <li
                         key={item.cartId}
@@ -89,11 +102,21 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       >
                         <div className={styles.itemMain}>
                           <div className={styles.itemHeader}>
-                            <h4 className={styles.itemName}>{item.name}</h4>
+                            <div className={styles.itemTitleRow}>
+                              <h4 className={styles.itemName}>{item.name}</h4>
+
+                              {proteinChoice && (
+                                <span className={styles.proteinLabel}>
+                                  {proteinChoice.name}
+                                </span>
+                              )}
+                            </div>
+
                             <span className={styles.itemPrice}>
                               {item.price * item.quantity} kr.
                             </span>
                           </div>
+
                           <div className={styles.itemMeta}>
                             {item.size && (
                               <span className={styles.itemSize}>
@@ -106,17 +129,18 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                                       : "Almindelig"}
                               </span>
                             )}
+
                             <span className={styles.itemQty}>
                               {item.quantity} stk.
                             </span>
                           </div>
                         </div>
 
-                        {item.extras && item.extras.length > 0 && (
+                        {paidExtras.length > 0 && (
                           <div className={styles.extrasColumn}>
-                            {item.extras.map((extra) => (
+                            {paidExtras.map((extra) => (
                               <span
-                                key={extra.name}
+                                key={`${extra.groupId}-${extra.name}`}
                                 className={styles.extraItem}
                               >
                                 <Plus size={12} className={styles.extraIcon} />
@@ -128,26 +152,32 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
                         <div
                           className={styles.actions}
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={(event) => event.stopPropagation()}
                         >
                           <button
+                            type="button"
                             onClick={() =>
                               updateQuantity(item.cartId, item.quantity - 1)
                             }
                           >
                             <Minus size={16} />
                           </button>
+
                           <span className={styles.qtyNumber}>
                             {item.quantity}
                           </span>
+
                           <button
+                            type="button"
                             onClick={() =>
                               updateQuantity(item.cartId, item.quantity + 1)
                             }
                           >
                             <Plus size={16} />
                           </button>
+
                           <button
+                            type="button"
                             className={styles.removeBtn}
                             onClick={() => removeItem(item.cartId)}
                           >
