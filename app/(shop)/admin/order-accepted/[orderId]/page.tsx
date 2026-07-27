@@ -31,6 +31,7 @@ export default function OrderAcceptedPage() {
   const searchParams = useSearchParams();
   const orderId = params.orderId as string;
   const estimatedTime = searchParams.get("time") || "30";
+  const isViewMode = searchParams.get("view") === "1";
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,14 +82,14 @@ export default function OrderAcceptedPage() {
   }, [orderId, router]);
 
   useEffect(() => {
-    if (!loading && order && !printed) {
+    if (!loading && order && !printed && !isViewMode) {
       const timer = setTimeout(() => {
         window.print();
         setPrinted(true);
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [loading, order, printed]);
+  }, [loading, order, printed, isViewMode]);
 
   const handlePrint = () => {
     window.print();

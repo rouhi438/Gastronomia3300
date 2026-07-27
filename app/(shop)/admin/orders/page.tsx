@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./admin.module.css";
 
 type OrderStatus = "pending" | "accepted" | "ready" | "completed" | "cancelled";
+
+type DateFilter = "today" | "yesterday" | "lastWeek" | "lastMonth";
 
 interface OrderItem {
   id: number;
@@ -28,6 +30,16 @@ interface Order {
   order_items: OrderItem[];
 }
 
+const filters: Array<{
+  id: DateFilter;
+  label: string;
+}> = [
+  { id: "today", label: "I dag" },
+  { id: "yesterday", label: "I går" },
+  { id: "lastWeek", label: "Sidste uge" },
+  { id: "lastMonth", label: "Sidste måned" },
+];
+
 const statusLabels: Record<OrderStatus, string> = {
   pending: "Afventer",
   accepted: "Accepteret",
@@ -36,130 +48,145 @@ const statusLabels: Record<OrderStatus, string> = {
   cancelled: "Annulleret",
 };
 
-const statusColors: Record<OrderStatus, string> = {
-  pending: "#f59e0b",
-  accepted: "#10b981",
-  ready: "#3b82f6",
-  completed: "#6b7280",
-  cancelled: "#ef4444",
-};
+function getStartOfDay(date: Date) {
+  const result = new Date(date);
+  result.setHours(0, 0, 0, 0);
+  return result;
+}
+
+function getEndOfDay(date: Date) {
+  const result = new Date(date);
+  result.setHours(23, 59, 59, 999);
+  return result;
+}
+
+function isOrderInFilter(createdAt: string, filter: DateFilter) {
+  const orderDate = new Date(createdAt);
+  const now = new Date();
+
+  const todayStart = getStartOfDay(now);
+  const todayEnd = getEndOfDay(now);
+
+  if (filter === "today") {
+    return orderDate >= todayStart && orderDate <= todayEnd;
+  }
+
+  if (filter === "yesterday") {
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    return (
+      orderDate >= getStartOfDay(yesterday) &&
+      orderDate <= getEndOfDay(yesterday)
+    );
+  }
+
+  if (filter === "lastWeek") {
+    const currentWeekStart = getStartOfDay(now);
+    const currentDay = currentWeekStart.getDay();
+
+    const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
+
+    currentWeekStart.setDate(currentWeekStart.getDate() - daysSinceMonday);
+
+    const previousWeekStart = new Date(currentWeekStart);
+    previousWeekStart.setDate(previousWeekStart.getDate() - 7);
+
+    const previousWeekEnd = new Date(currentWeekStart);
+    previousWeekEnd.setMilliseconds(-1);
+
+    return orderDate >= previousWeekStart && orderDate <= previousWeekEnd;
+  }
+
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+  const previousMonthEnd = new Date(currentMonthStart);
+  previousMonthEnd.setMilliseconds(-1);
+
+  return orderDate >= previousMonthStart && orderDate <= previousMonthEnd;
+}
+
+function formatOrderItems(orderItems: OrderItem[]) {
+  return orderItems
+    .slice(0, 2)
+    .map((item) => `${item.quantity}× ${item.item_name}`)
+    .join(", ");
+}
 
 export default function AdminOrdersPage() {
   const router = useRouter();
+
   const [orders, setOrders] = useState<Order[]>([]);
+  const [activeFilter, setActiveFilter] = useState<DateFilter>("today");
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [showDetail, setShowDetail] = useState(false);
-  const prevOrderCountRef = useRef<number>(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     const token = localStorage.getItem("access_token");
     const refreshToken = localStorage.getItem("refresh_token");
+
     if (!token) {
       router.push("/auth");
       return;
     }
 
     try {
-      const res = await fetch("/api/admin/orders", {
+      const response = await fetch("/api/admin/orders", {
         headers: {
           Authorization: `Bearer ${token}`,
           "X-Refresh-Token": refreshToken || "",
         },
       });
 
-      if (res.status === 401) {
+      if (response.status === 401) {
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
         router.push("/auth");
         return;
       }
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to fetch orders");
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Kunne ikke hente ordrer");
       }
 
-      const data = await res.json();
+      const data = await response.json();
+
       setOrders(data.orders || []);
-    } catch (err: any) {
-      setError(err.message);
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kunne ikke hente ordrer");
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     fetchOrders();
-    intervalRef.current = setInterval(fetchOrders, 15000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [router]);
 
-  const groupOrdersByDate = (orders: Order[]) => {
-    const groups: Record<
-      string,
-      { label: string; orders: Order[]; total: number }
-    > = {};
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    const interval = window.setInterval(fetchOrders, 15000);
 
-    orders.forEach((order) => {
-      const date = new Date(order.created_at);
-      date.setHours(0, 0, 0, 0);
-      const key = date.toISOString().split("T")[0];
+    return () => window.clearInterval(interval);
+  }, [fetchOrders]);
 
-      let label = key;
-      if (date.getTime() === today.getTime()) label = "I dag";
-      else if (date.getTime() === yesterday.getTime()) label = "I går";
+  const filteredOrders = useMemo(() => {
+    return orders
+      .filter((order) => isOrderInFilter(order.created_at, activeFilter))
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
+  }, [orders, activeFilter]);
 
-      if (!groups[key]) {
-        groups[key] = { label, orders: [], total: 0 };
-      }
-      groups[key].orders.push(order);
-      groups[key].total += order.total_price;
-    });
+  const filteredTotal = useMemo(() => {
+    return filteredOrders.reduce((sum, order) => sum + order.total_price, 0);
+  }, [filteredOrders]);
 
-    const sortedKeys = Object.keys(groups).sort((a, b) => (a < b ? 1 : -1));
-    const sortedGroups: Record<
-      string,
-      { label: string; orders: Order[]; total: number }
-    > = {};
-    sortedKeys.forEach((key) => {
-      sortedGroups[key] = groups[key];
-    });
-
-    return sortedGroups;
-  };
-
-  const groupedOrders = groupOrdersByDate(orders);
-
-  const toggleGroup = (key: string) => {
-    setExpandedGroups((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(key)) {
-        newSet.delete(key);
-      } else {
-        newSet.add(key);
-      }
-      return newSet;
-    });
-  };
-
-  const handleOrderClick = (order: Order) => {
-    setSelectedOrder(order);
-    setShowDetail(true);
-  };
-
-  const closeDetail = () => {
-    setShowDetail(false);
-    setSelectedOrder(null);
+  const openOrder = (orderId: number) => {
+    router.push(`/admin/order-accepted/${orderId}?view=1`);
   };
 
   if (loading) {
@@ -171,177 +198,118 @@ export default function AdminOrdersPage() {
   }
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>Ordreoversigt</h1>
+    <main className={styles.container}>
+      <div className={styles.pageHeader}>
+        <div>
+          <h1 className={styles.title}>Ordrer</h1>
 
-      {orders.length === 0 ? (
-        <p className={styles.empty}>Ingen ordrer endnu.</p>
+          <p className={styles.subtitle}>{filteredOrders.length} ordrer</p>
+        </div>
+
+        <div className={styles.summary}>
+          <span className={styles.summaryLabel}>I alt</span>
+
+          <strong className={styles.summaryPrice}>{filteredTotal} kr.</strong>
+        </div>
+      </div>
+
+      <nav className={styles.tabs} aria-label="Filtrer ordrer efter dato">
+        {filters.map((filter) => (
+          <button
+            key={filter.id}
+            type="button"
+            className={`${styles.tab} ${
+              activeFilter === filter.id ? styles.activeTab : ""
+            }`}
+            onClick={() => setActiveFilter(filter.id)}
+          >
+            {filter.label}
+          </button>
+        ))}
+      </nav>
+
+      {filteredOrders.length === 0 ? (
+        <div className={styles.empty}>
+          <span className={styles.emptyIcon}>✓</span>
+
+          <p>Ingen ordrer i denne periode.</p>
+        </div>
       ) : (
-        <div className={styles.groups}>
-          {Object.entries(groupedOrders).map(([key, group]) => {
-            const isExpanded = expandedGroups.has(key);
-            return (
-              <div key={key} className={styles.group}>
-                <div
-                  className={styles.groupHeader}
-                  onClick={() => toggleGroup(key)}
-                >
-                  <div className={styles.groupLabel}>
-                    <span className={styles.groupTitle}>{group.label}</span>
-                    <span className={styles.groupCount}>
-                      {group.orders.length} ordrer
-                    </span>
-                  </div>
-                  <div className={styles.groupTotal}>
-                    <span className={styles.groupTotalLabel}>I alt:</span>
-                    <span className={styles.groupTotalAmount}>
-                      {group.total} kr.
-                    </span>
-                    <span className={styles.groupArrow}>
-                      {isExpanded ? "▾" : "▸"}
-                    </span>
-                  </div>
-                </div>
+        <section className={styles.orderList}>
+          {filteredOrders.map((order) => {
+            const itemSummary = formatOrderItems(order.order_items);
 
-                {isExpanded && (
-                  <div className={styles.groupOrders}>
-                    {group.orders.map((order) => (
-                      <div
-                        key={order.id}
-                        className={styles.orderCard}
-                        onClick={() => handleOrderClick(order)}
-                      >
-                        <div className={styles.orderCardHeader}>
-                          <div className={styles.orderCardLeft}>
-                            <span className={styles.orderCardId}>
-                              #{order.id}
-                            </span>
-                            <span className={styles.orderCardTime}>
-                              {new Date(order.created_at).toLocaleTimeString(
-                                "da-DK",
-                                { hour: "2-digit", minute: "2-digit" },
-                              )}
-                            </span>
-                          </div>
-                          <div className={styles.orderCardRight}>
-                            <span
-                              className={styles.orderCardStatus}
-                              style={{
-                                backgroundColor:
-                                  statusColors[order.status] + "20",
-                                color: statusColors[order.status],
-                              }}
-                            >
-                              {statusLabels[order.status]}
-                            </span>
-                            <span className={styles.orderCardTotal}>
-                              {order.total_price} kr.
-                            </span>
-                          </div>
-                        </div>
-                        <div className={styles.orderCardCustomer}>
-                          <span className={styles.orderCardName}>
-                            {order.customer_name}
-                          </span>
-                          {order.customer_address && (
-                            <span className={styles.orderCardAddress}>
-                              • {order.customer_address}
-                            </span>
-                          )}
-                          <span className={styles.orderCardPhone}>
-                            • {order.customer_phone}
-                          </span>
-                        </div>
-                        <div className={styles.orderCardItems}>
-                          {order.order_items.slice(0, 2).map((item, idx) => (
-                            <span key={idx} className={styles.orderCardItem}>
-                              {item.quantity}× {item.item_name}
-                            </span>
-                          ))}
-                          {order.order_items.length > 2 && (
-                            <span className={styles.orderCardMore}>
-                              + {order.order_items.length - 2} flere
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+            const extraItemsCount = Math.max(order.order_items.length - 2, 0);
+
+            return (
+              <button
+                key={order.id}
+                type="button"
+                className={styles.orderCard}
+                onClick={() => openOrder(order.id)}
+              >
+                <span
+                  className={`${styles.statusIcon} ${
+                    styles[`status_${order.status}`]
+                  }`}
+                  aria-hidden="true"
+                >
+                  {order.status === "cancelled" ? "×" : "✓"}
+                </span>
+
+                <span className={styles.orderContent}>
+                  <span className={styles.orderTopRow}>
+                    <strong className={styles.orderNumber}>
+                      Ordre #{order.id}
+                    </strong>
+
+                    <strong className={styles.orderPrice}>
+                      {order.total_price} kr.
+                    </strong>
+                  </span>
+
+                  <span className={styles.orderMeta}>
+                    <span>
+                      {new Date(order.created_at).toLocaleTimeString("da-DK", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+
+                    <span>
+                      {new Date(order.created_at).toLocaleDateString("da-DK")}
+                    </span>
+
+                    <span
+                      className={`${styles.statusBadge} ${
+                        styles[`statusBadge_${order.status}`]
+                      }`}
+                    >
+                      {statusLabels[order.status]}
+                    </span>
+                  </span>
+
+                  <span className={styles.customerName}>
+                    {order.customer_name}
+                  </span>
+
+                  {itemSummary && (
+                    <span className={styles.itemsSummary}>
+                      {itemSummary}
+
+                      {extraItemsCount > 0 && ` +${extraItemsCount}`}
+                    </span>
+                  )}
+                </span>
+
+                <span className={styles.arrow} aria-hidden="true">
+                  ›
+                </span>
+              </button>
             );
           })}
-        </div>
+        </section>
       )}
-
-      {/* ===== Detail Modal ===== */}
-      {showDetail && selectedOrder && (
-        <div className={styles.modalOverlay} onClick={closeDetail}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.modalClose} onClick={closeDetail}>
-              ✕
-            </button>
-            <h2 className={styles.modalTitle}>Ordre #{selectedOrder.id}</h2>
-            <div className={styles.modalBody}>
-              <p>
-                <strong>Kunde:</strong> {selectedOrder.customer_name}
-              </p>
-              <p>
-                <strong>Tlf:</strong> {selectedOrder.customer_phone}
-              </p>
-              {selectedOrder.customer_address && (
-                <p>
-                  <strong>Adresse:</strong> {selectedOrder.customer_address}
-                </p>
-              )}
-              <p>
-                <strong>Type:</strong>{" "}
-                {selectedOrder.delivery_method === "pickup"
-                  ? "Afhentning"
-                  : "Levering"}
-              </p>
-              <p>
-                <strong>Status:</strong>{" "}
-                {statusLabels[selectedOrder.status] || selectedOrder.status}
-              </p>
-              {selectedOrder.estimated_time && (
-                <p>
-                  <strong>Forventet tid:</strong> {selectedOrder.estimated_time}{" "}
-                  min
-                </p>
-              )}
-              <p>
-                <strong>Dato:</strong>{" "}
-                {new Date(selectedOrder.created_at).toLocaleString("da-DK")}
-              </p>
-              <hr className={styles.modalDivider} />
-              <h4>Varer</h4>
-              <ul className={styles.modalItems}>
-                {selectedOrder.order_items.map((item) => (
-                  <li key={item.id}>
-                    {item.quantity}× {item.item_name}
-                    {item.size && item.size !== "normal" && (
-                      <span className={styles.modalMeta}> ({item.size})</span>
-                    )}
-                    {item.extras && item.extras.length > 0 && (
-                      <span className={styles.modalMeta}>
-                        {" "}
-                        (+{item.extras.join(", ")})
-                      </span>
-                    )}
-                    <span className={styles.modalItemPrice}>
-                      {item.unit_price * item.quantity} kr.
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <div className={styles.modalTotal}>
-                <strong>I alt:</strong> {selectedOrder.total_price} kr.
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </main>
   );
 }
