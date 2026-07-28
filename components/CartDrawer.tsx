@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
+import ddressAutocomplete from "./AddressAutocomplete";
 import Image from "next/image";
 import {
   ArrowLeft,
@@ -131,13 +132,13 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
   useEffect(() => {
     if (!isOpen || !supabase) return;
-
+    const supabaseClient = supabase;
     let isMounted = true;
 
     const loadCurrentUser = async () => {
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } = await supabaseClient.auth.getUser();
 
       if (!isMounted || !user) return;
 
@@ -172,7 +173,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabaseClient.auth.onAuthStateChange((_event, session) => {
       const user = session?.user;
 
       if (!user) {
