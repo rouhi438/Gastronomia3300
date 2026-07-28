@@ -282,7 +282,8 @@ export default function AddressAutocomplete({
 
     const initializeAutocomplete = async () => {
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
+      console.log("STEP 1");
+      console.log("API KEY:", apiKey);
       if (!apiKey) {
         if (!cancelled) {
           setIsLoading(false);
@@ -297,6 +298,7 @@ export default function AddressAutocomplete({
         setLoadError(null);
 
         await loadGoogleMapsScript(apiKey);
+        console.log("STEP 2");
 
         if (cancelled || !inputRef.current || autocompleteRef.current) {
           return;
