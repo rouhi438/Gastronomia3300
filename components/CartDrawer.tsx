@@ -1,13 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { X, Plus, Minus, ShoppingBag, Store, Truck } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  LogIn,
+  Minus,
+  Plus,
+  ShoppingBag,
+  Store,
+  Truck,
+  UserRound,
+  X,
+} from "lucide-react";
 
 import { useCart } from "@/context/CartContext";
-import { menuData, type MenuItem, type Extra } from "@/data/menu";
+import { menuData, type Extra, type MenuItem } from "@/data/menu";
+import { supabase } from "@/lib/supabaseClient";
+
+import AddressAutocomplete from "./AddressAutocomplete";
 import ItemModal, { type SizeOption } from "./ItemModal";
+
 import styles from "./CartDrawer.module.css";
 
 interface CartDrawerProps {
@@ -15,10 +30,22 @@ interface CartDrawerProps {
   onClose: () => void;
 }
 
-export default function CartDrawer({
-  isOpen,
-  onClose,
-}: CartDrawerProps) {
+type DrawerStep = "cart" | "details";
+
+interface CustomerDetails {
+  name: string;
+  phone: string;
+}
+
+const EMPTY_CUSTOMER_DETAILS: CustomerDetails = {
+  name: "",
+  phone: "",
+};
+
+const CUSTOMER_STORAGE_KEY = "checkout-customer-details";
+const ORDER_NOTE_STORAGE_KEY = "checkout-order-note";
+
+export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const {
     items,
     removeItem,
@@ -27,6 +54,9 @@ export default function CartDrawer({
 
     deliveryMethod,
     setDeliveryMethod,
+
+    deliveryAddress,
+    setDeliveryAddress,
 
     bagIncluded,
     setBagIncluded,
@@ -38,28 +68,179 @@ export default function CartDrawer({
     totalPrice,
   } = useCart();
 
-  const [editingCartId, setEditingCartId] = useState<string | null>(
-    null,
+  const [step, setStep] = useState<DrawerStep>("cart");
+
+  const [customerDetails, setCustomerDetails] = useState<CustomerDetails>(
+    EMPTY_CUSTOMER_DETAILS,
   );
 
-  const [editingItem, setEditingItem] =
-    useState<MenuItem | null>(null);
+  const [orderNote, setOrderNote] = useState("");
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loggedInLabel, setLoggedInLabel] = useState("");
+  const [hasLoadedCustomer, setHasLoadedCustomer] = useState(false);
+
+  const [formError, setFormError] = useState("");
+
+  const [editingCartId, setEditingCartId] = useState<string | null>(null);
+
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
 
   const [initialExtras, setInitialExtras] = useState<Extra[]>([]);
-  const [initialSize, setInitialSize] =
-    useState<SizeOption>("normal");
+
+  const [initialSize, setInitialSize] = useState<SizeOption>("normal");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  useEffect(() => {
+    const storedCustomer = localStorage.getItem(CUSTOMER_STORAGE_KEY);
+
+    const storedOrderNote = localStorage.getItem(ORDER_NOTE_STORAGE_KEY);
+
+    if (storedCustomer) {
+      try {
+        const parsed = JSON.parse(storedCustomer) as Partial<CustomerDetails>;
+
+        setCustomerDetails({
+          name: typeof parsed.name === "string" ? parsed.name : "",
+          phone: typeof parsed.phone === "string" ? parsed.phone : "",
+        });
+      } catch {
+        localStorage.removeItem(CUSTOMER_STORAGE_KEY);
+      }
+    }
+
+    if (storedOrderNote) {
+      setOrderNote(storedOrderNote);
+    }
+
+    setHasLoadedCustomer(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedCustomer) return;
+
+    localStorage.setItem(CUSTOMER_STORAGE_KEY, JSON.stringify(customerDetails));
+  }, [customerDetails, hasLoadedCustomer]);
+
+  useEffect(() => {
+    if (!hasLoadedCustomer) return;
+
+    localStorage.setItem(ORDER_NOTE_STORAGE_KEY, orderNote);
+  }, [orderNote, hasLoadedCustomer]);
+
+  useEffect(() => {
+    if (!isOpen || !supabase) return;
+
+    let isMounted = true;
+
+    const loadCurrentUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!isMounted || !user) return;
+
+      setIsLoggedIn(true);
+
+      const metadata = user.user_metadata ?? {};
+
+      const providerName =
+        getString(metadata.full_name) ||
+        getString(metadata.name) ||
+        [getString(metadata.first_name), getString(metadata.last_name)]
+          .filter(Boolean)
+          .join(" ");
+
+      const providerPhone =
+        getString(metadata.phone_number) ||
+        getString(metadata.phone) ||
+        user.phone ||
+        "";
+
+      const userLabel = providerName || user.email || "bruger";
+
+      setLoggedInLabel(userLabel);
+
+      setCustomerDetails((current) => ({
+        name: current.name || providerName,
+        phone: current.phone || providerPhone,
+      }));
+    };
+
+    loadCurrentUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user;
+
+      if (!user) {
+        setIsLoggedIn(false);
+        setLoggedInLabel("");
+        return;
+      }
+
+      const metadata = user.user_metadata ?? {};
+
+      const providerName =
+        getString(metadata.full_name) ||
+        getString(metadata.name) ||
+        [getString(metadata.first_name), getString(metadata.last_name)]
+          .filter(Boolean)
+          .join(" ");
+
+      const providerPhone =
+        getString(metadata.phone_number) ||
+        getString(metadata.phone) ||
+        user.phone ||
+        "";
+
+      setIsLoggedIn(true);
+      setLoggedInLabel(providerName || user.email || "bruger");
+
+      setCustomerDetails((current) => ({
+        name: current.name || providerName,
+        phone: current.phone || providerPhone,
+      }));
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setStep("cart");
+      setFormError("");
+    }
+  }, [isOpen]);
+
+  const canSubmit = useMemo(() => {
+    if (!customerDetails.name.trim()) return false;
+    if (!customerDetails.phone.trim()) return false;
+
+    if (deliveryMethod === "delivery") {
+      return Boolean(
+        deliveryAddress.addressLine1 &&
+        deliveryAddress.postalCode &&
+        deliveryAddress.city &&
+        deliveryAddress.placeId &&
+        deliveryAddress.latitude !== null &&
+        deliveryAddress.longitude !== null,
+      );
+    }
+
+    return true;
+  }, [customerDetails, deliveryAddress, deliveryMethod]);
+
   if (!isOpen) return null;
 
-  const formatPrice = (price: number) => {
-    return `${price.toFixed(2)} kr.`;
-  };
+  const formatPrice = (price: number) => `${price.toFixed(2)} kr.`;
 
-  const handleItemClick = (
-    cartItem: (typeof items)[number],
-  ) => {
+  const handleItemClick = (cartItem: (typeof items)[number]) => {
     const originalItem = menuData.find(
       (menuItem) => menuItem.id === cartItem.id,
     );
@@ -91,28 +272,96 @@ export default function CartDrawer({
     setInitialSize("normal");
   };
 
+  const selectDeliveryMethod = (method: "pickup" | "delivery") => {
+    setDeliveryMethod(method);
+    setFormError("");
+    setStep("details");
+  };
+
+  const updateCustomerField = (field: keyof CustomerDetails, value: string) => {
+    setFormError("");
+
+    setCustomerDetails((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const handleCheckout = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormError("");
+
+    if (!customerDetails.name.trim()) {
+      setFormError("Indtast dit navn.");
+      return;
+    }
+
+    if (!customerDetails.phone.trim()) {
+      setFormError("Indtast dit telefonnummer.");
+      return;
+    }
+
+    if (deliveryMethod === "delivery" && !deliveryAddress.placeId) {
+      setFormError("Vælg en adresse fra Googles adresseliste.");
+      return;
+    }
+
+    if (
+      deliveryMethod === "delivery" &&
+      (!deliveryAddress.postalCode ||
+        !deliveryAddress.city ||
+        deliveryAddress.latitude === null ||
+        deliveryAddress.longitude === null)
+    ) {
+      setFormError("Adressen mangler nødvendige oplysninger. Vælg den igen.");
+      return;
+    }
+
+    localStorage.setItem(
+      "checkout-customer",
+      JSON.stringify({
+        name: customerDetails.name.trim(),
+        phone: customerDetails.phone.trim(),
+        orderNote: orderNote.trim(),
+      }),
+    );
+
+    window.location.href = "/checkout";
+  };
+
   return (
     <>
-      <div
-        className={styles.overlay}
-        onClick={onClose}
-        role="presentation"
-      >
+      <div className={styles.overlay} onClick={onClose} role="presentation">
         <aside
           className={styles.drawer}
           onClick={(event) => event.stopPropagation()}
           aria-label="Indkøbskurv"
         >
           <header className={styles.header}>
-            <div>
-              <span className={styles.eyebrow}>Din ordre</span>
+            <div className={styles.headerContent}>
+              {step === "details" && (
+                <button
+                  type="button"
+                  className={styles.backButton}
+                  onClick={() => {
+                    setStep("cart");
+                    setFormError("");
+                  }}
+                  aria-label="Tilbage til indkøbskurven"
+                >
+                  <ArrowLeft size={19} />
+                </button>
+              )}
 
-              <h2 className={styles.title}>
-                Indkøbskurv
-                <span className={styles.itemCount}>
-                  {totalItems}
-                </span>
-              </h2>
+              <div>
+                <span className={styles.eyebrow}>Din ordre</span>
+
+                <h2 className={styles.title}>
+                  {step === "cart" ? "Indkøbskurv" : "Dine oplysninger"}
+
+                  <span className={styles.itemCount}>{totalItems}</span>
+                </h2>
+              </div>
             </div>
 
             <button
@@ -125,441 +374,90 @@ export default function CartDrawer({
             </button>
           </header>
 
+          {items.length > 0 && (
+            <div className={styles.progress}>
+              <span
+                className={`${styles.progressItem} ${
+                  step === "cart"
+                    ? styles.progressItemActive
+                    : styles.progressItemDone
+                }`}
+              >
+                <span>{step === "details" ? <Check size={12} /> : "1"}</span>
+                Kurv
+              </span>
+
+              <span className={styles.progressLine} />
+
+              <span
+                className={`${styles.progressItem} ${
+                  step === "details" ? styles.progressItemActive : ""
+                }`}
+              >
+                <span>2</span>
+                Oplysninger
+              </span>
+
+              <span className={styles.progressLine} />
+
+              <span className={styles.progressItem}>
+                <span>3</span>
+                Betaling
+              </span>
+            </div>
+          )}
+
           <div className={styles.body}>
             {items.length === 0 ? (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyImage}>
-                  <Image
-                    src="/images/cat.png"
-                    alt="Tom indkøbskurv"
-                    width={220}
-                    height={320}
-                    priority
+              <EmptyCart onClose={onClose} />
+            ) : (
+              <div
+                className={`${styles.stepsTrack} ${
+                  step === "details" ? styles.stepsTrackDetails : ""
+                }`}
+              >
+                <div className={styles.stepPanel}>
+                  <CartStep
+                    items={items}
+                    totalItems={totalItems}
+                    bagIncluded={bagIncluded}
+                    bagFee={bagFee}
+                    serviceFee={serviceFee}
+                    subtotal={subtotal}
+                    deliveryFee={deliveryFee}
+                    totalPrice={totalPrice}
+                    orderNote={orderNote}
+                    onOrderNoteChange={setOrderNote}
+                    onEditItem={handleItemClick}
+                    onRemoveItem={removeItem}
+                    onUpdateQuantity={updateQuantity}
+                    onToggleBag={() => setBagIncluded(!bagIncluded)}
+                    onSelectMethod={selectDeliveryMethod}
+                    formatPrice={formatPrice}
                   />
                 </div>
 
-                <div className={styles.emptyText}>
-                  <h3>Din kurv er tom</h3>
-                  <p>
-                    Tilføj noget fra menuen, så vi har noget at
-                    arbejde med.
-                  </p>
+                <div className={styles.stepPanel}>
+                  <DetailsStep
+                    deliveryMethod={deliveryMethod}
+                    customerDetails={customerDetails}
+                    deliveryAddress={deliveryAddress}
+                    isLoggedIn={isLoggedIn}
+                    loggedInLabel={loggedInLabel}
+                    formError={formError}
+                    canSubmit={canSubmit}
+                    totalPrice={totalPrice}
+                    onCustomerChange={updateCustomerField}
+                    onAddressChange={setDeliveryAddress}
+                    onSubmit={handleCheckout}
+                    onBack={() => {
+                      setStep("cart");
+                      setFormError("");
+                    }}
+                    formatPrice={formatPrice}
+                  />
                 </div>
-
-                <Link
-                  href="/menu"
-                  onClick={onClose}
-                  className={styles.backToShopBtn}
-                >
-                  Se menuen
-                </Link>
               </div>
-            ) : (
-              <>
-                <section
-                  className={styles.deliverySection}
-                  aria-labelledby="delivery-method-title"
-                >
-                  <div className={styles.sectionHeading}>
-                    <span
-                      className={styles.sectionStep}
-                      aria-hidden="true"
-                    >
-                      1
-                    </span>
-
-                    <div>
-                      <h3 id="delivery-method-title">
-                        Hvordan vil du have ordren?
-                      </h3>
-
-                      <p>Vælg afhentning eller levering.</p>
-                    </div>
-                  </div>
-
-                  <div className={styles.methodGrid}>
-                    <button
-                      type="button"
-                      className={`${styles.methodButton} ${
-                        deliveryMethod === "pickup"
-                          ? styles.methodButtonActive
-                          : ""
-                      }`}
-                      onClick={() =>
-                        setDeliveryMethod("pickup")
-                      }
-                      aria-pressed={deliveryMethod === "pickup"}
-                    >
-                      <span className={styles.methodIcon}>
-                        <Store size={21} />
-                      </span>
-
-                      <span className={styles.methodText}>
-                        <strong>Afhentning</strong>
-                        <small>Hent i restauranten</small>
-                      </span>
-
-                      <span className={styles.radioMark}>
-                        <span />
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      className={`${styles.methodButton} ${
-                        deliveryMethod === "delivery"
-                          ? styles.methodButtonActive
-                          : ""
-                      }`}
-                      onClick={() =>
-                        setDeliveryMethod("delivery")
-                      }
-                      aria-pressed={deliveryMethod === "delivery"}
-                    >
-                      <span className={styles.methodIcon}>
-                        <Truck size={21} />
-                      </span>
-
-                      <span className={styles.methodText}>
-                        <strong>Levering</strong>
-                        <small>Inden for 10 km</small>
-                      </span>
-
-                      <span className={styles.radioMark}>
-                        <span />
-                      </span>
-                    </button>
-                  </div>
-
-                  {deliveryMethod === "delivery" && (
-                    <div className={styles.deliveryNotice}>
-                      <Truck size={16} />
-
-                      <span>
-                        Fast leveringspris på{" "}
-                        <strong>
-                          {formatPrice(deliveryFee)}
-                        </strong>
-                        . Adressen kontrolleres ved checkout.
-                      </span>
-                    </div>
-                  )}
-                </section>
-
-                <section
-                  className={styles.cartSection}
-                  aria-labelledby="cart-items-title"
-                >
-                  <div className={styles.sectionHeading}>
-                    <span
-                      className={styles.sectionStep}
-                      aria-hidden="true"
-                    >
-                      2
-                    </span>
-
-                    <div>
-                      <h3 id="cart-items-title">Din bestilling</h3>
-                      <p>{totalItems} varer i kurven.</p>
-                    </div>
-                  </div>
-
-                  <ul className={styles.list}>
-                    {items.map((item) => {
-                      const proteinChoice = item.extras?.find(
-                        (extra) =>
-                          extra.groupId ===
-                            "proteinChoice" ||
-                          extra.groupId ===
-                            "nachosProtein",
-                      );
-
-                      const paidExtras =
-                        item.extras?.filter(
-                          (extra) =>
-                            extra.groupId !==
-                              "proteinChoice" &&
-                            extra.groupId !==
-                              "nachosProtein",
-                        ) ?? [];
-
-                      const itemSizeLabel =
-                        item.size === "family"
-                          ? "Familie"
-                          : item.size === "children"
-                            ? "Børn"
-                            : item.deepPan ||
-                                item.size === "deepPan"
-                              ? "Deep Pan"
-                              : item.size
-                                ? "Almindelig"
-                                : null;
-
-                      return (
-                        <li
-                          key={item.cartId}
-                          className={styles.item}
-                        >
-                          <button
-                            type="button"
-                            className={styles.itemEditArea}
-                            onClick={() =>
-                              handleItemClick(item)
-                            }
-                            aria-label={`Rediger ${item.name}`}
-                          >
-                            <div className={styles.itemMain}>
-                              <div
-                                className={styles.itemHeader}
-                              >
-                                <div
-                                  className={
-                                    styles.itemTitleRow
-                                  }
-                                >
-                                  <h4
-                                    className={styles.itemName}
-                                  >
-                                    {item.name}
-                                  </h4>
-
-                                  {proteinChoice && (
-                                    <span
-                                      className={
-                                        styles.proteinLabel
-                                      }
-                                    >
-                                      {proteinChoice.name}
-                                    </span>
-                                  )}
-                                </div>
-
-                                <span
-                                  className={styles.itemPrice}
-                                >
-                                  {formatPrice(
-                                    item.price *
-                                      item.quantity,
-                                  )}
-                                </span>
-                              </div>
-
-                              <div className={styles.itemMeta}>
-                                {itemSizeLabel && (
-                                  <span
-                                    className={styles.itemSize}
-                                  >
-                                    {itemSizeLabel}
-                                  </span>
-                                )}
-
-                                <span
-                                  className={styles.itemQty}
-                                >
-                                  {item.quantity} stk.
-                                </span>
-                              </div>
-
-                              {paidExtras.length > 0 && (
-                                <div
-                                  className={
-                                    styles.extrasColumn
-                                  }
-                                >
-                                  {paidExtras.map(
-                                    (extra, index) => (
-                                      <span
-                                        key={`${item.cartId}-${extra.name}-${index}`}
-                                        className={
-                                          styles.extraItem
-                                        }
-                                      >
-                                        <Plus
-                                          size={12}
-                                          aria-hidden="true"
-                                        />
-
-                                        <span>
-                                          {extra.name}
-                                        </span>
-
-                                        {extra.price > 0 && (
-                                          <small>
-                                            (
-                                            {formatPrice(
-                                              extra.price,
-                                            )}
-                                            )
-                                          </small>
-                                        )}
-                                      </span>
-                                    ),
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </button>
-
-                          <div className={styles.actions}>
-                            <div
-                              className={
-                                styles.quantityControl
-                              }
-                            >
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateQuantity(
-                                    item.cartId,
-                                    item.quantity - 1,
-                                  )
-                                }
-                                aria-label={`Reducer antal af ${item.name}`}
-                              >
-                                <Minus size={15} />
-                              </button>
-
-                              <span
-                                className={styles.qtyNumber}
-                              >
-                                {item.quantity}
-                              </span>
-
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateQuantity(
-                                    item.cartId,
-                                    item.quantity + 1,
-                                  )
-                                }
-                                aria-label={`Forøg antal af ${item.name}`}
-                              >
-                                <Plus size={15} />
-                              </button>
-                            </div>
-
-                            <button
-                              type="button"
-                              className={styles.removeBtn}
-                              onClick={() =>
-                                removeItem(item.cartId)
-                              }
-                              aria-label={`Fjern ${item.name}`}
-                            >
-                              <X size={16} />
-                              <span>Fjern</span>
-                            </button>
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </section>
-
-                <footer className={styles.footer}>
-                  <div className={styles.bagCard}>
-                    <div className={styles.bagInfo}>
-                      <span className={styles.bagIcon}>
-                        <ShoppingBag size={19} />
-                      </span>
-
-                      <div>
-                        <strong>Bærepose</strong>
-                        <small>
-                          Praktisk emballage til ordren
-                        </small>
-                      </div>
-                    </div>
-
-                    {bagIncluded ? (
-                      <div className={styles.bagAction}>
-                        <span>{formatPrice(bagFee)}</span>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setBagIncluded(false)
-                          }
-                        >
-                          Fjern
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        className={styles.addBagButton}
-                        onClick={() =>
-                          setBagIncluded(true)
-                        }
-                      >
-                        Tilføj
-                      </button>
-                    )}
-                  </div>
-
-                  <div className={styles.summary}>
-                    <div className={styles.summaryRow}>
-                      <span>Varer</span>
-                      <span>{formatPrice(subtotal)}</span>
-                    </div>
-
-                    <div className={styles.summaryRow}>
-                      <span>Servicegebyr</span>
-                      <span>
-                        {formatPrice(serviceFee)}
-                      </span>
-                    </div>
-
-                    {deliveryMethod === "delivery" && (
-                      <div className={styles.summaryRow}>
-                        <span>Levering</span>
-                        <span>
-                          {formatPrice(deliveryFee)}
-                        </span>
-                      </div>
-                    )}
-
-                    {bagIncluded && (
-                      <div className={styles.summaryRow}>
-                        <span>Bærepose</span>
-                        <span>{formatPrice(bagFee)}</span>
-                      </div>
-                    )}
-
-                    <div className={styles.totalRow}>
-                      <div>
-                        <span>I alt</span>
-                        <small>Inkl. gebyrer</small>
-                      </div>
-
-                      <strong>
-                        {formatPrice(totalPrice)}
-                      </strong>
-                    </div>
-                  </div>
-
-                  <Link
-                    href="/checkout"
-                    className={styles.checkoutButton}
-                    onClick={onClose}
-                  >
-                    <span>Gå til kassen</span>
-                    <strong>
-                      {formatPrice(totalPrice)}
-                    </strong>
-                  </Link>
-
-                  <Link
-                    href="/menu"
-                    className={styles.backToMenuBtn}
-                    onClick={onClose}
-                  >
-                    <span aria-hidden="true">←</span>
-                    Fortsæt med at handle
-                  </Link>
-                </footer>
-              </>
             )}
           </div>
         </aside>
@@ -575,4 +473,559 @@ export default function CartDrawer({
       />
     </>
   );
+}
+
+interface EmptyCartProps {
+  onClose: () => void;
+}
+
+function EmptyCart({ onClose }: EmptyCartProps) {
+  return (
+    <div className={styles.emptyState}>
+      <div className={styles.emptyImage}>
+        <Image
+          src="/images/cat.png"
+          alt="Tom indkøbskurv"
+          width={220}
+          height={320}
+          priority
+        />
+      </div>
+
+      <div className={styles.emptyText}>
+        <h3>Din kurv er tom</h3>
+
+        <p>Tilføj noget fra menuen, så vi har noget at arbejde med.</p>
+      </div>
+
+      <Link href="/menu" onClick={onClose} className={styles.backToShopBtn}>
+        Se menuen
+      </Link>
+    </div>
+  );
+}
+
+interface CartStepProps {
+  items: ReturnType<typeof useCart>["items"];
+  totalItems: number;
+  bagIncluded: boolean;
+  bagFee: number;
+  serviceFee: number;
+  subtotal: number;
+  deliveryFee: number;
+  totalPrice: number;
+  orderNote: string;
+
+  onOrderNoteChange: (value: string) => void;
+  onEditItem: (item: ReturnType<typeof useCart>["items"][number]) => void;
+  onRemoveItem: (cartId: string) => void;
+  onUpdateQuantity: (cartId: string, quantity: number) => void;
+  onToggleBag: () => void;
+  onSelectMethod: (method: "pickup" | "delivery") => void;
+  formatPrice: (price: number) => string;
+}
+
+function CartStep({
+  items,
+  totalItems,
+  bagIncluded,
+  bagFee,
+  serviceFee,
+  subtotal,
+  deliveryFee,
+  totalPrice,
+  orderNote,
+  onOrderNoteChange,
+  onEditItem,
+  onRemoveItem,
+  onUpdateQuantity,
+  onToggleBag,
+  onSelectMethod,
+  formatPrice,
+}: CartStepProps) {
+  return (
+    <div className={styles.cartStep}>
+      <section className={styles.cartSection}>
+        <div className={styles.sectionHeading}>
+          <div>
+            <h3>Din bestilling</h3>
+            <p>{totalItems} varer i kurven.</p>
+          </div>
+        </div>
+
+        <ul className={styles.list}>
+          {items.map((item) => {
+            const proteinChoice = item.extras?.find(
+              (extra) =>
+                extra.groupId === "proteinChoice" ||
+                extra.groupId === "nachosProtein",
+            );
+
+            const paidExtras =
+              item.extras?.filter(
+                (extra) =>
+                  extra.groupId !== "proteinChoice" &&
+                  extra.groupId !== "nachosProtein",
+              ) ?? [];
+
+            const itemSizeLabel =
+              item.size === "family"
+                ? "Familie"
+                : item.size === "children"
+                  ? "Børn"
+                  : item.deepPan || item.size === "deepPan"
+                    ? "Deep Pan"
+                    : item.size
+                      ? "Almindelig"
+                      : null;
+
+            return (
+              <li key={item.cartId} className={styles.item}>
+                <button
+                  type="button"
+                  className={styles.itemEditArea}
+                  onClick={() => onEditItem(item)}
+                  aria-label={`Rediger ${item.name}`}
+                >
+                  <div className={styles.itemMain}>
+                    <div className={styles.itemHeader}>
+                      <div className={styles.itemTitleRow}>
+                        <h4 className={styles.itemName}>{item.name}</h4>
+
+                        {proteinChoice && (
+                          <span className={styles.proteinLabel}>
+                            {proteinChoice.name}
+                          </span>
+                        )}
+                      </div>
+
+                      <span className={styles.itemPrice}>
+                        {formatPrice(item.price * item.quantity)}
+                      </span>
+                    </div>
+
+                    <div className={styles.itemMeta}>
+                      {itemSizeLabel && (
+                        <span className={styles.itemSize}>{itemSizeLabel}</span>
+                      )}
+
+                      <span className={styles.itemQty}>
+                        {item.quantity} stk.
+                      </span>
+                    </div>
+
+                    {paidExtras.length > 0 && (
+                      <div className={styles.extrasColumn}>
+                        {paidExtras.map((extra, index) => (
+                          <span
+                            key={`${item.cartId}-${extra.name}-${index}`}
+                            className={styles.extraItem}
+                          >
+                            <Plus size={12} aria-hidden="true" />
+
+                            <span>{extra.name}</span>
+
+                            {extra.price > 0 && (
+                              <small>({formatPrice(extra.price)})</small>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </button>
+
+                <div className={styles.actions}>
+                  <div className={styles.quantityControl}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onUpdateQuantity(item.cartId, item.quantity - 1)
+                      }
+                      aria-label={`Reducer antal af ${item.name}`}
+                    >
+                      <Minus size={15} />
+                    </button>
+
+                    <span className={styles.qtyNumber}>{item.quantity}</span>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onUpdateQuantity(item.cartId, item.quantity + 1)
+                      }
+                      aria-label={`Forøg antal af ${item.name}`}
+                    >
+                      <Plus size={15} />
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    className={styles.removeBtn}
+                    onClick={() => onRemoveItem(item.cartId)}
+                    aria-label={`Fjern ${item.name}`}
+                  >
+                    <X size={16} />
+                    <span>Fjern</span>
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section className={styles.noteSection}>
+        <label htmlFor="order-note" className={styles.fieldLabel}>
+          Kommentar til ordren
+        </label>
+
+        <textarea
+          id="order-note"
+          value={orderNote}
+          maxLength={500}
+          rows={3}
+          className={styles.noteInput}
+          placeholder="Fx: Ingen løg, allergi eller anden vigtig besked..."
+          onChange={(event) => onOrderNoteChange(event.target.value)}
+        />
+
+        <div className={styles.noteMeta}>
+          <small>
+            Ekstra tilvalg skal bestilles via menuen – ikke i kommentaren.
+          </small>
+
+          <span>{orderNote.length}/500</span>
+        </div>
+      </section>
+
+      <footer className={styles.footer}>
+        <div className={styles.bagCard}>
+          <div className={styles.bagInfo}>
+            <span className={styles.bagIcon}>
+              <ShoppingBag size={19} />
+            </span>
+
+            <div>
+              <strong>Bærepose</strong>
+              <small>Praktisk emballage til ordren</small>
+            </div>
+          </div>
+
+          {bagIncluded ? (
+            <div className={styles.bagAction}>
+              <span>{formatPrice(bagFee)}</span>
+
+              <button type="button" onClick={onToggleBag}>
+                Fjern
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className={styles.addBagButton}
+              onClick={onToggleBag}
+            >
+              Tilføj
+            </button>
+          )}
+        </div>
+
+        <div className={styles.summary}>
+          <div className={styles.summaryRow}>
+            <span>Varer</span>
+            <span>{formatPrice(subtotal)}</span>
+          </div>
+
+          <div className={styles.summaryRow}>
+            <span>Servicegebyr</span>
+            <span>{formatPrice(serviceFee)}</span>
+          </div>
+
+          {bagIncluded && (
+            <div className={styles.summaryRow}>
+              <span>Bærepose</span>
+              <span>{formatPrice(bagFee)}</span>
+            </div>
+          )}
+
+          <div className={styles.deliveryPreviewRow}>
+            <span>Levering ved valg</span>
+            <span>{formatPrice(deliveryFee || 45)}</span>
+          </div>
+
+          <div className={styles.totalRow}>
+            <div>
+              <span>I alt</span>
+              <small>Afhænger af leveringsmetode</small>
+            </div>
+
+            <strong>{formatPrice(totalPrice)}</strong>
+          </div>
+        </div>
+
+        <div
+          className={styles.methodSection}
+          aria-labelledby="delivery-method-title"
+        >
+          <div className={styles.methodHeading}>
+            <h3 id="delivery-method-title">Hvordan vil du have ordren?</h3>
+
+            <p>Du går direkte videre, når du vælger.</p>
+          </div>
+
+          <div className={styles.methodGrid}>
+            <button
+              type="button"
+              className={styles.methodButton}
+              onClick={() => onSelectMethod("pickup")}
+            >
+              <span className={styles.methodIcon}>
+                <Store size={21} />
+              </span>
+
+              <span className={styles.methodText}>
+                <strong>Afhentning</strong>
+                <small>Hent i restauranten</small>
+              </span>
+
+              <span className={styles.methodArrow}>→</span>
+            </button>
+
+            <button
+              type="button"
+              className={styles.methodButton}
+              onClick={() => onSelectMethod("delivery")}
+            >
+              <span className={styles.methodIcon}>
+                <Truck size={21} />
+              </span>
+
+              <span className={styles.methodText}>
+                <strong>Levering</strong>
+                <small>Inden for 10 km</small>
+              </span>
+
+              <span className={styles.methodArrow}>→</span>
+            </button>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+interface DetailsStepProps {
+  deliveryMethod: "pickup" | "delivery";
+  customerDetails: CustomerDetails;
+  deliveryAddress: ReturnType<typeof useCart>["deliveryAddress"];
+  isLoggedIn: boolean;
+  loggedInLabel: string;
+  formError: string;
+  canSubmit: boolean;
+  totalPrice: number;
+
+  onCustomerChange: (field: keyof CustomerDetails, value: string) => void;
+
+  onAddressChange: ReturnType<typeof useCart>["setDeliveryAddress"];
+
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onBack: () => void;
+  formatPrice: (price: number) => string;
+}
+
+function DetailsStep({
+  deliveryMethod,
+  customerDetails,
+  deliveryAddress,
+  isLoggedIn,
+  loggedInLabel,
+  formError,
+  canSubmit,
+  totalPrice,
+  onCustomerChange,
+  onAddressChange,
+  onSubmit,
+  onBack,
+  formatPrice,
+}: DetailsStepProps) {
+  const authRedirect =
+    typeof window !== "undefined"
+      ? encodeURIComponent(`${window.location.pathname}?cart=open`)
+      : encodeURIComponent("/menu?cart=open");
+
+  return (
+    <form className={styles.detailsStep} onSubmit={onSubmit} noValidate>
+      <section className={styles.detailsIntro}>
+        <span className={styles.detailsIcon}>
+          {deliveryMethod === "pickup" ? (
+            <Store size={23} />
+          ) : (
+            <Truck size={23} />
+          )}
+        </span>
+
+        <div>
+          <h3>{deliveryMethod === "pickup" ? "Afhentning" : "Levering"}</h3>
+
+          <p>
+            {deliveryMethod === "pickup"
+              ? "Vi bruger oplysningerne, når ordren er klar."
+              : "Vi bruger oplysningerne til at levere ordren korrekt."}
+          </p>
+        </div>
+      </section>
+
+      {isLoggedIn ? (
+        <div className={styles.loggedInCard}>
+          <span className={styles.loggedInIcon}>
+            <UserRound size={18} />
+          </span>
+
+          <div>
+            <small>Logget ind som</small>
+            <strong>{loggedInLabel}</strong>
+          </div>
+
+          <Check size={18} />
+        </div>
+      ) : (
+        <div className={styles.loginCard}>
+          <div>
+            <strong>Har du allerede en konto?</strong>
+
+            <span>Log ind og udfyld dine oplysninger automatisk.</span>
+          </div>
+
+          <Link
+            href={`/auth?redirect=${authRedirect}`}
+            className={styles.loginButton}
+          >
+            <LogIn size={17} />
+            Log ind
+          </Link>
+        </div>
+      )}
+
+      <div className={styles.formFields}>
+        <div className={styles.fieldGroup}>
+          <label htmlFor="customer-name" className={styles.fieldLabel}>
+            Navn
+          </label>
+
+          <input
+            id="customer-name"
+            name="name"
+            type="text"
+            autoComplete="name"
+            value={customerDetails.name}
+            className={styles.textInput}
+            placeholder="Dit navn"
+            onChange={(event) => onCustomerChange("name", event.target.value)}
+            required
+          />
+        </div>
+
+        <div className={styles.fieldGroup}>
+          <label htmlFor="customer-phone" className={styles.fieldLabel}>
+            Telefon
+          </label>
+
+          <input
+            id="customer-phone"
+            name="tel"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            value={customerDetails.phone}
+            className={styles.textInput}
+            placeholder="Fx 12 34 56 78"
+            onChange={(event) => onCustomerChange("phone", event.target.value)}
+            required
+          />
+        </div>
+
+        {deliveryMethod === "delivery" && (
+          <>
+            <AddressAutocomplete
+              value={deliveryAddress}
+              onChange={onAddressChange}
+            />
+
+            <div className={styles.fieldGroup}>
+              <label htmlFor="floor-door" className={styles.fieldLabel}>
+                Etage / dør
+                <span className={styles.optional}>Valgfrit</span>
+              </label>
+
+              <input
+                id="floor-door"
+                name="address-line2"
+                type="text"
+                autoComplete="address-line2"
+                value={deliveryAddress.floorDoor}
+                className={styles.textInput}
+                placeholder="Fx 2. th."
+                onChange={(event) =>
+                  onAddressChange({
+                    ...deliveryAddress,
+                    floorDoor: event.target.value,
+                  })
+                }
+              />
+            </div>
+
+            {deliveryAddress.placeId && (
+              <div className={styles.selectedAddress}>
+                <Check size={17} />
+
+                <div>
+                  <strong>{deliveryAddress.addressLine1}</strong>
+
+                  <span>
+                    {deliveryAddress.postalCode} {deliveryAddress.city}
+                  </span>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {formError && (
+        <div className={styles.formError} role="alert">
+          {formError}
+        </div>
+      )}
+
+      <div className={styles.detailsFooter}>
+        <div className={styles.detailsTotal}>
+          <span>I alt</span>
+          <strong>{formatPrice(totalPrice)}</strong>
+        </div>
+
+        <button
+          type="submit"
+          className={styles.paymentButton}
+          disabled={!canSubmit}
+        >
+          Gå til betaling
+        </button>
+
+        <button
+          type="button"
+          className={styles.detailsBackButton}
+          onClick={onBack}
+        >
+          <ArrowLeft size={17} />
+          Tilbage til kurven
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function getString(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
 }
