@@ -14,9 +14,30 @@ export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart();
   const [mounted, setMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderNote, setOrderNote] = useState("");
 
   useEffect(() => {
     setMounted(true);
+
+    const storedCheckoutCustomer = localStorage.getItem("checkout-customer");
+
+    if (!storedCheckoutCustomer) return;
+
+    try {
+      const parsed = JSON.parse(storedCheckoutCustomer);
+
+      setForm((current) => ({
+        ...current,
+        name: typeof parsed.name === "string" ? parsed.name : "",
+        phone: typeof parsed.phone === "string" ? parsed.phone : "",
+      }));
+
+      setOrderNote(
+        typeof parsed.orderNote === "string" ? parsed.orderNote : "",
+      );
+    } catch {
+      localStorage.removeItem("checkout-customer");
+    }
   }, []);
 
   const [form, setForm] = useState({
@@ -52,6 +73,7 @@ export default function CheckoutPage() {
         customer_name: form.name,
         customer_phone: form.phone,
         customer_address: delivery === "delivery" ? form.address : null,
+        order_note: orderNote.trim() || null,
         items: items.map((item) => ({
           name: item.name,
           quantity: item.quantity,
@@ -76,8 +98,27 @@ export default function CheckoutPage() {
       }
 
       alert(`Tak for din bestilling! Ordre #${result.order_id} er modtaget.`);
+
+      // Clear cart state
       clearCart();
-      router.push("/admin/new-order");
+
+      // Clear temporary checkout data
+      localStorage.removeItem("checkout-customer");
+      localStorage.removeItem("checkout-customer-details");
+      localStorage.removeItem("checkout-order-note");
+
+      // Reset local checkout state
+      setOrderNote("");
+
+      setForm({
+        name: "",
+        address: "",
+        phone: "",
+        email: "",
+      });
+
+      // Redirect after order
+      router.replace("/admin/new-order");
     } catch (error: any) {
       alert(`Fejl ved oprettelse af ordre: ${error.message}`);
     } finally {

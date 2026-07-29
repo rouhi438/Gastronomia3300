@@ -18,6 +18,7 @@ interface Order {
   customer_name: string;
   customer_phone: string;
   customer_address: string | null;
+  order_note: string | null;
   total_price: number;
   status: string;
   estimated_time?: number | null;
@@ -148,6 +149,13 @@ export default function OrderDetailPage() {
               <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>Adresse:</span>
                 <span>{order.customer_address}</span>
+              </div>
+            )}
+            {order.order_note && (
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Kommentar:</span>
+
+                <span className={styles.orderNote}>{order.order_note}</span>
               </div>
             )}
           </div>

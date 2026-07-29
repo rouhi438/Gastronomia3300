@@ -198,6 +198,14 @@
     font-size: 0.76rem;
 }
 
+.orderNote {
+    display: block;
+    margin-top: 6px;
+    color: #d32f2f;
+    font-weight: 700;
+    white-space: pre-wrap;
+}
+
 .statusBadge {
     width: fit-content;
     padding: 0.15rem 0.5rem;

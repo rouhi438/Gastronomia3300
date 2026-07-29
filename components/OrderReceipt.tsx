@@ -18,6 +18,7 @@ interface OrderReceiptProps {
     customer_name: string;
     customer_phone: string;
     customer_address?: string | null;
+    order_note?: string | null;
     delivery_method: "pickup" | "delivery";
     estimated_time?: number | null;
     total_price: number;
@@ -78,9 +79,7 @@ function getProteinChoice(
     );
 
     const selectedProtein = selectedExtras.find((extraName) =>
-      proteinNames.has(
-        extraName.trim().toLocaleLowerCase("da-DK"),
-      ),
+      proteinNames.has(extraName.trim().toLocaleLowerCase("da-DK")),
     );
 
     if (selectedProtein) {
@@ -105,10 +104,7 @@ function getPaidExtras(
       let matchedPrice = 0;
 
       for (const groupId of itemGroupIds) {
-        if (
-          groupId === "proteinChoice" ||
-          groupId === "nachosProtein"
-        ) {
+        if (groupId === "proteinChoice" || groupId === "nachosProtein") {
           continue;
         }
 
@@ -124,8 +120,7 @@ function getPaidExtras(
         }
       }
 
-      const finalPrice =
-        size === "family" ? matchedPrice * 2 : matchedPrice;
+      const finalPrice = size === "family" ? matchedPrice * 2 : matchedPrice;
 
       return {
         name: extraName,
@@ -154,37 +149,26 @@ function getSizeLabel(size?: string) {
   }
 }
 
-export default function OrderReceipt({
-  order,
-}: OrderReceiptProps) {
-  const orderDate = new Date(order.created_at).toLocaleString(
-    "da-DK",
-    {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    },
-  );
+export default function OrderReceipt({ order }: OrderReceiptProps) {
+  const orderDate = new Date(order.created_at).toLocaleString("da-DK", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   const deliveryLabel =
-    order.delivery_method === "pickup"
-      ? "Afhentning"
-      : "Levering";
+    order.delivery_method === "pickup" ? "Afhentning" : "Levering";
 
   const customerTime = order.estimated_time
     ? `${order.estimated_time} min`
     : "Hurtigst muligt";
 
   const showAddress =
-    order.delivery_method === "delivery" &&
-    Boolean(order.customer_address);
+    order.delivery_method === "delivery" && Boolean(order.customer_address);
 
-  const status =
-    order.status === "accepted"
-      ? "Accepteret"
-      : order.status;
+  const status = order.status === "accepted" ? "Accepteret" : order.status;
 
   return (
     <div className={styles.container}>
@@ -234,16 +218,9 @@ export default function OrderReceipt({
 
         <tbody>
           {order.order_items.map((item, index) => {
-            const proteinChoice = getProteinChoice(
-              item.name,
-              item.extras,
-            );
+            const proteinChoice = getProteinChoice(item.name, item.extras);
 
-            const paidExtras = getPaidExtras(
-              item.name,
-              item.extras,
-              item.size,
-            );
+            const paidExtras = getPaidExtras(item.name, item.extras, item.size);
 
             const sizeLabel = getSizeLabel(item.size);
 
@@ -253,9 +230,7 @@ export default function OrderReceipt({
 
                 <td>
                   <div className={styles.itemTitleRow}>
-                    <span className={styles.itemName}>
-                      {item.name}
-                    </span>
+                    <span className={styles.itemName}>{item.name}</span>
 
                     {proteinChoice && (
                       <span className={styles.proteinBadge}>
@@ -264,9 +239,7 @@ export default function OrderReceipt({
                     )}
 
                     {sizeLabel && (
-                      <span className={styles.badge}>
-                        {sizeLabel}
-                      </span>
+                      <span className={styles.badge}>{sizeLabel}</span>
                     )}
                   </div>
 
@@ -277,16 +250,12 @@ export default function OrderReceipt({
                           key={`${extra.name}-${extraIndex}`}
                           className={styles.extraItem}
                         >
-                          <span className={styles.extraPlus}>
-                            +
-                          </span>
+                          <span className={styles.extraPlus}>+</span>
 
                           <span>{extra.name}</span>
 
                           {extra.price > 0 && (
-                            <span
-                              className={styles.extraPrice}
-                            >
+                            <span className={styles.extraPrice}>
                               ({extra.price} kr.)
                             </span>
                           )}
@@ -315,9 +284,7 @@ export default function OrderReceipt({
           <span>{order.total_price} kr.</span>
         </div>
 
-        <div
-          className={`${styles.totalRow} ${styles.grandTotal}`}
-        >
+        <div className={`${styles.totalRow} ${styles.grandTotal}`}>
           <strong>I alt:</strong>
           <strong>{order.total_price} kr.</strong>
         </div>
@@ -336,11 +303,14 @@ export default function OrderReceipt({
 
         {showAddress && (
           <p>
-            <strong>Adresse:</strong>{" "}
-            {order.customer_address}
+            <strong>Adresse:</strong> {order.customer_address}
           </p>
         )}
-
+        {order.order_note && (
+          <p className={styles.orderNote}>
+            <strong>Kommentar:</strong> {order.order_note}
+          </p>
+        )}
         <p>
           <strong>Ønsket tid:</strong> {customerTime}
         </p>
@@ -354,15 +324,12 @@ export default function OrderReceipt({
         <p>Tak for din bestilling!</p>
 
         <p className={styles.acceptTime}>
-          {order.status === "accepted" &&
-          order.estimated_time
+          {order.status === "accepted" && order.estimated_time
             ? `Safarn til dig for ${order.estimated_time} minutter er accepteret.`
             : "Din ordre er modtaget."}
         </p>
 
-        <p className={styles.powered}>
-          Powered by Gastronomia 3300
-        </p>
+        <p className={styles.powered}>Powered by Gastronomia 3300</p>
       </div>
     </div>
   );

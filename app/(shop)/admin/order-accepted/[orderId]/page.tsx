@@ -10,6 +10,7 @@ interface Order {
   customer_name: string;
   customer_phone: string;
   customer_address: string | null;
+  order_note: string | null;
   total_price: number;
   status: string;
   estimated_time: number | null;
@@ -110,6 +111,7 @@ export default function OrderAcceptedPage() {
     customer_name: order.customer_name,
     customer_phone: order.customer_phone,
     customer_address: order.customer_address,
+    order_note: order.order_note,
     delivery_method: order.delivery_method || "pickup",
     estimated_time: order.estimated_time || null,
     total_price: order.total_price,

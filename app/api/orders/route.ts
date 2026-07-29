@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
       customer_name,
       customer_phone,
       customer_address,
+      order_note,
       items,
     } = body;
 
@@ -47,6 +48,10 @@ export async function POST(request: NextRequest) {
         customer_name,
         customer_phone,
         customer_address: customer_address || null,
+        order_note:
+          typeof order_note === "string" && order_note.trim()
+            ? order_note.trim()
+            : null,
         status: "pending",
       })
       .select()

@@ -22,6 +22,7 @@ interface Order {
   customer_name: string;
   customer_phone: string;
   customer_address: string | null;
+  order_note: string | null;
   total_price: number;
   status: OrderStatus;
   estimated_time: number | null;
@@ -298,6 +299,11 @@ export default function AdminOrdersPage() {
                       {itemSummary}
 
                       {extraItemsCount > 0 && ` +${extraItemsCount}`}
+                    </span>
+                  )}
+                  {order.order_note && (
+                    <span className={styles.orderNote}>
+                      Kommentar: {order.order_note}
                     </span>
                   )}
                 </span>

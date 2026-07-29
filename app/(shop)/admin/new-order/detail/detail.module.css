@@ -139,6 +139,12 @@
     white-space: nowrap;
 }
 
+.orderNote {
+    color: #d32f2f;
+    font-weight: 700;
+    white-space: pre-wrap;
+}
+
 .orderFooter {
     display: flex;
     flex-direction: column;
