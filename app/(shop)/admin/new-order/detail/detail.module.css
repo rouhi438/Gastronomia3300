@@ -698,6 +698,165 @@
     color: #c62828;
 }
 
+.acceptSheetEyebrow {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: var(--green);
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.timeGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin-top: 1.25rem;
+}
+
+.timeOption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    min-height: 74px;
+    padding: 0.65rem;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: color-mix(in srgb,
+            var(--bg-card) 97%,
+            var(--text-primary) 3%);
+    color: var(--text-primary);
+    font: inherit;
+    cursor: pointer;
+    transition:
+        transform 150ms ease,
+        border-color 150ms ease,
+        background 150ms ease,
+        box-shadow 150ms ease;
+}
+
+.timeOption strong {
+    font-size: 1.25rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.timeOption span {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.timeOption:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--green) 38%, transparent);
+}
+
+.timeOptionSelected {
+    border-color: var(--green);
+    background: color-mix(in srgb, var(--green) 11%, transparent);
+    color: var(--green);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--green) 14%, transparent);
+}
+
+.timeOptionSelected span {
+    color: var(--green);
+}
+
+.timeOption:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.timeOption:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--green) 32%, transparent);
+    outline-offset: 3px;
+}
+
+.customTimeGroup {
+    margin-top: 1rem;
+}
+
+.customTimeInputWrapper {
+    position: relative;
+}
+
+.customTimeInput {
+    width: 100%;
+    height: 54px;
+    padding: 0 4rem 0 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: var(--bg);
+    color: var(--text-primary);
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 750;
+    box-sizing: border-box;
+}
+
+.customTimeInput:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--green) 32%, transparent);
+    outline-offset: 3px;
+    border-color: var(--green);
+}
+
+.customTimeInput::placeholder {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.customTimeSuffix {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    color: var(--green);
+    font-size: 0.85rem;
+    font-weight: 850;
+    pointer-events: none;
+}
+
+.confirmAcceptButton {
+    min-height: 50px;
+    border: 1px solid var(--green);
+    border-radius: 14px;
+    background: var(--green);
+    color: #fff;
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 850;
+    cursor: pointer;
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--green) 24%, transparent);
+    transition:
+        transform 150ms ease,
+        box-shadow 150ms ease,
+        opacity 150ms ease;
+}
+
+.confirmAcceptButton:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 13px 28px color-mix(in srgb, var(--green) 30%, transparent);
+}
+
+.confirmAcceptButton:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.confirmAcceptButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.confirmAcceptButton:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--green) 32%, transparent);
+    outline-offset: 3px;
+}
+
+
 @keyframes overlayIn {
     from {
         opacity: 0;
@@ -765,6 +924,19 @@
     .customerInfo {
         margin-top: 1.15rem;
         padding: 0.85rem;
+    }
+
+    .timeGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.6rem;
+    }
+
+    .timeOption {
+        min-height: 68px;
+    }
+
+    .confirmAcceptButton {
+        order: -1;
     }
 
     .infoRow {
@@ -876,6 +1048,11 @@
     .sheetOverlay,
     .cancelSheet {
         animation: none;
+    }
+
+    .timeOption,
+    .confirmAcceptButton {
+        transition: none;
     }
 
     .acceptButton,

@@ -27,6 +27,8 @@ interface Order {
   order_items: OrderItem[];
 }
 
+type OrderAction = "accepted" | "cancelled";
+
 const statusLabels: Record<string, string> = {
   pending: "Afventer",
   accepted: "Accepteret",
@@ -34,6 +36,8 @@ const statusLabels: Record<string, string> = {
   completed: "Leveret",
   cancelled: "Annulleret",
 };
+
+const estimatedTimeOptions = [15, 20, 25, 30, 35, 40, 45, 50, 60];
 
 const cancellationReasons = [
   "Strømafbrydelse",
@@ -62,13 +66,19 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [isAcceptSheetOpen, setIsAcceptSheetOpen] = useState(false);
+  const [selectedEstimatedTime, setSelectedEstimatedTime] =
+    useState<number | null>(null);
+  const [useCustomEstimatedTime, setUseCustomEstimatedTime] = useState(false);
+  const [customEstimatedTime, setCustomEstimatedTime] = useState("");
+
   const [isCancelSheetOpen, setIsCancelSheetOpen] = useState(false);
   const [selectedCancelReason, setSelectedCancelReason] = useState("");
   const [customCancelReason, setCustomCancelReason] = useState("");
+
   const [actionError, setActionError] = useState("");
-  const [submittingAction, setSubmittingAction] = useState<
-    "accepted" | "cancelled" | null
-  >(null);
+  const [submittingAction, setSubmittingAction] =
+    useState<OrderAction | null>(null);
 
   useEffect(() => {
     const fetchLatestPendingOrder = async () => {
@@ -125,10 +135,18 @@ export default function OrderDetailPage() {
   }, [router]);
 
   useEffect(() => {
-    if (!isCancelSheetOpen) return;
+    const isAnySheetOpen = isAcceptSheetOpen || isCancelSheetOpen;
+
+    if (!isAnySheetOpen) return;
 
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !submittingAction) {
+      if (event.key !== "Escape" || submittingAction) return;
+
+      if (isAcceptSheetOpen) {
+        closeAcceptSheet();
+      }
+
+      if (isCancelSheetOpen) {
         closeCancelSheet();
       }
     };
@@ -140,12 +158,17 @@ export default function OrderDetailPage() {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", handleEscape);
     };
-  }, [isCancelSheetOpen, submittingAction]);
+  }, [isAcceptSheetOpen, isCancelSheetOpen, submittingAction]);
 
-  const updateOrderStatus = async (
-    status: "accepted" | "cancelled",
-    cancelReason?: string,
-  ) => {
+  const updateOrderStatus = async ({
+    status,
+    cancelReason,
+    estimatedTime,
+  }: {
+    status: OrderAction;
+    cancelReason?: string;
+    estimatedTime?: number;
+  }) => {
     if (!order || submittingAction) return;
 
     const token = localStorage.getItem("access_token");
@@ -171,6 +194,7 @@ export default function OrderDetailPage() {
           orderId: order.id,
           status,
           cancelReason: status === "cancelled" ? cancelReason : null,
+          estimatedTime: status === "accepted" ? estimatedTime : null,
         }),
       });
 
@@ -188,10 +212,8 @@ export default function OrderDetailPage() {
       }
 
       setOrder(data.order);
-
-      if (status === "cancelled") {
-        setIsCancelSheetOpen(false);
-      }
+      setIsAcceptSheetOpen(false);
+      setIsCancelSheetOpen(false);
 
       router.push("/admin/orders");
       router.refresh();
@@ -204,8 +226,47 @@ export default function OrderDetailPage() {
     }
   };
 
-  const handleAccept = async () => {
-    await updateOrderStatus("accepted");
+  const openAcceptSheet = () => {
+    if (submittingAction) return;
+
+    setActionError("");
+    setSelectedEstimatedTime(null);
+    setUseCustomEstimatedTime(false);
+    setCustomEstimatedTime("");
+    setIsAcceptSheetOpen(true);
+  };
+
+  const closeAcceptSheet = () => {
+    if (submittingAction) return;
+
+    setIsAcceptSheetOpen(false);
+    setSelectedEstimatedTime(null);
+    setUseCustomEstimatedTime(false);
+    setCustomEstimatedTime("");
+    setActionError("");
+  };
+
+  const handleConfirmAccept = async () => {
+    const parsedCustomTime = Number(customEstimatedTime);
+
+    const finalEstimatedTime = useCustomEstimatedTime
+      ? parsedCustomTime
+      : selectedEstimatedTime;
+
+    if (
+      finalEstimatedTime === null ||
+      !Number.isInteger(finalEstimatedTime) ||
+      finalEstimatedTime < 1 ||
+      finalEstimatedTime > 240
+    ) {
+      setActionError("Vælg en tid mellem 1 og 240 minutter.");
+      return;
+    }
+
+    await updateOrderStatus({
+      status: "accepted",
+      estimatedTime: finalEstimatedTime,
+    });
   };
 
   const openCancelSheet = () => {
@@ -242,7 +303,10 @@ export default function OrderDetailPage() {
       return;
     }
 
-    await updateOrderStatus("cancelled", finalReason);
+    await updateOrderStatus({
+      status: "cancelled",
+      cancelReason: finalReason,
+    });
   };
 
   if (loading) {
@@ -258,7 +322,6 @@ export default function OrderDetailPage() {
   }
 
   const formattedDate = new Date(order.created_at).toLocaleString("da-DK");
-
   const isSubmitting = submittingAction !== null;
 
   return (
@@ -359,7 +422,6 @@ export default function OrderDetailPage() {
         {order.order_note && (
           <section className={styles.orderNoteSection}>
             <div className={styles.orderNoteLabel}>Kommentar:</div>
-
             <div className={styles.orderNoteBox}>{order.order_note}</div>
           </section>
         )}
@@ -398,29 +460,27 @@ export default function OrderDetailPage() {
             )}
           </div>
 
-          {actionError && !isCancelSheetOpen && (
-            <div className={styles.actionError} role="alert">
-              {actionError}
-            </div>
-          )}
+          {actionError &&
+            !isAcceptSheetOpen &&
+            !isCancelSheetOpen && (
+              <div className={styles.actionError} role="alert">
+                {actionError}
+              </div>
+            )}
 
           {order.status === "pending" && (
             <div className={styles.actionBar}>
               <button
                 className={styles.acceptButton}
                 type="button"
-                onClick={handleAccept}
+                onClick={openAcceptSheet}
                 disabled={isSubmitting}
               >
                 <span className={styles.buttonIcon} aria-hidden="true">
                   ✓
                 </span>
 
-                <span>
-                  {submittingAction === "accepted"
-                    ? "Accepterer..."
-                    : "Accept ordre"}
-                </span>
+                <span>Accept ordre</span>
               </button>
 
               <button
@@ -439,6 +499,160 @@ export default function OrderDetailPage() {
           )}
         </footer>
       </article>
+
+      {isAcceptSheetOpen && (
+        <div
+          className={styles.sheetOverlay}
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeAcceptSheet();
+            }
+          }}
+        >
+          <section
+            className={styles.cancelSheet}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="accept-sheet-title"
+          >
+            <div className={styles.sheetHandle} aria-hidden="true" />
+
+            <div className={styles.sheetHeader}>
+              <div>
+                <span className={styles.acceptSheetEyebrow}>
+                  Ordre #{order.id}
+                </span>
+
+                <h2 className={styles.sheetTitle} id="accept-sheet-title">
+                  Acceptér ordre
+                </h2>
+
+                <p className={styles.sheetDescription}>
+                  Vælg hvor mange minutter kunden skal vente.
+                </p>
+              </div>
+
+              <button
+                className={styles.closeSheetButton}
+                type="button"
+                onClick={closeAcceptSheet}
+                disabled={isSubmitting}
+                aria-label="Luk"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className={styles.timeGrid}>
+              {estimatedTimeOptions.map((time) => {
+                const isSelected =
+                  !useCustomEstimatedTime &&
+                  selectedEstimatedTime === time;
+
+                return (
+                  <button
+                    className={`${styles.timeOption} ${
+                      isSelected ? styles.timeOptionSelected : ""
+                    }`}
+                    type="button"
+                    key={time}
+                    disabled={isSubmitting}
+                    onClick={() => {
+                      setSelectedEstimatedTime(time);
+                      setUseCustomEstimatedTime(false);
+                      setCustomEstimatedTime("");
+                      setActionError("");
+                    }}
+                  >
+                    <strong>{time}</strong>
+                    <span>min</span>
+                  </button>
+                );
+              })}
+
+              <button
+                className={`${styles.timeOption} ${
+                  useCustomEstimatedTime
+                    ? styles.timeOptionSelected
+                    : ""
+                }`}
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => {
+                  setUseCustomEstimatedTime(true);
+                  setSelectedEstimatedTime(null);
+                  setActionError("");
+                }}
+              >
+                <strong>+</strong>
+                <span>Anden tid</span>
+              </button>
+            </div>
+
+            {useCustomEstimatedTime && (
+              <div className={styles.customTimeGroup}>
+                <label
+                  className={styles.customReasonLabel}
+                  htmlFor="custom-estimated-time"
+                >
+                  Antal minutter
+                </label>
+
+                <div className={styles.customTimeInputWrapper}>
+                  <input
+                    className={styles.customTimeInput}
+                    id="custom-estimated-time"
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={240}
+                    step={1}
+                    value={customEstimatedTime}
+                    onChange={(event) => {
+                      setCustomEstimatedTime(event.target.value);
+                      setActionError("");
+                    }}
+                    placeholder="For eksempel 70"
+                    disabled={isSubmitting}
+                    autoFocus
+                  />
+
+                  <span className={styles.customTimeSuffix}>min</span>
+                </div>
+              </div>
+            )}
+
+            {actionError && (
+              <div className={styles.sheetError} role="alert">
+                {actionError}
+              </div>
+            )}
+
+            <div className={styles.sheetActions}>
+              <button
+                className={styles.backButton}
+                type="button"
+                onClick={closeAcceptSheet}
+                disabled={isSubmitting}
+              >
+                Tilbage
+              </button>
+
+              <button
+                className={styles.confirmAcceptButton}
+                type="button"
+                onClick={handleConfirmAccept}
+                disabled={isSubmitting}
+              >
+                {submittingAction === "accepted"
+                  ? "Accepterer..."
+                  : "Bekræft accept"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       {isCancelSheetOpen && (
         <div
@@ -507,7 +721,6 @@ export default function OrderDetailPage() {
                     />
 
                     <span className={styles.customRadio} aria-hidden="true" />
-
                     <span className={styles.reasonText}>{reason}</span>
                   </label>
                 );

@@ -14,23 +14,24 @@ export async function GET(request: NextRequest) {
     }
 
     const token = request.headers.get("Authorization")?.replace("Bearer ", "");
+
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // ===== Verify user and admin role =====
     const { data: userData, error: userError } =
       await supabase.auth.getUser(token);
+
     if (userError || !userData.user) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
     const role = userData.user.user_metadata?.role;
+
     if (role !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // ===== Fetch orders with items =====
     const { data: orders, error: ordersError } = await supabase
       .from("orders")
       .select(
@@ -43,12 +44,14 @@ export async function GET(request: NextRequest) {
 
     if (ordersError) {
       console.error("Orders fetch error:", ordersError);
+
       return NextResponse.json({ error: ordersError.message }, { status: 500 });
     }
 
     return NextResponse.json({ orders }, { status: 200 });
   } catch (error) {
-    console.error("Unexpected error:", error);
+    console.error("Unexpected GET error:", error);
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
@@ -91,8 +94,11 @@ export async function PATCH(request: NextRequest) {
 
     const orderId = Number(body.orderId);
     const status = body.status;
+
     const cancelReason =
       typeof body.cancelReason === "string" ? body.cancelReason.trim() : null;
+
+    const estimatedTime = Number(body.estimatedTime);
 
     if (!Number.isInteger(orderId) || orderId <= 0) {
       return NextResponse.json({ error: "Invalid order ID" }, { status: 400 });
@@ -105,6 +111,22 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    if (status === "accepted") {
+      if (
+        !Number.isInteger(estimatedTime) ||
+        estimatedTime < 1 ||
+        estimatedTime > 240
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Estimated time must be a whole number between 1 and 240 minutes.",
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     if (status === "cancelled" && !cancelReason) {
       return NextResponse.json(
         { error: "Cancellation reason is required" },
@@ -113,14 +135,16 @@ export async function PATCH(request: NextRequest) {
     }
 
     const updateData =
-      status === "cancelled"
+      status === "accepted"
         ? {
-            status: "cancelled",
-            cancel_reason: cancelReason,
+            status: "accepted",
+            estimated_time: estimatedTime,
+            cancel_reason: null,
           }
         : {
-            status: "accepted",
-            cancel_reason: null,
+            status: "cancelled",
+            estimated_time: null,
+            cancel_reason: cancelReason,
           };
 
     const { data: order, error: updateError } = await supabase
@@ -134,12 +158,22 @@ export async function PATCH(request: NextRequest) {
         order_items (*)
       `,
       )
-      .single();
+      .maybeSingle();
 
     if (updateError) {
       console.error("Order update error:", updateError);
 
       return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
+
+    if (!order) {
+      return NextResponse.json(
+        {
+          error:
+            "Order was not found or has already been accepted or cancelled.",
+        },
+        { status: 409 },
+      );
     }
 
     return NextResponse.json({ order }, { status: 200 });
