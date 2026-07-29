@@ -6,12 +6,12 @@ import { useRouter } from "next/navigation";
 import { Truck, Home, CreditCard, Wallet } from "lucide-react";
 import styles from "./checkout.module.css";
 
-type DeliveryMethod = "pickup" | "delivery";
 type PaymentMethod = "mobilepay" | "cash";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, totalPrice, clearCart } = useCart();
+  const { items, totalPrice, clearCart, deliveryMethod, setDeliveryMethod } =
+    useCart();
   const [mounted, setMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderNote, setOrderNote] = useState("");
@@ -47,7 +47,6 @@ export default function CheckoutPage() {
     email: "",
   });
 
-  const [delivery, setDelivery] = useState<DeliveryMethod>("pickup");
   const [payment, setPayment] = useState<PaymentMethod>("mobilepay");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,11 +67,12 @@ export default function CheckoutPage() {
     try {
       const orderData = {
         total_price: totalPrice,
-        delivery_method: delivery,
+        delivery_method: deliveryMethod,
         payment_method: payment,
         customer_name: form.name,
         customer_phone: form.phone,
-        customer_address: delivery === "delivery" ? form.address : null,
+        customer_email: form.email.trim(),
+        customer_address: deliveryMethod === "delivery" ? form.address : null,
         requested_time: "Hurtigst muligt",
         order_note: orderNote.trim() || null,
         items: items.map((item) => ({
@@ -172,7 +172,7 @@ export default function CheckoutPage() {
                   name="address"
                   value={form.address}
                   onChange={handleChange}
-                  required={delivery === "delivery"}
+                  required={deliveryMethod === "delivery"}
                   placeholder="Hillerødvej 38A, 3300 Frederiksværk"
                 />
               </div>
@@ -206,9 +206,9 @@ export default function CheckoutPage() {
                 <button
                   type="button"
                   className={`${styles.optionBtn} ${
-                    delivery === "pickup" ? styles.active : ""
+                    deliveryMethod === "pickup" ? styles.active : ""
                   }`}
-                  onClick={() => setDelivery("pickup")}
+                  onClick={() => setDeliveryMethod("pickup")}
                 >
                   <Home size={20} />
                   <span>Afhentning</span>
@@ -216,9 +216,9 @@ export default function CheckoutPage() {
                 <button
                   type="button"
                   className={`${styles.optionBtn} ${
-                    delivery === "delivery" ? styles.active : ""
+                    deliveryMethod === "delivery" ? styles.active : ""
                   }`}
-                  onClick={() => setDelivery("delivery")}
+                  onClick={() => setDeliveryMethod("delivery")}
                 >
                   <Truck size={20} />
                   <span>Levering</span>

@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
       payment_method,
       customer_name,
       customer_phone,
+      customer_email,
       customer_address,
       order_note,
       requested_time,
@@ -31,7 +32,14 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // ===== 2. Validate required fields =====
-    if (!total_price || !customer_name || !customer_phone || !items) {
+    if (
+      !total_price ||
+      !customer_name ||
+      !customer_phone ||
+      typeof customer_email !== "string" ||
+      !customer_email.trim() ||
+      !items
+    ) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 },
@@ -48,6 +56,7 @@ export async function POST(request: NextRequest) {
         payment_method: payment_method || "mobilepay",
         customer_name,
         customer_phone,
+        customer_email: customer_email.trim(),
         customer_address: customer_address || null,
         order_note:
           typeof order_note === "string" && order_note.trim()
