@@ -18,6 +18,8 @@ interface Order {
   customer_name: string;
   customer_phone: string;
   customer_address: string | null;
+  delivery_method: "pickup" | "delivery";
+  requested_time?: string | null;
   order_note: string | null;
   cancel_reason?: string | null;
   total_price: number;
@@ -67,8 +69,9 @@ export default function OrderDetailPage() {
   const [error, setError] = useState("");
 
   const [isAcceptSheetOpen, setIsAcceptSheetOpen] = useState(false);
-  const [selectedEstimatedTime, setSelectedEstimatedTime] =
-    useState<number | null>(null);
+  const [selectedEstimatedTime, setSelectedEstimatedTime] = useState<
+    number | null
+  >(null);
   const [useCustomEstimatedTime, setUseCustomEstimatedTime] = useState(false);
   const [customEstimatedTime, setCustomEstimatedTime] = useState("");
 
@@ -77,8 +80,9 @@ export default function OrderDetailPage() {
   const [customCancelReason, setCustomCancelReason] = useState("");
 
   const [actionError, setActionError] = useState("");
-  const [submittingAction, setSubmittingAction] =
-    useState<OrderAction | null>(null);
+  const [submittingAction, setSubmittingAction] = useState<OrderAction | null>(
+    null,
+  );
 
   useEffect(() => {
     const fetchLatestPendingOrder = async () => {
@@ -460,13 +464,11 @@ export default function OrderDetailPage() {
             )}
           </div>
 
-          {actionError &&
-            !isAcceptSheetOpen &&
-            !isCancelSheetOpen && (
-              <div className={styles.actionError} role="alert">
-                {actionError}
-              </div>
-            )}
+          {actionError && !isAcceptSheetOpen && !isCancelSheetOpen && (
+            <div className={styles.actionError} role="alert">
+              {actionError}
+            </div>
+          )}
 
           {order.status === "pending" && (
             <div className={styles.actionBar}>
@@ -547,8 +549,7 @@ export default function OrderDetailPage() {
             <div className={styles.timeGrid}>
               {estimatedTimeOptions.map((time) => {
                 const isSelected =
-                  !useCustomEstimatedTime &&
-                  selectedEstimatedTime === time;
+                  !useCustomEstimatedTime && selectedEstimatedTime === time;
 
                 return (
                   <button
@@ -573,9 +574,7 @@ export default function OrderDetailPage() {
 
               <button
                 className={`${styles.timeOption} ${
-                  useCustomEstimatedTime
-                    ? styles.timeOptionSelected
-                    : ""
+                  useCustomEstimatedTime ? styles.timeOptionSelected : ""
                 }`}
                 type="button"
                 disabled={isSubmitting}

@@ -73,6 +73,7 @@ export default function CheckoutPage() {
         customer_name: form.name,
         customer_phone: form.phone,
         customer_address: delivery === "delivery" ? form.address : null,
+        requested_time: "Hurtigst muligt",
         order_note: orderNote.trim() || null,
         items: items.map((item) => ({
           name: item.name,

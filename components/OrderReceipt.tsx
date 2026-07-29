@@ -20,6 +20,7 @@ interface OrderReceiptProps {
     customer_address?: string | null;
     order_note?: string | null;
     delivery_method: "pickup" | "delivery";
+    requested_time?: string | null;
     estimated_time?: number | null;
     total_price: number;
     status: string;
@@ -161,9 +162,7 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
   const deliveryLabel =
     order.delivery_method === "pickup" ? "Afhentning" : "Levering";
 
-  const customerTime = order.estimated_time
-    ? `${order.estimated_time} min`
-    : "Hurtigst muligt";
+  const customerTime = order.requested_time || "Hurtigst muligt";
 
   const showAddress =
     order.delivery_method === "delivery" && Boolean(order.customer_address);
@@ -301,16 +300,18 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
           <strong>Tlf:</strong> {order.customer_phone}
         </p>
 
-        {showAddress && (
+        {order.delivery_method === "delivery" && order.customer_address && (
           <p>
             <strong>Adresse:</strong> {order.customer_address}
           </p>
         )}
+
         {order.order_note && (
           <p className={styles.orderNote}>
             <strong>Kommentar:</strong> {order.order_note}
           </p>
         )}
+
         <p>
           <strong>Ønsket tid:</strong> {customerTime}
         </p>
@@ -325,7 +326,7 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
 
         <p className={styles.acceptTime}>
           {order.status === "accepted" && order.estimated_time
-            ? `Safarn til dig for ${order.estimated_time} minutter er accepteret.`
+            ? `Din ordre er accepteret og forventes klar om cirka ${order.estimated_time} minutter.`
             : "Din ordre er modtaget."}
         </p>
 

@@ -15,6 +15,7 @@ interface Order {
   status: string;
   estimated_time: number | null;
   delivery_method: "pickup" | "delivery";
+  requested_time?: string | null;
   created_at: string;
   order_items: {
     id: number;
@@ -31,7 +32,6 @@ export default function OrderAcceptedPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const orderId = params.orderId as string;
-  const estimatedTime = searchParams.get("time") || "30";
   const isViewMode = searchParams.get("view") === "1";
 
   const [order, setOrder] = useState<Order | null>(null);
@@ -112,7 +112,8 @@ export default function OrderAcceptedPage() {
     customer_phone: order.customer_phone,
     customer_address: order.customer_address,
     order_note: order.order_note,
-    delivery_method: order.delivery_method || "pickup",
+    delivery_method: order.delivery_method,
+    requested_time: order.requested_time,
     estimated_time: order.estimated_time || null,
     total_price: order.total_price,
     status: order.status,
