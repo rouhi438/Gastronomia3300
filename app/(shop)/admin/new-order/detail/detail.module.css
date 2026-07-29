@@ -1,77 +1,141 @@
 .container {
     min-height: 100vh;
-    background: var(--bg);
-    padding: 2rem 1rem;
+    padding: 2rem 1rem 3rem;
+    background:
+        radial-gradient(circle at top left,
+            color-mix(in srgb, var(--green) 8%, transparent),
+            transparent 34%),
+        var(--bg);
 }
 
 .card {
     width: 100%;
-    max-width: 680px;
+    max-width: 720px;
     margin: 0 auto;
     overflow: hidden;
-    background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 16px;
-    box-shadow: var(--shadow);
+    border-radius: 24px;
+    background: var(--bg-card);
+    box-shadow:
+        0 22px 55px rgb(0 0 0 / 8%),
+        0 4px 14px rgb(0 0 0 / 5%);
 }
 
 .top {
-    padding: 1.5rem;
+    padding: 1.75rem;
     border-bottom: 1px solid var(--border-color);
 }
 
 .orderHeading {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
+}
+
+.orderEyebrow {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: var(--green);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
 }
 
 .orderId {
     margin: 0;
     color: var(--text-primary);
-    font-size: 1.45rem;
-    font-weight: 800;
+    font-size: 1.65rem;
+    font-weight: 850;
+    line-height: 1.2;
 }
 
 .totalPrice {
+    flex-shrink: 0;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid color-mix(in srgb, var(--red) 22%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--red) 8%, transparent);
     color: var(--red);
-    font-size: 1.4rem;
+    font-size: 1.25rem;
+    font-weight: 850;
     white-space: nowrap;
 }
 
 .customerInfo {
     display: flex;
     flex-direction: column;
-    gap: 0.45rem;
-    margin-top: 1.25rem;
+    gap: 0.8rem;
+    margin-top: 1.6rem;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--bg-card) 94%, var(--text-primary) 6%);
 }
 
 .infoRow {
     display: grid;
-    grid-template-columns: 74px minmax(0, 1fr);
-    gap: 0.5rem;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 0.75rem;
     color: var(--text-secondary);
-    font-size: 0.96rem;
-    line-height: 1.45;
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 .infoLabel {
     color: var(--text-primary);
-    font-weight: 700;
+    font-weight: 750;
+}
+
+.infoValue {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .phone {
     width: fit-content;
     color: var(--green);
-    font-weight: 700;
+    font-weight: 800;
     text-decoration: none;
 }
 
+.phone:hover {
+    text-decoration: underline;
+}
+
 .phone:focus-visible {
-    outline: 2px solid var(--green);
+    outline: 3px solid color-mix(in srgb, var(--green) 35%, transparent);
     outline-offset: 3px;
-    border-radius: 4px;
+    border-radius: 5px;
+}
+
+.itemsSection {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sectionHeading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.3rem 1.5rem 0.8rem;
+}
+
+.sectionTitle {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 850;
+}
+
+.itemCount {
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 750;
 }
 
 .items {
@@ -83,8 +147,11 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 1rem;
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--border-color);
+    padding: 1.15rem 1.5rem;
+}
+
+.item+.item {
+    border-top: 1px dashed var(--border-color);
 }
 
 .itemMain {
@@ -99,86 +166,520 @@
 }
 
 .quantity {
-    color: var(--text-primary);
-    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 0.45rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--green) 10%, transparent);
+    color: var(--green);
+    font-size: 0.85rem;
+    font-weight: 850;
 }
 
 .itemName {
     color: var(--text-primary);
     font-size: 1rem;
+    font-weight: 800;
+    overflow-wrap: anywhere;
 }
 
 .sizeBadge {
-    padding: 0.16rem 0.55rem;
-    border: 1px solid color-mix(in srgb, var(--green) 45%, transparent);
+    padding: 0.18rem 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--green) 35%, transparent);
     border-radius: 999px;
-    background: color-mix(in srgb, var(--green) 12%, transparent);
+    background: color-mix(in srgb, var(--green) 9%, transparent);
     color: var(--green);
-    font-size: 0.72rem;
-    font-weight: 700;
+    font-size: 0.7rem;
+    font-weight: 800;
 }
 
 .extras {
     display: flex;
     flex-direction: column;
-    gap: 0.18rem;
-    margin-top: 0.5rem;
-    padding-left: 2rem;
+    gap: 0.22rem;
+    margin-top: 0.55rem;
+    padding-left: 2.8rem;
 }
 
 .extra {
     color: var(--green);
-    font-size: 0.88rem;
-    line-height: 1.4;
+    font-size: 0.86rem;
+    font-weight: 600;
+    line-height: 1.45;
 }
 
 .itemPrice {
     align-self: flex-start;
+    padding-top: 0.35rem;
     color: var(--red);
-    font-size: 1rem;
+    font-size: 0.98rem;
+    font-weight: 850;
     white-space: nowrap;
 }
 
-.orderNote {
-    color: #d32f2f;
-    font-weight: 700;
+.orderNoteSection {
+    width: 100%;
+    padding: 1.4rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    box-sizing: border-box;
+}
+
+.orderNoteLabel {
+    margin-bottom: 0.65rem;
+    color: var(--text-primary);
+    font-size: 0.92rem;
+    font-weight: 850;
+}
+
+.orderNoteBox {
+    width: 100%;
+    max-height: 220px;
+    padding: 0.95rem 1rem;
+    overflow-y: auto;
+    border: 1px solid rgb(211 47 47 / 22%);
+    border-left: 5px solid #d32f2f;
+    border-radius: 14px;
+    background: rgb(211 47 47 / 7%);
+    color: #c62828;
+    font-size: 0.88rem;
+    font-weight: 650;
+    line-height: 1.65;
     white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    box-sizing: border-box;
 }
 
 .orderFooter {
+    padding: 1.4rem 1.5rem 1.6rem;
+}
+
+.orderMeta {
     display: flex;
     flex-direction: column;
-    gap: 0.7rem;
-    padding: 1.25rem 1.5rem 1.5rem;
+    gap: 0.8rem;
 }
 
 .footerRow {
     display: grid;
-    grid-template-columns: 110px minmax(0, 1fr);
+    grid-template-columns: 115px minmax(0, 1fr);
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     color: var(--text-secondary);
-    font-size: 0.95rem;
+    font-size: 0.92rem;
 }
 
 .footerLabel {
     color: var(--text-primary);
-    font-weight: 700;
+    font-weight: 750;
+}
+
+.footerValue {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .statusBadge {
+    display: inline-flex;
+    align-items: center;
     width: fit-content;
-    padding: 0.24rem 0.75rem;
-    border: 1px solid color-mix(in srgb, var(--green) 55%, transparent);
+    padding: 0.32rem 0.75rem;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--green) 12%, transparent);
+    font-size: 0.78rem;
+    font-weight: 850;
+}
+
+.statusPending {
+    border: 1px solid rgb(217 119 6 / 30%);
+    background: rgb(217 119 6 / 10%);
+    color: #b45309;
+}
+
+.statusAccepted {
+    border: 1px solid color-mix(in srgb, var(--green) 35%, transparent);
+    background: color-mix(in srgb, var(--green) 10%, transparent);
     color: var(--green);
-    font-size: 0.82rem;
-    font-weight: 700;
+}
+
+.statusCancelled {
+    border: 1px solid rgb(211 47 47 / 30%);
+    background: rgb(211 47 47 / 9%);
+    color: #c62828;
 }
 
 .estimatedTime {
     color: var(--green);
+    font-weight: 850;
+}
+
+.actionBar {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 0.75rem;
+    margin-top: 1.4rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.acceptButton,
+.cancelButton,
+.backButton,
+.confirmCancelButton,
+.closeSheetButton {
+    font: inherit;
+}
+
+.acceptButton,
+.cancelButton {
+    min-height: 54px;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    font-weight: 850;
+    cursor: pointer;
+    transition:
+        transform 150ms ease,
+        box-shadow 150ms ease,
+        opacity 150ms ease,
+        background 150ms ease;
+}
+
+.acceptButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    border: 1px solid var(--green);
+    background: var(--green);
+    color: #fff;
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--green) 25%, transparent);
+}
+
+.cancelButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    border: 1px solid rgb(211 47 47 / 38%);
+    background: transparent;
+    color: #c62828;
+}
+
+.acceptButton:hover:not(:disabled),
+.cancelButton:hover:not(:disabled),
+.backButton:hover:not(:disabled),
+.confirmCancelButton:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+.acceptButton:hover:not(:disabled) {
+    box-shadow: 0 13px 30px color-mix(in srgb, var(--green) 30%, transparent);
+}
+
+.cancelButton:hover:not(:disabled) {
+    background: rgb(211 47 47 / 6%);
+}
+
+.acceptButton:active:not(:disabled),
+.cancelButton:active:not(:disabled),
+.backButton:active:not(:disabled),
+.confirmCancelButton:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.acceptButton:disabled,
+.cancelButton:disabled,
+.backButton:disabled,
+.confirmCancelButton:disabled,
+.closeSheetButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.acceptButton:focus-visible,
+.cancelButton:focus-visible,
+.backButton:focus-visible,
+.confirmCancelButton:focus-visible,
+.closeSheetButton:focus-visible,
+.reasonRadio:focus-visible+.customRadio,
+.customReasonInput:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--green) 32%, transparent);
+    outline-offset: 3px;
+}
+
+.buttonIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 18%);
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.cancelButton .buttonIcon {
+    background: rgb(211 47 47 / 9%);
+}
+
+.actionError,
+.sheetError {
+    padding: 0.8rem 0.95rem;
+    border: 1px solid rgb(211 47 47 / 24%);
+    border-radius: 12px;
+    background: rgb(211 47 47 / 7%);
+    color: #c62828;
+    font-size: 0.86rem;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.actionError {
+    margin-top: 1rem;
+}
+
+.sheetOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 1rem;
+    background: rgb(0 0 0 / 55%);
+    backdrop-filter: blur(5px);
+    animation: overlayIn 180ms ease-out;
+}
+
+.cancelSheet {
+    width: 100%;
+    max-width: 620px;
+    max-height: min(88vh, 780px);
+    overflow-y: auto;
+    padding: 0.65rem 1.25rem 1.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 24px 24px 18px 18px;
+    background: var(--bg-card);
+    box-shadow: 0 -22px 70px rgb(0 0 0 / 25%);
+    animation: sheetIn 220ms ease-out;
+}
+
+.sheetHandle {
+    width: 42px;
+    height: 5px;
+    margin: 0.15rem auto 1.1rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text-primary) 20%, transparent);
+}
+
+.sheetHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.sheetEyebrow {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #c62828;
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.sheetTitle {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.35rem;
+    font-weight: 850;
+}
+
+.sheetDescription {
+    margin: 0.45rem 0 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.closeSheetButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 1.45rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.reasonList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    margin-top: 1.25rem;
+}
+
+.reasonOption {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 52px;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--bg-card) 97%, var(--text-primary) 3%);
+    cursor: pointer;
+    transition:
+        border-color 150ms ease,
+        background 150ms ease,
+        transform 150ms ease;
+}
+
+.reasonOption:hover {
+    transform: translateY(-1px);
+    border-color: rgb(211 47 47 / 28%);
+}
+
+.reasonOptionSelected {
+    border-color: rgb(211 47 47 / 45%);
+    background: rgb(211 47 47 / 7%);
+}
+
+.reasonRadio {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.customRadio {
+    position: relative;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border: 2px solid color-mix(in srgb, var(--text-primary) 28%, transparent);
+    border-radius: 999px;
+    box-sizing: border-box;
+}
+
+.reasonOptionSelected .customRadio {
+    border-color: #d32f2f;
+    background: #d32f2f;
+}
+
+.reasonOptionSelected .customRadio::after {
+    content: "✓";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.reasonText {
+    color: var(--text-primary);
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.reasonOptionSelected .reasonText {
+    color: #c62828;
+    font-weight: 800;
+}
+
+.customReasonGroup {
+    position: relative;
+    margin-top: 1rem;
+}
+
+.customReasonLabel {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.customReasonInput {
+    width: 100%;
+    min-height: 110px;
+    resize: vertical;
+    padding: 0.9rem 1rem 1.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: var(--bg);
+    color: var(--text-primary);
+    font: inherit;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    box-sizing: border-box;
+}
+
+.customReasonInput::placeholder {
+    color: var(--text-muted);
+}
+
+.characterCount {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.55rem;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 650;
+}
+
+.sheetError {
+    margin-top: 1rem;
+}
+
+.sheetActions {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.backButton,
+.confirmCancelButton {
+    min-height: 50px;
+    border-radius: 14px;
+    font-size: 0.92rem;
+    font-weight: 850;
+    cursor: pointer;
+    transition:
+        transform 150ms ease,
+        background 150ms ease,
+        opacity 150ms ease;
+}
+
+.backButton {
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-primary);
+}
+
+.confirmCancelButton {
+    border: 1px solid #d32f2f;
+    background: #d32f2f;
+    color: #fff;
+    box-shadow: 0 10px 24px rgb(211 47 47 / 22%);
 }
 
 .loading,
@@ -187,58 +688,201 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 1rem;
     color: var(--text-muted);
-    font-size: 1.1rem;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.error {
+    color: #c62828;
+}
+
+@keyframes overlayIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes sheetIn {
+    from {
+        opacity: 0;
+        transform: translateY(36px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @media (prefers-color-scheme: dark) {
     .card {
-        box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
+        box-shadow:
+            0 22px 55px rgb(0 0 0 / 35%),
+            0 4px 14px rgb(0 0 0 / 22%);
+    }
+
+    .orderNoteBox {
+        background: rgb(211 47 47 / 11%);
+    }
+
+    .sheetOverlay {
+        background: rgb(0 0 0 / 70%);
     }
 }
 
 @media (max-width: 600px) {
     .container {
-        padding: 1rem;
+        padding: 0.75rem 0.75rem 1.5rem;
+    }
+
+    .card {
+        border-radius: 19px;
     }
 
     .top {
-        padding: 1.1rem;
+        padding: 1.15rem;
     }
 
     .orderHeading {
         align-items: flex-start;
     }
 
-    .orderId,
+    .orderId {
+        font-size: 1.3rem;
+    }
+
     .totalPrice {
-        font-size: 1.2rem;
+        padding: 0.4rem 0.65rem;
+        font-size: 1.05rem;
+    }
+
+    .customerInfo {
+        margin-top: 1.15rem;
+        padding: 0.85rem;
     }
 
     .infoRow {
-        grid-template-columns: 65px minmax(0, 1fr);
-        font-size: 0.9rem;
+        grid-template-columns: 74px minmax(0, 1fr);
+        gap: 0.55rem;
+        font-size: 0.87rem;
+    }
+
+    .sectionHeading {
+        padding: 1.1rem 1rem 0.75rem;
     }
 
     .item {
-        padding: 1rem 1.1rem;
-        gap: 0.7rem;
+        gap: 0.65rem;
+        padding: 1rem;
     }
 
-    .extras {
-        padding-left: 1.65rem;
+    .quantity {
+        min-width: 29px;
+        height: 29px;
     }
 
-    .itemPrice {
+    .itemName {
         font-size: 0.92rem;
     }
 
+    .extras {
+        padding-left: 2.35rem;
+    }
+
+    .itemPrice {
+        font-size: 0.88rem;
+    }
+
+    .orderNoteSection {
+        padding: 1.15rem 1rem;
+    }
+
+    .orderNoteLabel {
+        margin-bottom: 0.55rem;
+    }
+
+    .orderNoteBox {
+        max-height: 190px;
+        padding: 0.85rem 0.9rem;
+        font-size: 0.84rem;
+    }
+
     .orderFooter {
-        padding: 1rem 1.1rem 1.25rem;
+        padding: 1.15rem 1rem 1.25rem;
     }
 
     .footerRow {
         grid-template-columns: 96px minmax(0, 1fr);
-        font-size: 0.9rem;
+        gap: 0.55rem;
+        font-size: 0.86rem;
+    }
+
+    .actionBar {
+        grid-template-columns: 1fr;
+    }
+
+    .acceptButton,
+    .cancelButton {
+        width: 100%;
+        min-height: 54px;
+    }
+
+    .sheetOverlay {
+        padding: 0;
+    }
+
+    .cancelSheet {
+        max-height: 91vh;
+        padding: 0.55rem 1rem calc(1rem + env(safe-area-inset-bottom));
+        border-right: 0;
+        border-bottom: 0;
+        border-left: 0;
+        border-radius: 22px 22px 0 0;
+    }
+
+    .sheetTitle {
+        font-size: 1.2rem;
+    }
+
+    .sheetDescription {
+        font-size: 0.85rem;
+    }
+
+    .reasonOption {
+        min-height: 50px;
+    }
+
+    .sheetActions {
+        position: sticky;
+        bottom: calc(-1rem - env(safe-area-inset-bottom));
+        grid-template-columns: 1fr;
+        padding: 1rem 0 calc(1rem + env(safe-area-inset-bottom));
+        background: var(--bg-card);
+    }
+
+    .confirmCancelButton {
+        order: -1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .sheetOverlay,
+    .cancelSheet {
+        animation: none;
+    }
+
+    .acceptButton,
+    .cancelButton,
+    .backButton,
+    .confirmCancelButton,
+    .reasonOption {
+        transition: none;
     }
 }

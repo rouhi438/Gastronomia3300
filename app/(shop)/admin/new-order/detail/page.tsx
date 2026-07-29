@@ -19,6 +19,7 @@ interface Order {
   customer_phone: string;
   customer_address: string | null;
   order_note: string | null;
+  cancel_reason?: string | null;
   total_price: number;
   status: string;
   estimated_time?: number | null;
@@ -33,6 +34,16 @@ const statusLabels: Record<string, string> = {
   completed: "Leveret",
   cancelled: "Annulleret",
 };
+
+const cancellationReasons = [
+  "Strømafbrydelse",
+  "Meget travlt",
+  "Udsolgt",
+  "Kunden annullerede",
+  "Uden for leveringsområde",
+  "Teknisk problem",
+  "Andet",
+];
 
 function getSizeLabel(size?: string) {
   if (!size || size === "normal") return null;
@@ -51,6 +62,14 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [isCancelSheetOpen, setIsCancelSheetOpen] = useState(false);
+  const [selectedCancelReason, setSelectedCancelReason] = useState("");
+  const [customCancelReason, setCustomCancelReason] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [submittingAction, setSubmittingAction] = useState<
+    "accepted" | "cancelled" | null
+  >(null);
+
   useEffect(() => {
     const fetchLatestPendingOrder = async () => {
       const token = localStorage.getItem("access_token");
@@ -67,6 +86,7 @@ export default function OrderDetailPage() {
             Authorization: `Bearer ${token}`,
             "X-Refresh-Token": refreshToken || "",
           },
+          cache: "no-store",
         });
 
         if (res.status === 401) {
@@ -76,12 +96,11 @@ export default function OrderDetailPage() {
           return;
         }
 
+        const data = await res.json();
+
         if (!res.ok) {
-          const data = await res.json();
           throw new Error(data.error || "Failed to fetch orders");
         }
-
-        const data = await res.json();
 
         const pendingOrders = data.orders.filter(
           (item: Order) => item.status === "pending",
@@ -105,6 +124,127 @@ export default function OrderDetailPage() {
     fetchLatestPendingOrder();
   }, [router]);
 
+  useEffect(() => {
+    if (!isCancelSheetOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !submittingAction) {
+        closeCancelSheet();
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [isCancelSheetOpen, submittingAction]);
+
+  const updateOrderStatus = async (
+    status: "accepted" | "cancelled",
+    cancelReason?: string,
+  ) => {
+    if (!order || submittingAction) return;
+
+    const token = localStorage.getItem("access_token");
+    const refreshToken = localStorage.getItem("refresh_token");
+
+    if (!token) {
+      router.push("/auth");
+      return;
+    }
+
+    setActionError("");
+    setSubmittingAction(status);
+
+    try {
+      const res = await fetch("/api/admin/orders", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "X-Refresh-Token": refreshToken || "",
+        },
+        body: JSON.stringify({
+          orderId: order.id,
+          status,
+          cancelReason: status === "cancelled" ? cancelReason : null,
+        }),
+      });
+
+      if (res.status === 401) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        router.push("/auth");
+        return;
+      }
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Kunne ikke opdatere ordren");
+      }
+
+      setOrder(data.order);
+
+      if (status === "cancelled") {
+        setIsCancelSheetOpen(false);
+      }
+
+      router.push("/admin/orders");
+      router.refresh();
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Kunne ikke opdatere ordren",
+      );
+    } finally {
+      setSubmittingAction(null);
+    }
+  };
+
+  const handleAccept = async () => {
+    await updateOrderStatus("accepted");
+  };
+
+  const openCancelSheet = () => {
+    if (submittingAction) return;
+
+    setActionError("");
+    setSelectedCancelReason("");
+    setCustomCancelReason("");
+    setIsCancelSheetOpen(true);
+  };
+
+  const closeCancelSheet = () => {
+    if (submittingAction) return;
+
+    setIsCancelSheetOpen(false);
+    setSelectedCancelReason("");
+    setCustomCancelReason("");
+    setActionError("");
+  };
+
+  const handleConfirmCancel = async () => {
+    const finalReason =
+      selectedCancelReason === "Andet"
+        ? customCancelReason.trim()
+        : selectedCancelReason.trim();
+
+    if (!selectedCancelReason) {
+      setActionError("Vælg en årsag til annulleringen.");
+      return;
+    }
+
+    if (selectedCancelReason === "Andet" && !customCancelReason.trim()) {
+      setActionError("Skriv årsagen til annulleringen.");
+      return;
+    }
+
+    await updateOrderStatus("cancelled", finalReason);
+  };
+
   if (loading) {
     return <div className={styles.loading}>Indlæser ordre...</div>;
   }
@@ -119,12 +259,17 @@ export default function OrderDetailPage() {
 
   const formattedDate = new Date(order.created_at).toLocaleString("da-DK");
 
+  const isSubmitting = submittingAction !== null;
+
   return (
     <div className={styles.container}>
       <article className={styles.card}>
         <header className={styles.top}>
           <div className={styles.orderHeading}>
-            <h2 className={styles.orderId}>Ordre #{order.id}</h2>
+            <div>
+              <span className={styles.orderEyebrow}>Ny ordre</span>
+              <h1 className={styles.orderId}>Ordre #{order.id}</h1>
+            </div>
 
             <strong className={styles.totalPrice}>
               {order.total_price} kr.
@@ -133,7 +278,7 @@ export default function OrderDetailPage() {
 
           <div className={styles.customerInfo}>
             <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Tlf:</span>
+              <span className={styles.infoLabel}>Telefon</span>
 
               <a className={styles.phone} href={`tel:${order.customer_phone}`}>
                 {order.customer_phone}
@@ -141,88 +286,294 @@ export default function OrderDetailPage() {
             </div>
 
             <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Kunde:</span>
-              <span>{order.customer_name}</span>
+              <span className={styles.infoLabel}>Kunde</span>
+              <span className={styles.infoValue}>{order.customer_name}</span>
             </div>
 
             {order.customer_address && (
               <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>Adresse:</span>
-                <span>{order.customer_address}</span>
-              </div>
-            )}
-            {order.order_note && (
-              <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>Kommentar:</span>
-
-                <span className={styles.orderNote}>{order.order_note}</span>
+                <span className={styles.infoLabel}>Adresse</span>
+                <span className={styles.infoValue}>
+                  {order.customer_address}
+                </span>
               </div>
             )}
           </div>
         </header>
 
-        <section className={styles.items}>
-          {order.order_items.map((item) => {
-            const sizeLabel = getSizeLabel(item.size);
+        <section className={styles.itemsSection}>
+          <div className={styles.sectionHeading}>
+            <h2 className={styles.sectionTitle}>Bestilling</h2>
 
-            return (
-              <div className={styles.item} key={item.id}>
-                <div className={styles.itemMain}>
-                  <div className={styles.itemTitleRow}>
-                    <span className={styles.quantity}>{item.quantity}×</span>
-
-                    <strong className={styles.itemName}>
-                      {item.item_name}
-                    </strong>
-
-                    {sizeLabel && (
-                      <span className={styles.sizeBadge}>{sizeLabel}</span>
-                    )}
-                  </div>
-
-                  {item.extras && item.extras.length > 0 && (
-                    <div className={styles.extras}>
-                      {item.extras.map((extra) => (
-                        <span className={styles.extra} key={extra}>
-                          + {extra}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <strong className={styles.itemPrice}>
-                  {item.unit_price * item.quantity} kr.
-                </strong>
-              </div>
-            );
-          })}
-        </section>
-
-        <footer className={styles.orderFooter}>
-          <div className={styles.footerRow}>
-            <span className={styles.footerLabel}>Dato:</span>
-            <span>{formattedDate}</span>
-          </div>
-
-          <div className={styles.footerRow}>
-            <span className={styles.footerLabel}>Status:</span>
-            <span className={styles.statusBadge}>
-              {statusLabels[order.status] || order.status}
+            <span className={styles.itemCount}>
+              {order.order_items.reduce(
+                (total, item) => total + item.quantity,
+                0,
+              )}{" "}
+              varer
             </span>
           </div>
 
-          {order.estimated_time && (
-            <div className={styles.footerRow}>
-              <span className={styles.footerLabel}>Forventet tid:</span>
+          <div className={styles.items}>
+            {order.order_items.map((item) => {
+              const sizeLabel = getSizeLabel(item.size);
 
-              <strong className={styles.estimatedTime}>
-                {order.estimated_time} min
-              </strong>
+              return (
+                <div className={styles.item} key={item.id}>
+                  <div className={styles.itemMain}>
+                    <div className={styles.itemTitleRow}>
+                      <span className={styles.quantity}>{item.quantity}×</span>
+
+                      <strong className={styles.itemName}>
+                        {item.item_name}
+                      </strong>
+
+                      {sizeLabel && (
+                        <span className={styles.sizeBadge}>{sizeLabel}</span>
+                      )}
+                    </div>
+
+                    {item.extras && item.extras.length > 0 && (
+                      <div className={styles.extras}>
+                        {item.extras.map((extra, index) => (
+                          <span
+                            className={styles.extra}
+                            key={`${item.id}-${extra}-${index}`}
+                          >
+                            + {extra}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <strong className={styles.itemPrice}>
+                    {item.unit_price * item.quantity} kr.
+                  </strong>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {order.order_note && (
+          <section className={styles.orderNoteSection}>
+            <div className={styles.orderNoteLabel}>Kommentar:</div>
+
+            <div className={styles.orderNoteBox}>{order.order_note}</div>
+          </section>
+        )}
+
+        <footer className={styles.orderFooter}>
+          <div className={styles.orderMeta}>
+            <div className={styles.footerRow}>
+              <span className={styles.footerLabel}>Dato</span>
+              <span className={styles.footerValue}>{formattedDate}</span>
+            </div>
+
+            <div className={styles.footerRow}>
+              <span className={styles.footerLabel}>Status</span>
+
+              <span
+                className={`${styles.statusBadge} ${
+                  order.status === "cancelled"
+                    ? styles.statusCancelled
+                    : order.status === "accepted"
+                      ? styles.statusAccepted
+                      : styles.statusPending
+                }`}
+              >
+                {statusLabels[order.status] || order.status}
+              </span>
+            </div>
+
+            {order.estimated_time && (
+              <div className={styles.footerRow}>
+                <span className={styles.footerLabel}>Forventet tid</span>
+
+                <strong className={styles.estimatedTime}>
+                  {order.estimated_time} min
+                </strong>
+              </div>
+            )}
+          </div>
+
+          {actionError && !isCancelSheetOpen && (
+            <div className={styles.actionError} role="alert">
+              {actionError}
+            </div>
+          )}
+
+          {order.status === "pending" && (
+            <div className={styles.actionBar}>
+              <button
+                className={styles.acceptButton}
+                type="button"
+                onClick={handleAccept}
+                disabled={isSubmitting}
+              >
+                <span className={styles.buttonIcon} aria-hidden="true">
+                  ✓
+                </span>
+
+                <span>
+                  {submittingAction === "accepted"
+                    ? "Accepterer..."
+                    : "Accept ordre"}
+                </span>
+              </button>
+
+              <button
+                className={styles.cancelButton}
+                type="button"
+                onClick={openCancelSheet}
+                disabled={isSubmitting}
+              >
+                <span className={styles.buttonIcon} aria-hidden="true">
+                  ×
+                </span>
+
+                <span>Annuller ordre</span>
+              </button>
             </div>
           )}
         </footer>
       </article>
+
+      {isCancelSheetOpen && (
+        <div
+          className={styles.sheetOverlay}
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeCancelSheet();
+            }
+          }}
+        >
+          <section
+            className={styles.cancelSheet}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cancel-sheet-title"
+          >
+            <div className={styles.sheetHandle} aria-hidden="true" />
+
+            <div className={styles.sheetHeader}>
+              <div>
+                <span className={styles.sheetEyebrow}>Ordre #{order.id}</span>
+
+                <h2 className={styles.sheetTitle} id="cancel-sheet-title">
+                  Annuller ordre
+                </h2>
+
+                <p className={styles.sheetDescription}>
+                  Vælg årsagen til, at ordren bliver annulleret.
+                </p>
+              </div>
+
+              <button
+                className={styles.closeSheetButton}
+                type="button"
+                onClick={closeCancelSheet}
+                disabled={isSubmitting}
+                aria-label="Luk"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className={styles.reasonList}>
+              {cancellationReasons.map((reason) => {
+                const isSelected = selectedCancelReason === reason;
+
+                return (
+                  <label
+                    className={`${styles.reasonOption} ${
+                      isSelected ? styles.reasonOptionSelected : ""
+                    }`}
+                    key={reason}
+                  >
+                    <input
+                      className={styles.reasonRadio}
+                      type="radio"
+                      name="cancelReason"
+                      value={reason}
+                      checked={isSelected}
+                      onChange={() => {
+                        setSelectedCancelReason(reason);
+                        setActionError("");
+                      }}
+                      disabled={isSubmitting}
+                    />
+
+                    <span className={styles.customRadio} aria-hidden="true" />
+
+                    <span className={styles.reasonText}>{reason}</span>
+                  </label>
+                );
+              })}
+            </div>
+
+            {selectedCancelReason === "Andet" && (
+              <div className={styles.customReasonGroup}>
+                <label
+                  className={styles.customReasonLabel}
+                  htmlFor="custom-cancel-reason"
+                >
+                  Skriv årsagen
+                </label>
+
+                <textarea
+                  className={styles.customReasonInput}
+                  id="custom-cancel-reason"
+                  value={customCancelReason}
+                  onChange={(event) => {
+                    setCustomCancelReason(event.target.value);
+                    setActionError("");
+                  }}
+                  placeholder="Skriv hvorfor ordren annulleres..."
+                  maxLength={300}
+                  rows={4}
+                  disabled={isSubmitting}
+                  autoFocus
+                />
+
+                <span className={styles.characterCount}>
+                  {customCancelReason.length}/300
+                </span>
+              </div>
+            )}
+
+            {actionError && (
+              <div className={styles.sheetError} role="alert">
+                {actionError}
+              </div>
+            )}
+
+            <div className={styles.sheetActions}>
+              <button
+                className={styles.backButton}
+                type="button"
+                onClick={closeCancelSheet}
+                disabled={isSubmitting}
+              >
+                Tilbage
+              </button>
+
+              <button
+                className={styles.confirmCancelButton}
+                type="button"
+                onClick={handleConfirmCancel}
+                disabled={isSubmitting}
+              >
+                {submittingAction === "cancelled"
+                  ? "Annullerer..."
+                  : "Annuller ordre"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
