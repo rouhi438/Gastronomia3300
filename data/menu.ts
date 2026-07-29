@@ -3,7 +3,7 @@
 export interface Extra {
   name: string;
   price: number;
-   groupId?: keyof typeof extraGroups;
+  groupId?: keyof typeof extraGroups;
 }
 
 export interface MenuItem {

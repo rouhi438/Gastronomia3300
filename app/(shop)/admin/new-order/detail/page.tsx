@@ -342,7 +342,19 @@ export default function OrderDetailPage() {
               {order.total_price} kr.
             </strong>
           </div>
+          <div
+            className={`${styles.orderTypeBanner} ${
+              order.delivery_method === "delivery"
+                ? styles.orderTypeDelivery
+                : styles.orderTypePickup
+            }`}
+          >
+            <span className={styles.orderTypeLabel}>Ordretype</span>
 
+            <strong className={styles.orderTypeValue}>
+              {order.delivery_method === "delivery" ? "LEVERING" : "AFHENTNING"}
+            </strong>
+          </div>
           <div className={styles.customerInfo}>
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>Telefon</span>
@@ -530,8 +542,22 @@ export default function OrderDetailPage() {
                   Acceptér ordre
                 </h2>
 
+                <div
+                  className={`${styles.acceptOrderType} ${
+                    order.delivery_method === "delivery"
+                      ? styles.acceptOrderTypeDelivery
+                      : styles.acceptOrderTypePickup
+                  }`}
+                >
+                  {order.delivery_method === "delivery"
+                    ? "LEVERING"
+                    : "AFHENTNING"}
+                </div>
+
                 <p className={styles.sheetDescription}>
-                  Vælg hvor mange minutter kunden skal vente.
+                  {order.delivery_method === "delivery"
+                    ? "Vælg den samlede tid til tilberedning og levering."
+                    : "Vælg tiden indtil ordren er klar til afhentning."}
                 </p>
               </div>
 
