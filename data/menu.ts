@@ -8,6 +8,7 @@ export interface Extra {
 
 export interface MenuItem {
   id: number;
+  menuNumber?: number;
   name: string;
   description: string;
   category: string;
@@ -77,6 +78,13 @@ export const extraGroups = {
   drinkFixed: [],
 
   // Protein choice for Ala Carte, Menuer, Sandwich
+  pizzaSaladProteinChoice: [
+    { name: "Kebab", price: 0 },
+    { name: "Kylling", price: 0 },
+    { name: "Pepperoni", price: 0 },
+    { name: "Skinke", price: 0 },
+    { name: "Kød Strimler", price: 0 },
+  ],
   proteinChoice: [
     { name: "Kebab", price: 0 },
     { name: "Kylling", price: 0 },
@@ -96,6 +104,7 @@ export const menuData: MenuItem[] = [
   // 1-26: PIZZAS
   {
     id: 1,
+    menuNumber: 1,
     name: "MARGHERITA",
     description: "Tomat, ost",
     category: "pizza",
@@ -108,6 +117,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 2,
+    menuNumber: 2,
     name: "TUNNA",
     description: "Tomat, ost, tunfisk, løg",
     category: "pizza",
@@ -119,6 +129,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 3,
+    menuNumber: 3,
     name: "PEPPERONI",
     description: "Tomat, ost og pepperoni",
     category: "pizza",
@@ -130,6 +141,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 4,
+    menuNumber: 4,
     name: "VESUVIO",
     description: "Tomat, ost og skinke",
     category: "pizza",
@@ -141,6 +153,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 5,
+    menuNumber: 5,
     name: "HAWAII",
     description: "Tomat, ost, skinke og ananas",
     category: "pizza",
@@ -152,6 +165,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 6,
+    menuNumber: 6,
     name: "CAPRICCIOSA",
     description: "Tomat, ost, skinke og champignon",
     category: "pizza",
@@ -163,6 +177,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 7,
+    menuNumber: 7,
     name: "VICHINGA",
     description: "Tomat, ost, skinke, pepperoni og bacon",
     category: "pizza",
@@ -174,6 +189,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 8,
+    menuNumber: 8,
     name: "KARRY",
     description: "Tomat, ost, kylling, bacon, rødløg og karry dressing",
     category: "pizza",
@@ -185,6 +201,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 9,
+    menuNumber: 9,
     name: "POLLO E PESTO",
     description: "Tomat, ost, kylling, kartofler, peber frugt og pesto",
     category: "pizza",
@@ -196,6 +213,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 10,
+    menuNumber: 10,
     name: "MESSICANO",
     description: "Tomat, ost, kylling, peber frugt, jalapenos og hvidløg",
     category: "pizza",
@@ -207,6 +225,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 11,
+    menuNumber: 11,
     name: "BLOGNESE",
     description: "Tomat, ost, oksekødsauce og løg",
     category: "pizza",
@@ -218,6 +237,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 12,
+    menuNumber: 12,
     name: "PANCETTA",
     description: "Tomat, ost, spinat, kylling, soltørret tomat og bacon",
     category: "pizza",
@@ -229,6 +249,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 13,
+    menuNumber: 13,
     name: "TORINO",
     description: "Tomat, ost, kartofler og bacon",
     category: "pizza",
@@ -240,6 +261,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 14,
+    menuNumber: 14,
     name: "MIX",
     description:
       "Tomat, ost, skinke, kødstrimler, kylling, kebab og bearnaissauce",
@@ -252,6 +274,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 15,
+    menuNumber: 15,
     name: "MILANO",
     description: "Tomat, ost, kødstrimler, gorgonzola og rødløg",
     category: "pizza",
@@ -263,6 +286,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 16,
+    menuNumber: 16,
     name: "BEARNAISE PIZZA",
     description: "Tomat, ost, kebab og bearnaise",
     category: "pizza",
@@ -274,6 +298,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 17,
+    menuNumber: 17,
     name: "PUNJABI PIZZA",
     description: "Tomat, ost, kødstrimler, paprika, løg, jalapenos, hvidløg",
     category: "pizza",
@@ -285,6 +310,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 18,
+    menuNumber: 18,
     name: "QUATTRO FORMAGGI",
     description: "Tomat og 4 forskellige oste",
     category: "pizza",
@@ -297,6 +323,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 19,
+    menuNumber: 19,
     name: "PARMA CON RUCOLA",
     description: "Tomat, ost, brasola, parmesan, rucola",
     category: "pizza",
@@ -308,6 +335,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 20,
+    menuNumber: 20,
     name: "PIZZA SALATA",
     description: "Tomat, ost, valgfri protein, salat og dressing",
     category: "pizza",
@@ -315,10 +343,12 @@ export const menuData: MenuItem[] = [
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
     image: "",
-    extraGroupId: "pizza",
+    extraGroupId: "pizzaSaladProteinChoice",
+    extraGroupIds: ["pizzaSaladProteinChoice", "pizza"],
   },
   {
     id: 21,
+    menuNumber: 21,
     name: "RUSTICA",
     description:
       "Tomat, ost, aubergine, semidertomat, cherrytomat, parmesan, pesto og rucola",
@@ -332,6 +362,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 22,
+    menuNumber: 22,
     name: "BARI",
     description: "Tomat, ost, kalkun, chorizo, cherrytomat, parmesan og rucola",
     category: "pizza",
@@ -343,6 +374,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 23,
+    menuNumber: 23,
     name: "PATATE",
     description:
       "Tomat, ost, kartofler, gorgonzola, cherrytomat, pesto og skinke",
@@ -356,6 +388,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 24,
+    menuNumber: 24,
     name: "CALZONA",
     description: "Tomatsauce, ost, champignon og skinke",
     category: "pizza",
@@ -367,6 +400,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 25,
+    menuNumber: 25,
     name: "HALV INDBAGT",
     description: "Ost, kebab, champignon, løg, bearnaisesauce og chili",
     category: "pizza",
@@ -379,6 +413,7 @@ export const menuData: MenuItem[] = [
   // 27-29: ALA CARTE (with protein choice)
   {
     id: 26,
+    menuNumber: 26,
     name: "SANDWICH",
     description: "Med fyld af valgfri protein, salat og dressing",
     category: "ala-carte",
@@ -390,6 +425,7 @@ export const menuData: MenuItem[] = [
 
   {
     id: 27,
+    menuNumber: 27,
     name: "PITABRØD",
     description: "Med valgfri protein, salat og dressing",
     category: "ala-carte",
@@ -400,6 +436,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 28,
+    menuNumber: 28,
     name: "DURUM",
     description: "Med valgfri protein, salat og dressing",
     category: "ala-carte",
@@ -410,6 +447,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 29,
+    menuNumber: 29,
     name: "BOX",
     description: "Med valgfri protein, salat og dressing",
     category: "ala-carte",
@@ -422,6 +460,7 @@ export const menuData: MenuItem[] = [
   // 30-36: HOVEDRETTER (Main Courses)
   {
     id: 30,
+    menuNumber: 30,
     name: "GRÆSK BØF",
     description: "Med pommes frites, salat og mayonnaise",
     category: "hovedretter",
@@ -431,6 +470,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 31,
+    menuNumber: 31,
     name: "HALV KYLLING",
     description: "Med pommes frites, remoulade, salat og dressing",
     category: "hovedretter",
@@ -440,6 +480,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 32,
+    menuNumber: 32,
     name: "KYLLING NUGGETS (10 stk.)",
     description: "Med pommes frites, remoulade, salat og dressing",
     category: "hovedretter",
@@ -449,6 +490,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 33,
+    menuNumber: 33,
     name: "FISKEFILET (2 stk.)",
     description: "Med pommes frites, remoulade, salat & dressing",
     category: "hovedretter",
@@ -459,6 +501,7 @@ export const menuData: MenuItem[] = [
 
   {
     id: 34,
+    menuNumber: 34,
     name: "HVIDLØGSBRØD",
     description: "Med ost & hvidløg",
     category: "hovedretter",
@@ -468,6 +511,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 35,
+    menuNumber: 35,
     name: "NACHOS",
     description:
       "Vælg mellem kebab/kylling med ost, oliven, jalapenos og guacamole",
@@ -479,6 +523,7 @@ export const menuData: MenuItem[] = [
   // 36-39: PASTA
   {
     id: 36,
+    menuNumber: 36,
     name: "LASAGNE BOLOGNESE",
     description: "Med kødsauce og ost",
     category: "pasta",
@@ -489,6 +534,7 @@ export const menuData: MenuItem[] = [
 
   {
     id: 37,
+    menuNumber: 37,
     name: "SPAGHETTI BOLOGNESE",
     description: "Spaghetti med kødsauce, parmesanost",
     category: "pasta",
@@ -498,6 +544,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 38,
+    menuNumber: 38,
     name: "PASTA LA FREDERIKSVÆRK",
     description: "Med pastaskruer, kylling, bacon & tomatflødesauce",
     category: "pasta",
@@ -507,6 +554,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 39,
+    menuNumber: 39,
     name: "CARBONARA",
     description: "Med spaghetti, bacon, æggeblomme og flødesauce",
     category: "pasta",
@@ -518,6 +566,7 @@ export const menuData: MenuItem[] = [
   // 40-42: SALAT
   {
     id: 40,
+    menuNumber: 40,
     name: "SALAT kebab/kylling/skinke/tunfisk",
     description: "Med iceberg, tomat, agurk og dressing",
     category: "salad",
@@ -527,6 +576,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 41,
+    menuNumber: 41,
     name: "PASTA SALAT",
     description: "Med pasta, kebab, skinke/kylling og dressing",
     category: "salad",
@@ -536,6 +586,7 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 42,
+    menuNumber: 42,
     name: "GRÆSK SALAT",
     description: "Med tomat, agurk, iceberg, fetaost, oliven",
     category: "salad",
@@ -543,114 +594,12 @@ export const menuData: MenuItem[] = [
     image: "",
     extraGroupId: "none",
   },
-
-  // ============================================================
-  // 43-47: POMMES FRITES & FRIES
-  // ============================================================
-  {
-    id: 43,
-    name: "POMMES FRITES (Lille pakke)",
-    description: "",
-    category: "fries",
-    prices: { fixed: 30 },
-    image: "",
-    extraGroupId: "fries",
-  },
-  {
-    id: 44,
-    name: "POMMES FRITES (Stor pakke)",
-    description: "",
-    category: "fries",
-    prices: { fixed: 35 },
-    image: "",
-    extraGroupId: "fries",
-  },
-
-  // ============================================================
-  // 45-47: BØRN (Children's Menu)
-  // ============================================================
-  {
-    id: 45,
-    name: "Børne Nuggets (6 stk.)",
-    description: "Serveret med pommes frites og remoulade",
-    category: "børn",
-    prices: { fixed: 65 },
-    image: "",
-    extraGroupId: "none",
-  },
-  {
-    id: 46,
-    name: "Børne Fiskefilet",
-    description: "Serveret med pommes frites og remoulade",
-    category: "børn",
-    prices: { fixed: 65 },
-    image: "",
-    extraGroupId: "none",
-  },
-
-  // ============================================================
-  // 48-53: BURGER (Regular)
-  // ============================================================
-  {
-    id: 48,
-    name: "HJEMMELAVET BIG BURGER",
-    description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
-    category: "burger",
-    prices: { fixed: 65 },
-    image: "",
-    extraGroupId: "none",
-  },
-  {
-    id: 49,
-    name: "HJEMMELAVET CHEESE BURGER",
-    description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
-    category: "burger",
-    prices: { fixed: 70 },
-    image: "",
-    extraGroupId: "none",
-  },
-  {
-    id: 50,
-    name: "HJEMMELAVET BACON BURGER",
-    description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
-    category: "burger",
-    prices: { fixed: 70 },
-    image: "",
-    extraGroupId: "none",
-  },
-  {
-    id: 51,
-    name: "HJEMMELAVET BACON CHEESE BURGER",
-    description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
-    category: "burger",
-    prices: { fixed: 75 },
-    image: "",
-    extraGroupId: "none",
-  },
-  {
-    id: 52,
-    name: "HJEMMELAVET DOBBELT BACON CHEESE BURGER",
-    description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
-    category: "burger",
-    prices: { fixed: 90 },
-    image: "",
-    extraGroupId: "none",
-  },
-  {
-    id: 53,
-    name: "CRISPY CHICKEN",
-    description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
-    category: "burger",
-    prices: { fixed: 55 },
-    image: "",
-    extraGroupId: "none",
-  },
-
   // ========================
-  // 54-59: MENUER
+  // 43-45: MENUER
   // =======================
   {
-    id: 54,
+    id: 43,
+    menuNumber: 43,
     name: "Pitabrød menu",
     description: "Serveres med lille pommes frites, mayonnaise og dåsecola.",
     category: "menuer",
@@ -659,7 +608,8 @@ export const menuData: MenuItem[] = [
     extraGroupId: "proteinChoice",
   },
   {
-    id: 55,
+    id: 44,
+    menuNumber: 44,
     name: "Durum menu",
     description: "Serveres med lille pommes frites, mayonnaise og dåsecola.",
     category: "menuer",
@@ -668,7 +618,8 @@ export const menuData: MenuItem[] = [
     extraGroupId: "proteinChoice",
   },
   {
-    id: 56,
+    id: 45,
+    menuNumber: 45,
     name: "Burger menu",
     description: "Serveres med lille pommes frites, mayonnaise og dåsecola.",
     category: "menuer",
@@ -678,6 +629,114 @@ export const menuData: MenuItem[] = [
   },
 
   // ============================================================
+  // 46-47: POMMES FRITES & FRIES
+  // ============================================================
+  {
+    id: 46,
+    menuNumber: 46,
+    name: "POMMES FRITES (Lille pakke)",
+    description: "",
+    category: "fries",
+    prices: { fixed: 30 },
+    image: "",
+    extraGroupId: "fries",
+  },
+  {
+    id: 47,
+    menuNumber: 47,
+    name: "POMMES FRITES (Stor pakke)",
+    description: "",
+    category: "fries",
+    prices: { fixed: 35 },
+    image: "",
+    extraGroupId: "fries",
+  },
+  // ============================================================
+  // 48-53: BURGER (Regular)
+  // ============================================================
+  {
+    id: 48,
+    menuNumber: 48,
+    name: "HJEMMELAVET BIG BURGER",
+    description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
+    category: "burger",
+    prices: { fixed: 65 },
+    image: "",
+    extraGroupId: "none",
+  },
+  {
+    id: 49,
+    menuNumber: 49,
+    name: "HJEMMELAVET CHEESE BURGER",
+    description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
+    category: "burger",
+    prices: { fixed: 70 },
+    image: "",
+    extraGroupId: "none",
+  },
+  {
+    id: 50,
+    menuNumber: 50,
+    name: "HJEMMELAVET BACON BURGER",
+    description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
+    category: "burger",
+    prices: { fixed: 70 },
+    image: "",
+    extraGroupId: "none",
+  },
+  {
+    id: 51,
+    menuNumber: 51,
+    name: "HJEMMELAVET BACON CHEESE BURGER",
+    description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
+    category: "burger",
+    prices: { fixed: 75 },
+    image: "",
+    extraGroupId: "none",
+  },
+  {
+    id: 52,
+    menuNumber: 52,
+    name: "HJEMMELAVET DOBBELT BACON CHEESE BURGER",
+    description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
+    category: "burger",
+    prices: { fixed: 90 },
+    image: "",
+    extraGroupId: "none",
+  },
+  {
+    id: 53,
+    menuNumber: 53,
+    name: "CRISPY CHICKEN",
+    description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
+    category: "burger",
+    prices: { fixed: 55 },
+    image: "",
+    extraGroupId: "none",
+  },
+
+  // ============================================================
+  // 54-55: BØRN (Children's Menu)
+  // ============================================================
+  {
+    id: 54,
+    name: "Børne Nuggets (6 stk.)",
+    description: "Serveret med pommes frites og remoulade",
+    category: "børn",
+    prices: { fixed: 65 },
+    image: "",
+    extraGroupId: "none",
+  },
+  {
+    id: 55,
+    name: "Børne Fiskefilet",
+    description: "Serveret med pommes frites og remoulade",
+    category: "børn",
+    prices: { fixed: 65 },
+    image: "",
+    extraGroupId: "none",
+  },
+  // ============================================================
   // 60-71: DRINKS
   // ============================================================
   {
@@ -685,7 +744,7 @@ export const menuData: MenuItem[] = [
     name: "Coca-Cola",
     description: "Vælg din størrelse",
     category: "drikke",
-    prices: { fixed: 16 },
+    prices: { fixed: 0 },
     image: "",
     extraGroupId: "drinkSizes",
   },
@@ -694,7 +753,7 @@ export const menuData: MenuItem[] = [
     name: "Faxe Kondi",
     description: "Vælg din størrelse",
     category: "drikke",
-    prices: { fixed: 16 },
+    prices: { fixed: 0 },
     image: "",
     extraGroupId: "drinkSizes",
   },
@@ -703,7 +762,7 @@ export const menuData: MenuItem[] = [
     name: "Fanta",
     description: "Vælg din størrelse",
     category: "drikke",
-    prices: { fixed: 16 },
+    prices: { fixed: 0 },
     image: "",
     extraGroupId: "drinkSizes",
   },

@@ -26,6 +26,7 @@ const RADIO_GROUP_IDS: ExtraGroupId[] = [
   "proteinChoice",
   "nachosProtein",
   "drinkSizes",
+  "pizzaSaladProteinChoice",
 ];
 
 const getExtraKey = (extra: Extra, groupId: ExtraGroupId) =>
@@ -342,7 +343,7 @@ export default function ItemModal({
           <div className={styles.section}>
             <p className={styles.description}>{item.description}</p>
 
-            <p className={styles.basePrice}>Fra {basePrice} kr.</p>
+            {/*<p className={styles.basePrice}>Fra {basePrice} kr.</p>*/}
           </div>
 
           {hasSizeOptions && availableSizes.length > 0 && (

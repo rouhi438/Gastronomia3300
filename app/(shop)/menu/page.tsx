@@ -95,7 +95,7 @@ export default function MenuPage() {
           <div className={styles.cardsGrid}>
             {filteredItems.map((item) => {
               const price = item.prices.normal ?? item.prices.fixed ?? 0;
-
+              const hidePrice = [60, 61, 62].includes(item.id);
               return (
                 <div
                   key={item.id}
@@ -103,9 +103,14 @@ export default function MenuPage() {
                   onClick={() => handleCardClick(item)}
                 >
                   <div className={styles.cardContent}>
-                    <h3 className={styles.itemName}>{item.name}</h3>
+                    <h3 className={styles.itemName}>
+                      {item.menuNumber ? `${item.menuNumber}. ` : ""}
+                      {item.name}
+                    </h3>
                     <p className={styles.itemDesc}>{item.description}</p>
-                    <p className={styles.itemPrice}>{price} kr,-</p>
+                    {!hidePrice && (
+                      <p className={styles.itemPrice}>{price} kr,-</p>
+                    )}
                   </div>
                   <div className={styles.imageWrapper}>
                     {item.image ? (
