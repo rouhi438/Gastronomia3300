@@ -9,10 +9,11 @@ import styles from "./BottomCartBar.module.css";
 export default function BottomCartBar() {
   const pathname = usePathname();
   const { totalItems, totalPrice } = useCart();
-  const { openCart } = useCartUI();
+  const { openCart, isCartOpen } = useCartUI();
 
   if (pathname === "/checkout") return null;
   if (totalItems === 0) return null;
+  if (isCartOpen) return null;
 
   return (
     <button className={styles.bar} onClick={openCart}>

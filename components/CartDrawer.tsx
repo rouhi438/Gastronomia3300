@@ -8,6 +8,7 @@ import {
   Check,
   LogIn,
   Minus,
+  Clock3,
   Plus,
   ShoppingBag,
   Store,
@@ -61,6 +62,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     bagIncluded,
     setBagIncluded,
 
+    requestedTime,
+    setRequestedTime,
+
     subtotal,
     bagFee,
     serviceFee,
@@ -91,6 +95,51 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const [initialSize, setInitialSize] = useState<SizeOption>("normal");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // add time to choosing from user
+  const availableTimes = useMemo(() => {
+    const now = new Date();
+
+    const openingMinutes = 15 * 60;
+    const closingMinutes = 21 * 60;
+
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const nextQuarter = Math.floor(currentMinutes / 15) * 15 + 15;
+
+    const firstAvailableTime = Math.max(openingMinutes, nextQuarter);
+
+    if (firstAvailableTime > closingMinutes) {
+      return [];
+    }
+
+    const times: string[] = [];
+
+    for (
+      let minutes = firstAvailableTime;
+      minutes <= closingMinutes;
+      minutes += 15
+    ) {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+
+      times.push(
+        `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`,
+      );
+    }
+
+    return times;
+  }, [isOpen]);
+
+  const hasScheduledTime = requestedTime !== "asap";
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (requestedTime !== "asap" && !availableTimes.includes(requestedTime)) {
+      setRequestedTime("asap");
+    }
+  }, [isOpen, requestedTime, availableTimes, setRequestedTime]);
 
   useEffect(() => {
     const storedCustomer = localStorage.getItem(CUSTOMER_STORAGE_KEY);
@@ -440,6 +489,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 <div className={styles.stepPanel}>
                   <DetailsStep
                     deliveryMethod={deliveryMethod}
+                    requestedTime={requestedTime}
+                    availableTimes={availableTimes}
+                    onRequestedTimeChange={setRequestedTime}
                     customerDetails={customerDetails}
                     deliveryAddress={deliveryAddress}
                     isLoggedIn={isLoggedIn}
@@ -818,6 +870,11 @@ function CartStep({
 
 interface DetailsStepProps {
   deliveryMethod: "pickup" | "delivery";
+  requestedTime: ReturnType<typeof useCart>["requestedTime"];
+  availableTimes: string[];
+
+  onRequestedTimeChange: ReturnType<typeof useCart>["setRequestedTime"];
+
   customerDetails: CustomerDetails;
   deliveryAddress: ReturnType<typeof useCart>["deliveryAddress"];
   isLoggedIn: boolean;
@@ -837,6 +894,9 @@ interface DetailsStepProps {
 
 function DetailsStep({
   deliveryMethod,
+  requestedTime,
+  availableTimes,
+  onRequestedTimeChange,
   customerDetails,
   deliveryAddress,
   isLoggedIn,
@@ -876,7 +936,88 @@ function DetailsStep({
           </p>
         </div>
       </section>
+      <section
+        className={styles.timeCard}
+        aria-labelledby="requested-time-title"
+      >
+        <div className={styles.timeHeader}>
+          <span className={styles.timeIcon}>
+            <Clock3 size={19} />
+          </span>
 
+          <div>
+            <strong id="requested-time-title">Ønsket tidspunkt</strong>
+
+            <small>
+              {deliveryMethod === "delivery"
+                ? "Hvornår ønsker du ordren leveret?"
+                : "Hvornår ønsker du at hente ordren?"}
+            </small>
+          </div>
+        </div>
+
+        <div className={styles.timeOptions}>
+          <label
+            className={`${styles.timeOption} ${
+              requestedTime === "asap" ? styles.timeOptionActive : ""
+            }`}
+          >
+            <input
+              type="radio"
+              name="requested-time-mode"
+              value="asap"
+              checked={requestedTime === "asap"}
+              onChange={() => onRequestedTimeChange("asap")}
+            />
+
+            <span>Hurtigst muligt</span>
+          </label>
+
+          <label
+            className={`${styles.timeOption} ${
+              requestedTime !== "asap" ? styles.timeOptionActive : ""
+            }`}
+          >
+            <input
+              type="radio"
+              name="requested-time-mode"
+              value="scheduled"
+              checked={requestedTime !== "asap"}
+              disabled={availableTimes.length === 0}
+              onChange={() => {
+                const firstTime = availableTimes[0];
+
+                if (firstTime) {
+                  onRequestedTimeChange(firstTime);
+                }
+              }}
+            />
+
+            <span>Vælg tidspunkt</span>
+          </label>
+        </div>
+
+        {requestedTime !== "asap" && availableTimes.length > 0 && (
+          <select
+            className={styles.timeSelect}
+            value={requestedTime}
+            onChange={(event) => onRequestedTimeChange(event.target.value)}
+            aria-label="Vælg ønsket tidspunkt"
+          >
+            {availableTimes.map((time) => (
+              <option key={time} value={time}>
+                {time}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {availableTimes.length === 0 && (
+          <p className={styles.noTimesMessage}>
+            Der er ingen flere valgbare tider i dag. Vælg hurtigst muligt.
+          </p>
+        )}
+      </section>
       {isLoggedIn ? (
         <div className={styles.loggedInCard}>
           <span className={styles.loggedInIcon}>

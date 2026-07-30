@@ -12,6 +12,7 @@ import { DELIVERY_FEE } from "@/lib/delivery";
 import type { Extra } from "@/data/menu";
 
 export type DeliveryMethod = "pickup" | "delivery";
+export type RequestedTime = "asap" | string;
 
 export interface DeliveryAddress {
   addressLine1: string;
@@ -60,6 +61,9 @@ interface CartContextType {
   bagIncluded: boolean;
   setBagIncluded: (included: boolean) => void;
 
+  requestedTime: RequestedTime;
+  setRequestedTime: (time: RequestedTime) => void;
+
   subtotal: number;
   bagFee: number;
   serviceFee: number;
@@ -73,6 +77,7 @@ interface StoredCartState {
   deliveryMethod?: DeliveryMethod;
   deliveryAddress?: Partial<DeliveryAddress>;
   bagIncluded?: boolean;
+  requestedTime?: RequestedTime;
 }
 
 const BAG_FEE = 4;
@@ -101,6 +106,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     useState<DeliveryAddress>(emptyDeliveryAddress);
 
   const [bagIncluded, setBagIncluded] = useState(true);
+  const [requestedTime, setRequestedTime] = useState<RequestedTime>("asap");
 
   const [hasLoadedStorage, setHasLoadedStorage] = useState(false);
 
@@ -133,11 +139,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
       });
 
       setBagIncluded(parsed.bagIncluded !== false);
+      setRequestedTime(
+        typeof parsed.requestedTime === "string"
+          ? parsed.requestedTime
+          : "asap",
+      );
     } catch {
       setItems([]);
       setDeliveryMethodState("pickup");
       setDeliveryAddressState(emptyDeliveryAddress);
       setBagIncluded(true);
+      setRequestedTime("asap");
     } finally {
       setHasLoadedStorage(true);
     }
@@ -151,10 +163,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
       deliveryMethod,
       deliveryAddress,
       bagIncluded,
+      requestedTime,
     };
 
     localStorage.setItem("cart", JSON.stringify(state));
-  }, [items, deliveryMethod, deliveryAddress, bagIncluded, hasLoadedStorage]);
+  }, [
+    items,
+    deliveryMethod,
+    deliveryAddress,
+    bagIncluded,
+    requestedTime,
+    hasLoadedStorage,
+  ]);
 
   const addItem = (newItem: Omit<CartItem, "cartId">) => {
     setItems((previousItems) => {
@@ -243,6 +263,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setDeliveryMethodState("pickup");
     setDeliveryAddressState(emptyDeliveryAddress);
     setBagIncluded(true);
+    setRequestedTime("asap");
     localStorage.removeItem("cart");
   };
 
@@ -302,6 +323,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
         bagIncluded,
         setBagIncluded,
+
+        requestedTime,
+        setRequestedTime,
 
         subtotal: totals.subtotal,
         bagFee: totals.bagFee,

@@ -392,6 +392,99 @@
     outline-offset: 3px;
 }
 
+.timeCard {
+    margin-top: 18px;
+    padding: 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: #fafafa;
+}
+
+.timeHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.timeIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: #eef6ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.timeHeader strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.timeHeader small {
+    display: block;
+    margin-top: 3px;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.timeOptions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.timeOption {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.timeOption:hover {
+    border-color: #2563eb;
+}
+
+.timeOptionActive {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.timeOption input {
+    accent-color: #2563eb;
+}
+
+.timeSelect {
+    width: 100%;
+    margin-top: 14px;
+    padding: 12px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 15px;
+    background: white;
+}
+
+.timeSelect:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+}
+
+.noTimesMessage {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #b45309;
+}
+
 @keyframes overlayFadeIn {
     from {
         background: rgba(15, 23, 42, 0);
