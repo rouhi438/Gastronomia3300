@@ -100,8 +100,8 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const availableTimes = useMemo(() => {
     const now = new Date();
 
-    const openingMinutes = 15 * 60;
-    const closingMinutes = 21 * 60;
+    const openingMinutes = 15 * 60 + 30;
+    const closingMinutes = 20 * 60 + 15;
 
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 

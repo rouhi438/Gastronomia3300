@@ -10,8 +10,14 @@ type PaymentMethod = "mobilepay" | "cash";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, totalPrice, clearCart, deliveryMethod, setDeliveryMethod } =
-    useCart();
+  const {
+    items,
+    totalPrice,
+    clearCart,
+    deliveryMethod,
+    setDeliveryMethod,
+    requestedTime,
+  } = useCart();
   const [mounted, setMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderNote, setOrderNote] = useState("");
@@ -73,7 +79,7 @@ export default function CheckoutPage() {
         customer_phone: form.phone,
         customer_email: form.email.trim(),
         customer_address: deliveryMethod === "delivery" ? form.address : null,
-        requested_time: "Hurtigst muligt",
+        requested_time: requestedTime,
         order_note: orderNote.trim() || null,
         items: items.map((item) => ({
           name: item.name,
