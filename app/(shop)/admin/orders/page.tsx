@@ -23,6 +23,7 @@ interface Order {
   customer_phone: string;
   customer_address: string | null;
   order_note: string | null;
+  requested_time: string;
   total_price: number;
   status: OrderStatus;
   estimated_time: number | null;
@@ -48,6 +49,14 @@ const statusLabels: Record<OrderStatus, string> = {
   completed: "Leveret",
   cancelled: "Annulleret",
 };
+
+function formatRequestedTime(requestedTime: string | null | undefined) {
+  if (!requestedTime || requestedTime === "asap") {
+    return "Hurtigst muligt";
+  }
+
+  return requestedTime;
+}
 
 function getStartOfDay(date: Date) {
   const result = new Date(date);
@@ -292,6 +301,10 @@ export default function AdminOrdersPage() {
 
                   <span className={styles.customerName}>
                     {order.customer_name}
+                  </span>
+                  <span className={styles.itemsSummary}>
+                    Ønsket tidspunkt:{" "}
+                    {formatRequestedTime(order.requested_time)}
                   </span>
 
                   {itemSummary && (

@@ -114,7 +114,7 @@ export default function OrderAcceptedPage() {
     order_note: order.order_note,
     delivery_method: order.delivery_method,
     requested_time: order.requested_time,
-    estimated_time: order.estimated_time || null,
+    estimated_time: order.estimated_time ?? null,
     total_price: order.total_price,
     status: order.status,
     order_items: order.order_items.map((item) => ({

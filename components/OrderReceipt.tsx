@@ -162,10 +162,13 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
   const deliveryLabel =
     order.delivery_method === "pickup" ? "Afhentning" : "Levering";
 
-  const customerTime = order.requested_time || "Hurtigst muligt";
+  const customerTime =
+    !order.requested_time || order.requested_time === "asap"
+      ? "Hurtigst muligt"
+      : order.requested_time;
 
-  const showAddress =
-    order.delivery_method === "delivery" && Boolean(order.customer_address);
+  // const showAddress =
+  //   order.delivery_method === "delivery" && Boolean(order.customer_address);
 
   const status = order.status === "accepted" ? "Accepteret" : order.status;
 
