@@ -46,9 +46,6 @@ export default function AuthPage() {
 
       // ===== Login success =====
       if (isLogin) {
-        localStorage.setItem("access_token", data.session.access_token);
-        localStorage.setItem("refresh_token", data.session.refresh_token);
-        localStorage.setItem("user", JSON.stringify(data.user));
         router.push("/");
       } else {
         // Register success

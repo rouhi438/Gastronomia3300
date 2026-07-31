@@ -19,13 +19,14 @@ import {
 
 import { useCart } from "@/context/CartContext";
 import { menuData, type Extra, type MenuItem } from "@/data/menu";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 
 import AddressAutocomplete from "./AddressAutocomplete";
 import ItemModal, { type SizeOption } from "./ItemModal";
 
 import styles from "./CartDrawer.module.css";
 
+const supabase = createClient();
 interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -179,7 +180,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   }, [orderNote, hasLoadedCustomer]);
 
   useEffect(() => {
-    if (!isOpen || !supabase) return;
+    if (!isOpen) return;
     const supabaseClient = supabase;
     let isMounted = true;
 

@@ -28,20 +28,14 @@ export default function SelectTimePage() {
     }
 
     setLoading(true);
-    const token = localStorage.getItem("access_token");
-    const refreshToken = localStorage.getItem("refresh_token");
-    if (!token) {
-      router.push("/auth");
-      return;
-    }
+    setError("");
 
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`, {
         method: "PATCH",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "X-Refresh-Token": refreshToken || "",
         },
         body: JSON.stringify({
           status: "accepted",
@@ -50,23 +44,29 @@ export default function SelectTimePage() {
       });
 
       if (res.status === 401) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
         router.push("/auth");
+        router.refresh();
         return;
       }
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Kunne ikke acceptere ordre");
+      if (res.status === 403) {
+        throw new Error("Du har ikke adgang til denne handling.");
       }
 
-      // ===== REDIRECT TO ORDER ACCEPTED PAGE WITH AUTO PRINT =====
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+
+        throw new Error(data?.error || "Kunne ikke acceptere ordre");
+      }
+
       router.push(`/admin/order-accepted/${orderId}?time=${selectedTime}`);
+      router.refresh();
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Kunne ikke acceptere ordre";
+
       setError(message);
+    } finally {
       setLoading(false);
     }
   };

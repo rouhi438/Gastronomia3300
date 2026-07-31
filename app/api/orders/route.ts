@@ -1,7 +1,28 @@
-// app/api/orders/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+type OrderItemRequest = {
+  name?: unknown;
+  quantity?: unknown;
+  price?: unknown;
+  size?: unknown;
+  deepPan?: unknown;
+  extras?: unknown;
+};
+
+type CreateOrderRequest = {
+  total_price?: unknown;
+  delivery_method?: unknown;
+  payment_method?: unknown;
+  customer_name?: unknown;
+  customer_phone?: unknown;
+  customer_email?: unknown;
+  customer_address?: unknown;
+  order_note?: unknown;
+  requested_time?: unknown;
+  items?: unknown;
+};
 
 function isValidRequestedTime(value: unknown): value is string {
   if (value === "asap") {
@@ -21,7 +42,12 @@ function isValidRequestedTime(value: unknown): value is string {
   const hours = Number(match[1]);
   const minutes = Number(match[2]);
 
-  if (![0, 15, 30, 45].includes(minutes)) {
+  if (
+    !Number.isInteger(hours) ||
+    hours < 0 ||
+    hours > 23 ||
+    ![0, 15, 30, 45].includes(minutes)
+  ) {
     return false;
   }
 
@@ -34,45 +60,48 @@ function isValidRequestedTime(value: unknown): value is string {
   );
 }
 
+function getOptionalString(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmedValue = value.trim();
+
+  return trimmedValue || null;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    if (!supabase) {
-      return NextResponse.json(
-        {
-          error:
-            "Supabase is not configured. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
-        },
-        { status: 500 },
-      );
-    }
+    const body = (await request.json()) as CreateOrderRequest;
 
-    const body = await request.json();
+    const totalPrice = body.total_price;
+    const customerName = getOptionalString(body.customer_name);
+    const customerPhone = getOptionalString(body.customer_phone);
+    const customerEmail = getOptionalString(body.customer_email);
+    const customerAddress = getOptionalString(body.customer_address);
+    const orderNote = getOptionalString(body.order_note);
 
-    // ===== 1. Extract data from request =====
-    const {
-      user_id,
-      total_price,
-      delivery_method,
-      payment_method,
-      customer_name,
-      customer_phone,
-      customer_email,
-      customer_address,
-      order_note,
-      requested_time,
-      items,
-    } = body;
+    const deliveryMethod =
+      typeof body.delivery_method === "string"
+        ? body.delivery_method.trim().toLowerCase()
+        : "pickup";
 
-    // ===== 2. Validate required order fields =====
+    const paymentMethod =
+      typeof body.payment_method === "string"
+        ? body.payment_method.trim().toLowerCase()
+        : "mobilepay";
+
+    const requestedTime = body.requested_time;
+    const items = body.items;
+
+    // ===== Validate required fields =====
     if (
-      typeof total_price !== "number" ||
-      total_price <= 0 ||
-      typeof customer_name !== "string" ||
-      !customer_name.trim() ||
-      typeof customer_phone !== "string" ||
-      !customer_phone.trim() ||
-      typeof customer_email !== "string" ||
-      !customer_email.trim() ||
+      typeof totalPrice !== "number" ||
+      !Number.isFinite(totalPrice) ||
+      totalPrice <= 0 ||
+      !customerName ||
+      !customerPhone ||
+      !customerEmail ||
       !Array.isArray(items) ||
       items.length === 0
     ) {
@@ -82,60 +111,114 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ===== 3. Validate requested time =====
-    if (!isValidRequestedTime(requested_time)) {
+    // ===== Validate delivery method =====
+    if (!["pickup", "delivery"].includes(deliveryMethod)) {
+      return NextResponse.json(
+        { error: "Invalid delivery method" },
+        { status: 400 },
+      );
+    }
+
+    if (deliveryMethod === "delivery" && !customerAddress) {
+      return NextResponse.json(
+        { error: "Customer address is required for delivery" },
+        { status: 400 },
+      );
+    }
+
+    // ===== Validate payment method =====
+    if (!["mobilepay", "cash", "card"].includes(paymentMethod)) {
+      return NextResponse.json(
+        { error: "Invalid payment method" },
+        { status: 400 },
+      );
+    }
+
+    // ===== Validate requested time =====
+    if (!isValidRequestedTime(requestedTime)) {
       return NextResponse.json(
         { error: "Invalid requested time" },
         { status: 400 },
       );
     }
 
-    // ===== 4. Validate order items =====
-    const hasInvalidItem = items.some((item: unknown) => {
+    // ===== Validate order items =====
+    const normalizedItems = items.map((item: unknown) => {
       if (!item || typeof item !== "object") {
-        return true;
+        return null;
       }
 
-      const orderItem = item as Record<string, unknown>;
+      const orderItem = item as OrderItemRequest;
 
-      return (
-        typeof orderItem.name !== "string" ||
-        !orderItem.name.trim() ||
-        typeof orderItem.quantity !== "number" ||
-        !Number.isInteger(orderItem.quantity) ||
-        orderItem.quantity <= 0 ||
-        typeof orderItem.price !== "number" ||
-        orderItem.price < 0
-      );
+      const name =
+        typeof orderItem.name === "string" ? orderItem.name.trim() : "";
+
+      const quantity = orderItem.quantity;
+      const price = orderItem.price;
+
+      if (
+        !name ||
+        typeof quantity !== "number" ||
+        !Number.isInteger(quantity) ||
+        quantity <= 0 ||
+        typeof price !== "number" ||
+        !Number.isFinite(price) ||
+        price < 0
+      ) {
+        return null;
+      }
+
+      const size =
+        orderItem.deepPan === true
+          ? "deepPan"
+          : typeof orderItem.size === "string" && orderItem.size.trim()
+            ? orderItem.size.trim()
+            : "normal";
+
+      const extras = Array.isArray(orderItem.extras) ? orderItem.extras : [];
+
+      return {
+        item_name: name,
+        quantity,
+        unit_price: price,
+        size,
+        extras,
+      };
     });
 
-    if (hasInvalidItem) {
+    if (normalizedItems.some((item) => item === null)) {
       return NextResponse.json(
         { error: "Invalid order items" },
         { status: 400 },
       );
     }
 
-    // ===== 5. Insert order =====
-    const { data: order, error: orderError } = await supabase
+    // ===== Get authenticated user, if available =====
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const userId = user?.id ?? null;
+
+    // ===== Create order with server-only admin client =====
+    const supabaseAdmin = createAdminClient();
+
+    const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
       .insert({
-        user_id: user_id || null,
-        total_price,
-        delivery_method: delivery_method || "pickup",
-        payment_method: payment_method || "mobilepay",
-        customer_name: customer_name.trim(),
-        customer_phone: customer_phone.trim(),
-        customer_email: customer_email.trim(),
+        user_id: userId,
+        total_price: totalPrice,
+        delivery_method: deliveryMethod,
+        payment_method: paymentMethod,
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        customer_email: customerEmail,
         customer_address:
-          typeof customer_address === "string" && customer_address.trim()
-            ? customer_address.trim()
-            : null,
-        order_note:
-          typeof order_note === "string" && order_note.trim()
-            ? order_note.trim()
-            : null,
-        requested_time,
+          deliveryMethod === "delivery" ? customerAddress : null,
+        order_note: orderNote,
+        requested_time: requestedTime,
         status: "pending",
       })
       .select()
@@ -146,36 +229,28 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(
         {
-          error: orderError?.message || "Failed to create order",
+          error: orderError?.message ?? "Failed to create order",
         },
         { status: 500 },
       );
     }
 
-    // ===== 6. Prepare order items =====
-    const orderItems = items.map((item: any) => ({
+    // ===== Add order ID to items =====
+    const orderItems = normalizedItems.map((item) => ({
+      ...item!,
       order_id: order.id,
-      item_name: item.name.trim(),
-      quantity: item.quantity,
-      unit_price: item.price,
-      size: item.deepPan
-        ? "deepPan"
-        : typeof item.size === "string" && item.size
-          ? item.size
-          : "normal",
-      extras: Array.isArray(item.extras) ? item.extras : [],
     }));
 
-    // ===== 7. Insert order items =====
-    const { error: itemsError } = await supabase
+    // ===== Insert order items =====
+    const { error: itemsError } = await supabaseAdmin
       .from("order_items")
       .insert(orderItems);
 
     if (itemsError) {
       console.error("Order items insert error:", itemsError);
 
-      // Remove the incomplete order if its items could not be saved.
-      const { error: rollbackError } = await supabase
+      // Remove incomplete order
+      const { error: rollbackError } = await supabaseAdmin
         .from("orders")
         .delete()
         .eq("id", order.id);
@@ -187,7 +262,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: itemsError.message }, { status: 500 });
     }
 
-    // ===== 8. Return success =====
     return NextResponse.json(
       {
         message: "Order created successfully",
@@ -197,6 +271,13 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Unexpected order creation error:", error);
+
+    if (error instanceof SyntaxError) {
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400 },
+      );
+    }
 
     return NextResponse.json(
       { error: "Internal server error" },

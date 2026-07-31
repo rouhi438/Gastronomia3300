@@ -72,13 +72,15 @@ function getEndOfDay(date: Date) {
 
 function isOrderInFilter(createdAt: string, filter: DateFilter) {
   const orderDate = new Date(createdAt);
+
+  if (Number.isNaN(orderDate.getTime())) {
+    return false;
+  }
+
   const now = new Date();
 
-  const todayStart = getStartOfDay(now);
-  const todayEnd = getEndOfDay(now);
-
   if (filter === "today") {
-    return orderDate >= todayStart && orderDate <= todayEnd;
+    return orderDate >= getStartOfDay(now) && orderDate <= getEndOfDay(now);
   }
 
   if (filter === "yesterday") {
@@ -92,37 +94,36 @@ function isOrderInFilter(createdAt: string, filter: DateFilter) {
   }
 
   if (filter === "lastWeek") {
-    const currentWeekStart = getStartOfDay(now);
-    const currentDay = currentWeekStart.getDay();
+    const sevenDaysAgo = new Date(now);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
-
-    currentWeekStart.setDate(currentWeekStart.getDate() - daysSinceMonday);
-
-    const previousWeekStart = new Date(currentWeekStart);
-    previousWeekStart.setDate(previousWeekStart.getDate() - 7);
-
-    const previousWeekEnd = new Date(currentWeekStart);
-    previousWeekEnd.setMilliseconds(-1);
-
-    return orderDate >= previousWeekStart && orderDate <= previousWeekEnd;
+    return (
+      orderDate >= getStartOfDay(sevenDaysAgo) && orderDate <= getEndOfDay(now)
+    );
   }
 
-  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const thirtyDaysAgo = new Date(now);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-
-  const previousMonthEnd = new Date(currentMonthStart);
-  previousMonthEnd.setMilliseconds(-1);
-
-  return orderDate >= previousMonthStart && orderDate <= previousMonthEnd;
+  return (
+    orderDate >= getStartOfDay(thirtyDaysAgo) && orderDate <= getEndOfDay(now)
+  );
 }
 
 function formatOrderItems(orderItems: OrderItem[]) {
-  return orderItems
-    .slice(0, 2)
+  const visibleItems = orderItems.slice(0, 2);
+
+  const formattedItems = visibleItems
     .map((item) => `${item.quantity}× ${item.item_name}`)
     .join(", ");
+
+  const remainingItems = orderItems.length - visibleItems.length;
+
+  if (remainingItems > 0) {
+    return `${formattedItems} +${remainingItems}`;
+  }
+
+  return formattedItems;
 }
 
 export default function AdminOrdersPage() {
@@ -135,37 +136,25 @@ export default function AdminOrdersPage() {
   const [error, setError] = useState("");
 
   const fetchOrders = useCallback(async () => {
-    const token = localStorage.getItem("access_token");
-    const refreshToken = localStorage.getItem("refresh_token");
-
-    if (!token) {
-      router.push("/auth");
-      return;
-    }
-
     try {
       const response = await fetch("/api/admin/orders", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "X-Refresh-Token": refreshToken || "",
-        },
+        credentials: "include",
+        cache: "no-store",
       });
 
       if (response.status === 401) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        router.push("/auth");
+        router.replace("/auth");
         return;
       }
 
+      const data = await response.json().catch(() => null);
+
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Kunne ikke hente ordrer");
+        throw new Error(data?.error || "Kunne ikke hente ordrer");
       }
 
-      const data = await response.json();
+      setOrders(Array.isArray(data?.orders) ? data.orders : []);
 
-      setOrders(data.orders || []);
       setError("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Kunne ikke hente ordrer");
@@ -177,9 +166,11 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     fetchOrders();
 
-    const interval = window.setInterval(fetchOrders, 15000);
+    const interval = window.setInterval(fetchOrders, 15_000);
 
-    return () => window.clearInterval(interval);
+    return () => {
+      window.clearInterval(interval);
+    };
   }, [fetchOrders]);
 
   const filteredOrders = useMemo(() => {

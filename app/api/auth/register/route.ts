@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseClient";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: NextRequest) {
   try {
+    const supabaseAdmin = createAdminClient();
+
     const { email, password, full_name, phone, address } = await request.json();
 
+    // ===== Validation =====
     if (!email || !password) {
       return NextResponse.json(
         { error: "Email and password are required" },
@@ -12,21 +15,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!supabaseAdmin) {
-      return NextResponse.json(
-        {
-          error:
-            "Supabase admin client is not configured. Check NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
-        },
-        { status: 500 },
-      );
-    }
-
-    // ===== استفاده از Admin API برای ثبت‌نام (بدون ارسال ایمیل تأیید) =====
+    // ===== Create user =====
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: true, // این یعنی کاربر رو بدون نیاز به تأیید ایمیل، فعال کن
+      email_confirm: true,
       user_metadata: {
         full_name: full_name || "",
         phone: phone || "",
@@ -35,11 +28,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      console.error("Admin signup error:", error);
+      console.error("Register error:", error);
+
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    // ===== ایجاد پروفایل در جدول profiles =====
+    // ===== Create profile =====
     if (data.user) {
       const { error: profileError } = await supabaseAdmin
         .from("profiles")
@@ -52,6 +46,7 @@ export async function POST(request: NextRequest) {
 
       if (profileError) {
         console.error("Profile insert error:", profileError);
+
         return NextResponse.json(
           { error: profileError.message },
           { status: 500 },
@@ -60,11 +55,15 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { message: "User registered successfully", user: data.user },
+      {
+        message: "User registered successfully",
+        user: data.user,
+      },
       { status: 201 },
     );
   } catch (error) {
     console.error("Unexpected error:", error);
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

@@ -5,54 +5,93 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { Home, User, ShoppingCart, Menu, X, Moon, Sun } from "lucide-react";
+
+import { createClient } from "@/lib/supabase/client";
 import { useCart } from "@/context/CartContext";
 import { useCartUI } from "@/context/CartUIContext";
-import { Home, User, ShoppingCart, Menu, X, Moon, Sun } from "lucide-react";
 import CartDrawer from "./CartDrawer";
 import styles from "./Header.module.css";
 
 export default function Header() {
   const router = useRouter();
+  const supabase = createClient();
+
   const { isCartOpen, openCart, closeCart } = useCartUI();
+  const { totalItems } = useCart();
+  const { theme, setTheme } = useTheme();
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [language, setLanguage] = useState<"da" | "en">("da");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const { totalItems } = useCart();
-  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
 
-    const token = localStorage.getItem("access_token");
-    const user = localStorage.getItem("user");
+    const loadUser = async () => {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
 
-    if (token && user) {
-      setIsLoggedIn(true);
-      try {
-        const parsed = JSON.parse(user);
-        setUserName(parsed.user_metadata?.full_name || parsed.email || "");
-        setUserRole(parsed.user_metadata?.role || null);
-      } catch {
+      if (error || !user) {
+        setIsLoggedIn(false);
         setUserName("");
         setUserRole(null);
+        return;
       }
-    } else {
-      setIsLoggedIn(false);
-      setUserName("");
-      setUserRole(null);
-    }
-  }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user");
+      setIsLoggedIn(true);
+
+      setUserName(user.user_metadata?.full_name || user.email || "");
+
+      setUserRole(user.app_metadata?.role ?? user.user_metadata?.role ?? null);
+    };
+
+    void loadUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user;
+
+      if (!user) {
+        setIsLoggedIn(false);
+        setUserName("");
+        setUserRole(null);
+        return;
+      }
+
+      setIsLoggedIn(true);
+
+      setUserName(user.user_metadata?.full_name || user.email || "");
+
+      setUserRole(user.app_metadata?.role ?? user.user_metadata?.role ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Logout error:", error.message);
+      return;
+    }
+
     setIsLoggedIn(false);
     setUserName("");
+    setUserRole(null);
+    setIsMenuOpen(false);
+
     router.push("/");
+    router.refresh();
   };
 
   const toggleLanguage = () => {
@@ -63,13 +102,21 @@ export default function Header() {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  const closeMenu = () => setIsMenuOpen(false);
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
 
-  // ===== Helper functions for avatar =====
   const getInitials = (name: string) => {
-    if (!name) return "?";
+    if (!name) {
+      return "?";
+    }
+
     const parts = name.trim().split(" ");
-    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+
+    if (parts.length === 1) {
+      return parts[0].charAt(0).toUpperCase();
+    }
+
     return (
       parts[0].charAt(0) + parts[parts.length - 1].charAt(0)
     ).toUpperCase();
@@ -77,10 +124,13 @@ export default function Header() {
 
   const getAvatarColor = (name: string) => {
     let hash = 0;
+
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
+
     const hue = Math.abs(hash) % 360;
+
     return `hsl(${hue}, 60%, 50%)`;
   };
 
@@ -99,6 +149,7 @@ export default function Header() {
             priority
             style={{ width: "auto", height: "auto" }}
           />
+
           <span className={styles.brandName}>Gastronomia Pizza</span>
         </Link>
 
@@ -108,26 +159,35 @@ export default function Header() {
             <span>Hjem</span>
           </Link>
 
-          <button className={styles.navLink} onClick={openCart}>
+          <button type="button" className={styles.navLink} onClick={openCart}>
             <div className={styles.cartIconWrapper}>
               <ShoppingCart size={18} />
+
               {totalItems > 0 && (
                 <span className={styles.cartBadge}>{totalItems}</span>
               )}
             </div>
+
             <span>Kurv</span>
           </button>
+
           {isLoggedIn && userRole === "admin" && (
             <Link href="/admin/orders" className={styles.navLink}>
               <span>📋 Admin</span>
             </Link>
           )}
+
           {isLoggedIn ? (
             <>
               <Link href="/profile" className={styles.navLink}>
                 <span>{userName || "Profil"}</span>
               </Link>
-              <button onClick={handleLogout} className={styles.navLink}>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className={styles.navLink}
+              >
                 <span>Log ud</span>
               </button>
             </>
@@ -142,25 +202,35 @@ export default function Header() {
         <div className={styles.rightSection}>
           <div className={styles.langSwitcher}>
             <button
+              type="button"
               onClick={toggleLanguage}
-              className={`${styles.langBtn} ${language === "da" ? styles.active : ""}`}
+              className={`${styles.langBtn} ${
+                language === "da" ? styles.active : ""
+              }`}
             >
               DA
             </button>
+
             <button
+              type="button"
               onClick={toggleLanguage}
-              className={`${styles.langBtn} ${language === "en" ? styles.active : ""}`}
+              className={`${styles.langBtn} ${
+                language === "en" ? styles.active : ""
+              }`}
             >
               EN
             </button>
           </div>
 
-          <button onClick={toggleTheme} className={styles.themeToggle}>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className={styles.themeToggle}
+          >
             {mounted &&
               (theme === "dark" ? <Sun size={20} /> : <Moon size={20} />)}
           </button>
 
-          {/* ===== Avatar / User Icon ===== */}
           {isLoggedIn ? (
             <Link href="/profile" className={styles.userIconLink}>
               <div
@@ -179,29 +249,31 @@ export default function Header() {
           )}
 
           <button
+            type="button"
             className={styles.hamburger}
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={() => setIsMenuOpen((prev) => !prev)}
           >
             {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
       </header>
 
-      {/* Mobile Menu */}
       <div
         className={`${styles.mobileMenu} ${isMenuOpen ? styles.open : ""}`}
         onClick={closeMenu}
       >
         <div
           className={styles.mobileMenuInner}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
         >
           <nav className={styles.mobileNav}>
             <Link href="/" className={styles.mobileNavLink} onClick={closeMenu}>
               <Home size={20} />
               <span>Hjem</span>
             </Link>
+
             <button
+              type="button"
               className={styles.mobileNavLink}
               onClick={() => {
                 openCart();
@@ -211,6 +283,7 @@ export default function Header() {
               <ShoppingCart size={20} />
               <span>Kurv</span>
             </button>
+
             {isLoggedIn && userRole === "admin" && (
               <Link
                 href="/admin/orders"
@@ -220,6 +293,7 @@ export default function Header() {
                 <span>📋 Admin</span>
               </Link>
             )}
+
             {isLoggedIn ? (
               <>
                 <Link
@@ -230,10 +304,11 @@ export default function Header() {
                   <User size={20} />
                   <span>Min profil</span>
                 </Link>
+
                 <button
+                  type="button"
                   onClick={() => {
-                    handleLogout();
-                    closeMenu();
+                    void handleLogout();
                   }}
                   className={styles.mobileNavLink}
                 >
@@ -255,7 +330,6 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Cart Drawer */}
       <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
     </>
   );

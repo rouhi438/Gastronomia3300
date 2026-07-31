@@ -1,29 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/server";
+
+type LoginRequestBody = {
+  email?: string;
+  password?: string;
+};
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const body = (await request.json()) as LoginRequestBody;
+
+    const email = body.email?.trim().toLowerCase();
+    const password = body.password;
 
     // ===== Validation =====
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Email and password are required" },
+        {
+          error: "Email and password are required",
+        },
         { status: 400 },
       );
     }
 
-    if (!supabase) {
-      return NextResponse.json(
-        {
-          error:
-            "Supabase is not configured. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
-        },
-        { status: 500 },
-      );
-    }
+    // ===== Create cookie-based Supabase client =====
+    const supabase = await createClient();
 
-    // ===== Login with Supabase =====
+    // ===== Login =====
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -31,22 +34,60 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("Login error:", error);
-      return NextResponse.json({ error: error.message }, { status: 400 });
+
+      let message = error.message;
+
+      if (error.message.toLowerCase().includes("invalid login credentials")) {
+        message = "Invalid email or password";
+      }
+
+      return NextResponse.json(
+        {
+          error: message,
+        },
+        { status: 401 },
+      );
     }
 
-    // ===== Return session and user =====
+    if (!data.user || !data.session) {
+      return NextResponse.json(
+        {
+          error: "Login failed. No session was created.",
+        },
+        { status: 401 },
+      );
+    }
+
+    // Session cookies are written automatically by createServerClient
     return NextResponse.json(
       {
         message: "Login successful",
-        session: data.session,
-        user: data.user,
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+          full_name: data.user.user_metadata?.full_name ?? "",
+          phone: data.user.user_metadata?.phone ?? "",
+          address: data.user.user_metadata?.address ?? "",
+        },
       },
       { status: 200 },
     );
   } catch (error) {
-    console.error("Unexpected error:", error);
+    console.error("Unexpected login error:", error);
+
+    if (error instanceof SyntaxError) {
+      return NextResponse.json(
+        {
+          error: "Invalid request body",
+        },
+        { status: 400 },
+      );
+    }
+
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error: "Internal server error",
+      },
       { status: 500 },
     );
   }

@@ -1,44 +1,65 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
-export async function GET(request: NextRequest) {
+const ALLOWED_STATUSES = ["accepted", "cancelled"] as const;
+
+type OrderStatus = (typeof ALLOWED_STATUSES)[number];
+
+type UpdateOrderRequest = {
+  orderId?: number | string;
+  status?: string;
+  cancelReason?: string;
+  estimatedTime?: number | string;
+};
+
+async function requireAdmin() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    return {
+      error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+      user: null,
+    };
+  }
+
+  const role = user.app_metadata?.role ?? user.user_metadata?.role;
+
+  if (role !== "admin") {
+    return {
+      error: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+      user: null,
+    };
+  }
+
+  return {
+    error: null,
+    user,
+  };
+}
+
+export async function GET() {
   try {
-    if (!supabase) {
-      return NextResponse.json(
-        {
-          error:
-            "Supabase is not configured. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
-        },
-        { status: 500 },
-      );
+    const auth = await requireAdmin();
+
+    if (auth.error) {
+      return auth.error;
     }
 
-    const token = request.headers.get("Authorization")?.replace("Bearer ", "");
+    const supabaseAdmin = createAdminClient();
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { data: userData, error: userError } =
-      await supabase.auth.getUser(token);
-
-    if (userError || !userData.user) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    const role = userData.user.user_metadata?.role;
-
-    if (role !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { data: orders, error: ordersError } = await supabase
+    const { data: orders, error: ordersError } = await supabaseAdmin
       .from("orders")
       .select(
         `
-        *,
-        order_items (*)
-      `,
+          *,
+          order_items (*)
+        `,
       )
       .order("created_at", { ascending: false });
 
@@ -48,9 +69,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: ordersError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ orders }, { status: 200 });
+    return NextResponse.json(
+      {
+        orders: orders ?? [],
+      },
+      { status: 200 },
+    );
   } catch (error) {
-    console.error("Unexpected GET error:", error);
+    console.error("Unexpected GET orders error:", error);
 
     return NextResponse.json(
       { error: "Internal server error" },
@@ -61,56 +87,35 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    if (!supabase) {
-      return NextResponse.json(
-        {
-          error:
-            "Supabase is not configured. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
-        },
-        { status: 500 },
-      );
+    const auth = await requireAdmin();
+
+    if (auth.error) {
+      return auth.error;
     }
 
-    const token = request.headers.get("Authorization")?.replace("Bearer ", "");
-
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { data: userData, error: userError } =
-      await supabase.auth.getUser(token);
-
-    if (userError || !userData.user) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    const role = userData.user.user_metadata?.role;
-
-    if (role !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const body = await request.json();
+    const body = (await request.json()) as UpdateOrderRequest;
 
     const orderId = Number(body.orderId);
-    const status = body.status;
-
-    const cancelReason =
-      typeof body.cancelReason === "string" ? body.cancelReason.trim() : null;
-
+    const status = body.status?.trim().toLowerCase();
     const estimatedTime = Number(body.estimatedTime);
 
+    const cancelReason =
+      typeof body.cancelReason === "string" ? body.cancelReason.trim() : "";
+
+    // ===== Validate order ID =====
     if (!Number.isInteger(orderId) || orderId <= 0) {
       return NextResponse.json({ error: "Invalid order ID" }, { status: 400 });
     }
 
-    if (!["accepted", "cancelled"].includes(status)) {
+    // ===== Validate status =====
+    if (!status || !ALLOWED_STATUSES.includes(status as OrderStatus)) {
       return NextResponse.json(
         { error: "Invalid order status" },
         { status: 400 },
       );
     }
 
+    // ===== Validate accepted order =====
     if (status === "accepted") {
       if (
         !Number.isInteger(estimatedTime) ||
@@ -127,6 +132,7 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
+    // ===== Validate cancelled order =====
     if (status === "cancelled" && !cancelReason) {
       return NextResponse.json(
         { error: "Cancellation reason is required" },
@@ -147,16 +153,18 @@ export async function PATCH(request: NextRequest) {
             cancel_reason: cancelReason,
           };
 
-    const { data: order, error: updateError } = await supabase
+    const supabaseAdmin = createAdminClient();
+
+    const { data: order, error: updateError } = await supabaseAdmin
       .from("orders")
       .update(updateData)
       .eq("id", orderId)
       .eq("status", "pending")
       .select(
         `
-        *,
-        order_items (*)
-      `,
+          *,
+          order_items (*)
+        `,
       )
       .maybeSingle();
 
@@ -178,7 +186,14 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ order }, { status: 200 });
   } catch (error) {
-    console.error("Unexpected PATCH error:", error);
+    console.error("Unexpected PATCH orders error:", error);
+
+    if (error instanceof SyntaxError) {
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400 },
+      );
+    }
 
     return NextResponse.json(
       { error: "Internal server error" },

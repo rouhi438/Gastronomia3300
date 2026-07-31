@@ -86,26 +86,13 @@ export default function OrderDetailPage() {
 
   useEffect(() => {
     const fetchLatestPendingOrder = async () => {
-      const token = localStorage.getItem("access_token");
-      const refreshToken = localStorage.getItem("refresh_token");
-
-      if (!token) {
-        router.push("/auth");
-        return;
-      }
-
       try {
         const res = await fetch("/api/admin/orders", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "X-Refresh-Token": refreshToken || "",
-          },
+          credentials: "include",
           cache: "no-store",
         });
 
         if (res.status === 401) {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
           router.push("/auth");
           return;
         }
@@ -175,24 +162,15 @@ export default function OrderDetailPage() {
   }) => {
     if (!order || submittingAction) return;
 
-    const token = localStorage.getItem("access_token");
-    const refreshToken = localStorage.getItem("refresh_token");
-
-    if (!token) {
-      router.push("/auth");
-      return;
-    }
-
     setActionError("");
     setSubmittingAction(status);
 
     try {
       const res = await fetch("/api/admin/orders", {
         method: "PATCH",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "X-Refresh-Token": refreshToken || "",
         },
         body: JSON.stringify({
           orderId: order.id,
@@ -203,8 +181,6 @@ export default function OrderDetailPage() {
       });
 
       if (res.status === 401) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
         router.push("/auth");
         return;
       }
@@ -216,6 +192,7 @@ export default function OrderDetailPage() {
       }
 
       setOrder(data.order);
+
       setIsAcceptSheetOpen(false);
       setIsCancelSheetOpen(false);
 

@@ -1,48 +1,93 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { User, Mail, Phone, Lock } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import styles from "./profile.module.css";
+
+interface ProfileUser {
+  name: string;
+  email: string;
+  phone: string;
+}
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState({
+
+  const [user, setUser] = useState<ProfileUser>({
     name: "",
     email: "",
     phone: "",
   });
+
+  const [originalUser, setOriginalUser] = useState<ProfileUser>({
+    name: "",
+    email: "",
+    phone: "",
+  });
+
   const [isEditing, setIsEditing] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [passwordMessage, setPasswordMessage] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    const userData = localStorage.getItem("user");
-    if (!token || !userData) {
-      router.push("/auth");
-      return;
-    }
-    try {
-      const parsed = JSON.parse(userData);
-      setUser({
-        name: parsed.user_metadata?.full_name || parsed.email || "",
-        email: parsed.email || "",
-        phone: parsed.user_metadata?.phone || "",
-      });
-    } catch {
-      router.push("/auth");
-    } finally {
-      setLoading(false);
-    }
+    const loadUser = async () => {
+      const supabase = createClient();
+
+      try {
+        const {
+          data: { user: authUser },
+          error,
+        } = await supabase.auth.getUser();
+
+        if (error || !authUser) {
+          router.replace("/auth");
+          return;
+        }
+
+        const profileData: ProfileUser = {
+          name:
+            typeof authUser.user_metadata?.full_name === "string"
+              ? authUser.user_metadata.full_name
+              : authUser.email || "",
+          email: authUser.email || "",
+          phone:
+            typeof authUser.user_metadata?.phone === "string"
+              ? authUser.user_metadata.phone
+              : "",
+        };
+
+        setUser(profileData);
+        setOriginalUser(profileData);
+      } catch {
+        router.replace("/auth");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUser();
   }, [router]);
 
   const getInitials = (fullName: string) => {
-    const parts = fullName.trim().split(" ");
-    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    const parts = fullName.trim().split(/\s+/).filter(Boolean);
+
+    if (parts.length === 0) {
+      return "U";
+    }
+
+    if (parts.length === 1) {
+      return parts[0].charAt(0).toUpperCase();
+    }
+
     return (
       parts[0].charAt(0) + parts[parts.length - 1].charAt(0)
     ).toUpperCase();
@@ -50,35 +95,116 @@ export default function ProfilePage() {
 
   const getAvatarColor = (name: string) => {
     let hash = 0;
+
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
+
     const hue = Math.abs(hash) % 360;
+
     return `hsl(${hue}, 60%, 50%)`;
   };
 
   const initials = getInitials(user.name || "U");
   const avatarColor = getAvatarColor(user.name || "User");
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      try {
-        const parsed = JSON.parse(userData);
-        parsed.user_metadata.full_name = user.name;
-        parsed.user_metadata.phone = user.phone;
-        parsed.email = user.email;
-        localStorage.setItem("user", JSON.stringify(parsed));
-      } catch {}
+
+    if (savingProfile) {
+      return;
     }
-    alert("Profilen er opdateret!");
+
+    const trimmedName = user.name.trim();
+    const trimmedEmail = user.email.trim().toLowerCase();
+    const trimmedPhone = user.phone.trim();
+
+    if (!trimmedName) {
+      alert("Indtast venligst dit fulde navn.");
+      return;
+    }
+
+    if (!trimmedEmail) {
+      alert("Indtast venligst din e-mail.");
+      return;
+    }
+
+    setSavingProfile(true);
+
+    const supabase = createClient();
+
+    try {
+      const emailChanged = trimmedEmail !== originalUser.email.toLowerCase();
+
+      const { data, error } = await supabase.auth.updateUser({
+        ...(emailChanged ? { email: trimmedEmail } : {}),
+        data: {
+          full_name: trimmedName,
+          phone: trimmedPhone,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const updatedProfile: ProfileUser = {
+        name:
+          typeof data.user.user_metadata?.full_name === "string"
+            ? data.user.user_metadata.full_name
+            : trimmedName,
+        email: data.user.email || trimmedEmail,
+        phone:
+          typeof data.user.user_metadata?.phone === "string"
+            ? data.user.user_metadata.phone
+            : trimmedPhone,
+      };
+
+      setUser(updatedProfile);
+      setOriginalUser(updatedProfile);
+      setIsEditing(false);
+
+      if (emailChanged && data.user.email !== trimmedEmail) {
+        alert(
+          "Profilen er opdateret. Kontrollér din nye e-mailadresse for at bekræfte ændringen.",
+        );
+      } else {
+        alert("Profilen er opdateret!");
+      }
+
+      router.refresh();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Profilen kunne ikke opdateres.";
+
+      alert(message);
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    if (savingProfile) {
+      return;
+    }
+
+    setUser(originalUser);
     setIsEditing(false);
   };
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
+  const handlePasswordChange = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (changingPassword) {
+      return;
+    }
+
     setPasswordMessage("");
+
+    if (!currentPassword) {
+      setPasswordMessage("Indtast din nuværende adgangskode.");
+      return;
+    }
 
     if (newPassword !== confirmNewPassword) {
       setPasswordMessage("De nye adgangskoder er ikke ens.");
@@ -90,47 +216,65 @@ export default function ProfilePage() {
       return;
     }
 
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      setPasswordMessage("Du er ikke logget ind.");
+    if (currentPassword === newPassword) {
+      setPasswordMessage(
+        "Den nye adgangskode skal være forskellig fra den nuværende.",
+      );
       return;
     }
 
-    const res = await fetch("/api/auth/change-password", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        currentPassword,
-        newPassword,
-      }),
-    });
+    setChangingPassword(true);
 
-    const data = await res.json();
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
+      });
 
-    if (!res.ok) {
-      setPasswordMessage(data.error || "Noget gik galt.");
+      const data = await res.json().catch(() => null);
+
+      if (res.status === 401) {
+        router.replace("/auth");
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Noget gik galt.");
+      }
+
+      setPasswordMessage("Adgangskode opdateret!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+    } catch (err) {
+      setPasswordMessage(
+        err instanceof Error ? err.message : "Noget gik galt.",
+      );
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      alert("Kunne ikke logge ud. Prøv igen.");
       return;
     }
 
-    setPasswordMessage("Adgangskode opdateret!");
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmNewPassword("");
+    router.replace("/");
+    router.refresh();
   };
-
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user");
-    router.push("/");
-  };
-
-  if (loading) {
-    return <div className={styles.loading}>Indlæser...</div>;
-  }
 
   return (
     <div className={styles.container}>
@@ -209,13 +353,15 @@ export default function ProfilePage() {
                   type="submit"
                   className="btn-primary"
                   style={{ flex: 1, padding: "0.8rem", fontSize: "1.1rem" }}
+                  disabled={savingProfile}
                 >
-                  Gem ændringer
+                  {savingProfile ? "Gemmer..." : "Gem ændringer"}
                 </button>
                 <button
                   type="button"
                   className={styles.cancelBtn}
-                  onClick={() => setIsEditing(false)}
+                  onClick={handleCancelEdit}
+                  disabled={savingProfile}
                 >
                   Fortryd
                 </button>
@@ -281,8 +427,9 @@ export default function ProfilePage() {
               type="submit"
               className="btn-secondary"
               style={{ width: "100%" }}
+              disabled={changingPassword}
             >
-              Opdater adgangskode
+              {changingPassword ? "Opdaterer..." : "Opdater adgangskode"}
             </button>
           </form>
         </div>
