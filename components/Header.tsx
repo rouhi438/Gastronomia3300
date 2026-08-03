@@ -27,6 +27,7 @@ export default function Header() {
   const [language, setLanguage] = useState<"da" | "en">("da");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [profileHref, setProfileHref] = useState("/profile");
 
   useEffect(() => {
     setMounted(true);
@@ -46,30 +47,70 @@ export default function Header() {
 
       setIsLoggedIn(true);
 
-      setUserName(user.user_metadata?.full_name || user.email || "");
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, email, phone")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      setUserName(
+        profile?.full_name ||
+          user.user_metadata?.full_name ||
+          user.user_metadata?.name ||
+          user.email ||
+          "",
+      );
 
       setUserRole(user.app_metadata?.role ?? user.user_metadata?.role ?? null);
+
+      const profileIsComplete = Boolean(
+        profile?.full_name?.trim() &&
+        profile?.email?.trim() &&
+        profile?.phone?.trim(),
+      );
+
+      setProfileHref(profileIsComplete ? "/profile" : "/complete-profile");
     };
 
     void loadUser();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const user = session?.user;
 
       if (!user) {
         setIsLoggedIn(false);
         setUserName("");
         setUserRole(null);
+        setProfileHref("/profile");
         return;
       }
 
       setIsLoggedIn(true);
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, email, phone")
+        .eq("id", user.id)
+        .maybeSingle();
 
-      setUserName(user.user_metadata?.full_name || user.email || "");
+      setUserName(
+        profile?.full_name ||
+          user.user_metadata?.full_name ||
+          user.user_metadata?.name ||
+          user.email ||
+          "",
+      );
 
       setUserRole(user.app_metadata?.role ?? user.user_metadata?.role ?? null);
+
+      const profileIsComplete = Boolean(
+        profile?.full_name?.trim() &&
+        profile?.email?.trim() &&
+        profile?.phone?.trim(),
+      );
+
+      setProfileHref(profileIsComplete ? "/profile" : "/complete-profile");
     });
 
     return () => {
@@ -89,6 +130,7 @@ export default function Header() {
     setUserName("");
     setUserRole(null);
     setIsMenuOpen(false);
+    setProfileHref("/profile");
 
     router.push("/");
     router.refresh();
@@ -179,7 +221,7 @@ export default function Header() {
 
           {isLoggedIn ? (
             <>
-              <Link href="/profile" className={styles.navLink}>
+              <Link href={profileHref} className={styles.navLink}>
                 <span>{userName || "Profil"}</span>
               </Link>
 
@@ -232,7 +274,7 @@ export default function Header() {
           </button>
 
           {isLoggedIn ? (
-            <Link href="/profile" className={styles.userIconLink}>
+            <Link href={profileHref} className={styles.userIconLink}>
               <div
                 className={styles.userAvatar}
                 style={{ backgroundColor: avatarColor }}
@@ -297,7 +339,7 @@ export default function Header() {
             {isLoggedIn ? (
               <>
                 <Link
-                  href="/profile"
+                  href={profileHref}
                   className={styles.mobileNavLink}
                   onClick={closeMenu}
                 >
