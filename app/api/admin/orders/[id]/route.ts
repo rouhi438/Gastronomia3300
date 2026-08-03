@@ -31,7 +31,7 @@ async function requireAdmin() {
     };
   }
 
-  const role = user.app_metadata?.role ?? user.user_metadata?.role;
+  const role = user.app_metadata?.role;
 
   if (role !== "admin") {
     return {
