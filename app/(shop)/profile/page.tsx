@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { User, Mail, Phone, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import {
+  getProfileCompletionStatus,
+  getProfileDestination,
+} from "@/lib/profile";
 import styles from "./profile.module.css";
 
 interface ProfileUser {
@@ -35,8 +39,7 @@ export default function ProfilePage() {
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [passwordMessage, setPasswordMessage] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
-
-  const [loading, setLoading] = useState(true);
+  const [authProvider, setAuthProvider] = useState<string | null>(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -52,17 +55,38 @@ export default function ProfilePage() {
           router.replace("/auth");
           return;
         }
+        const providers =
+          authUser.identities
+            ?.map((identity) => identity.provider)
+            .filter(Boolean) ?? [];
+
+        const usesPasswordLogin = providers.includes("email");
+
+        setAuthProvider(usesPasswordLogin ? "email" : (providers[0] ?? null));
+        const {
+          profile,
+          isComplete,
+          error: profileError,
+        } = await getProfileCompletionStatus(supabase, authUser.id);
+
+        if (profileError) {
+          console.error(
+            "Profile completion check failed while loading profile page:",
+            profileError.message,
+          );
+          router.replace(getProfileDestination(false));
+          return;
+        }
+
+        if (!isComplete) {
+          router.replace(getProfileDestination(false));
+          return;
+        }
 
         const profileData: ProfileUser = {
-          name:
-            typeof authUser.user_metadata?.full_name === "string"
-              ? authUser.user_metadata.full_name
-              : authUser.email || "",
-          email: authUser.email || "",
-          phone:
-            typeof authUser.user_metadata?.phone === "string"
-              ? authUser.user_metadata.phone
-              : "",
+          name: profile?.full_name?.trim() || authUser.email || "",
+          email: profile?.email?.trim() || authUser.email || "",
+          phone: profile?.phone?.trim() || "",
         };
 
         setUser(profileData);
@@ -70,7 +94,6 @@ export default function ProfilePage() {
       } catch {
         router.replace("/auth");
       } finally {
-        setLoading(false);
       }
     };
 
@@ -148,16 +171,28 @@ export default function ProfilePage() {
         throw error;
       }
 
+      const { error: profileUpdateError } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            id: data.user.id,
+            full_name: trimmedName,
+            email: trimmedEmail,
+            phone: trimmedPhone,
+          },
+          {
+            onConflict: "id",
+          },
+        );
+
+      if (profileUpdateError) {
+        throw profileUpdateError;
+      }
+
       const updatedProfile: ProfileUser = {
-        name:
-          typeof data.user.user_metadata?.full_name === "string"
-            ? data.user.user_metadata.full_name
-            : trimmedName,
-        email: data.user.email || trimmedEmail,
-        phone:
-          typeof data.user.user_metadata?.phone === "string"
-            ? data.user.user_metadata.phone
-            : trimmedPhone,
+        name: trimmedName,
+        email: trimmedEmail,
+        phone: trimmedPhone,
       };
 
       setUser(updatedProfile);
@@ -369,70 +404,74 @@ export default function ProfilePage() {
             )}
           </div>
         </form>
-
-        <div className={styles.passwordSection}>
-          <h4 className={styles.passwordTitle}>
-            <Lock size={18} style={{ marginRight: "0.5rem" }} />
-            Skift adgangskode
-          </h4>
-          {passwordMessage && (
-            <div
-              className={
-                passwordMessage.includes("opdateret")
-                  ? styles.successMsg
-                  : styles.errorMsg
-              }
+        {authProvider === "email" && (
+          <div className={styles.passwordSection}>
+            <h4 className={styles.passwordTitle}>
+              <Lock size={18} style={{ marginRight: "0.5rem" }} />
+              Skift adgangskode
+            </h4>
+            {passwordMessage && (
+              <div
+                className={
+                  passwordMessage.includes("opdateret")
+                    ? styles.successMsg
+                    : styles.errorMsg
+                }
+              >
+                {passwordMessage}
+              </div>
+            )}
+            <form
+              onSubmit={handlePasswordChange}
+              className={styles.passwordForm}
             >
-              {passwordMessage}
-            </div>
-          )}
-          <form onSubmit={handlePasswordChange} className={styles.passwordForm}>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Nuværende adgangskode</label>
-              <input
-                type="password"
-                className={styles.input}
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-                autoComplete="current-password"
-              />
-            </div>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Ny adgangskode</label>
-              <input
-                type="password"
-                className={styles.input}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-                autoComplete="new-password"
-              />
-            </div>
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>Gentag ny adgangskode</label>
-              <input
-                type="password"
-                className={styles.input}
-                value={confirmNewPassword}
-                onChange={(e) => setConfirmNewPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-                autoComplete="new-password"
-              />
-            </div>
-            <button
-              type="submit"
-              className="btn-secondary"
-              style={{ width: "100%" }}
-              disabled={changingPassword}
-            >
-              {changingPassword ? "Opdaterer..." : "Opdater adgangskode"}
-            </button>
-          </form>
-        </div>
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Nuværende adgangskode</label>
+                <input
+                  type="password"
+                  className={styles.input}
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                />
+              </div>
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Ny adgangskode</label>
+                <input
+                  type="password"
+                  className={styles.input}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                />
+              </div>
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Gentag ny adgangskode</label>
+                <input
+                  type="password"
+                  className={styles.input}
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                />
+              </div>
+              <button
+                type="submit"
+                className="btn-secondary"
+                style={{ width: "100%" }}
+                disabled={changingPassword}
+              >
+                {changingPassword ? "Opdaterer..." : "Opdater adgangskode"}
+              </button>
+            </form>
+          </div>
+        )}
 
         <div className={styles.logoutSection}>
           <button

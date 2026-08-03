@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import { Mail, Phone, User } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
+import {
+  getProfileCompletionStatus,
+  getProfileDestination,
+} from "@/lib/profile";
 import styles from "./complete-profile.module.css";
 
 export default function CompleteProfilePage() {
@@ -32,27 +36,43 @@ export default function CompleteProfilePage() {
         return;
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("full_name, email, phone")
-        .eq("id", user.id)
-        .maybeSingle();
+      const {
+        profile,
+        isComplete,
+        error: profileError,
+      } = await getProfileCompletionStatus(supabase, user.id);
 
       if (profileError) {
+        console.error(
+          "Profile completion check failed while loading complete-profile page:",
+          profileError.message,
+        );
         setError("Profilen kunne ikke indlæses.");
         setLoading(false);
         return;
       }
 
-      setFullName(
-        profile?.full_name ??
-          user.user_metadata?.full_name ??
-          user.user_metadata?.name ??
-          "",
-      );
+      if (isComplete) {
+        router.replace(getProfileDestination(true));
+        return;
+      }
 
+      setFullName(
+        profile?.full_name?.trim() ||
+          (typeof user.user_metadata?.full_name === "string"
+            ? user.user_metadata.full_name
+            : "") ||
+          (typeof user.user_metadata?.name === "string"
+            ? user.user_metadata.name
+            : ""),
+      );
       setEmail(profile?.email ?? user.email ?? "");
-      setPhone(profile?.phone ?? "");
+      setPhone(
+        profile?.phone?.trim() ||
+          (typeof user.user_metadata?.phone === "string"
+            ? user.user_metadata.phone
+            : ""),
+      );
 
       setLoading(false);
     };
@@ -117,7 +137,7 @@ export default function CompleteProfilePage() {
         throw profileError;
       }
 
-      router.replace("/");
+      router.replace("/profile");
       router.refresh();
     } catch (error: unknown) {
       setError(

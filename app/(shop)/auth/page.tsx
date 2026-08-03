@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import {
+  getProfileCompletionStatus,
+  getProfileDestination,
+} from "@/lib/profile";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple, FaFacebookF } from "react-icons/fa";
 import { Eye, EyeOff, LockKeyhole, Mail, Phone, User } from "lucide-react";
 import styles from "./auth.module.css";
 
 type AuthMode = "login" | "register";
-type OAuthProvider = "google" | "apple" | "facebook";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -128,7 +131,26 @@ export default function AuthPage() {
       }
 
       if (isLogin) {
-        router.push("/");
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError || !user) {
+          throw new Error("Login mislykkedes. Prøv igen.");
+        }
+
+        const { isComplete, error: profileError } =
+          await getProfileCompletionStatus(supabase, user.id);
+
+        if (profileError) {
+          console.error(
+            "Profile completion check failed after login:",
+            profileError.message,
+          );
+        }
+
+        router.replace(getProfileDestination(isComplete));
         router.refresh();
         return;
       }

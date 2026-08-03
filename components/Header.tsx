@@ -8,6 +8,10 @@ import { useTheme } from "next-themes";
 import { Home, User, ShoppingCart, Menu, X, Moon, Sun } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
+import {
+  getProfileCompletionStatus,
+  getProfileDestination,
+} from "@/lib/profile";
 import { useCart } from "@/context/CartContext";
 import { useCartUI } from "@/context/CartUIContext";
 import CartDrawer from "./CartDrawer";
@@ -20,18 +24,16 @@ export default function Header() {
   const { isCartOpen, openCart, closeCart } = useCartUI();
   const { totalItems } = useCart();
   const { theme, setTheme } = useTheme();
-
+  const [mounted, setMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
   const [language, setLanguage] = useState<"da" | "en">("da");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [profileHref, setProfileHref] = useState("/profile");
+  const [profileHref, setProfileHref] = useState("/complete-profile");
 
   useEffect(() => {
     setMounted(true);
-
     const loadUser = async () => {
       const {
         data: { user },
@@ -47,11 +49,20 @@ export default function Header() {
 
       setIsLoggedIn(true);
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, email, phone")
-        .eq("id", user.id)
-        .maybeSingle();
+      const {
+        profile,
+        isComplete,
+        error: profileError,
+      } = await getProfileCompletionStatus(supabase, user.id);
+
+      if (profileError) {
+        console.error(
+          "Profile completion check failed while loading header profile link:",
+          profileError.message,
+        );
+        setProfileHref("/complete-profile");
+        return;
+      }
 
       setUserName(
         profile?.full_name ||
@@ -62,14 +73,7 @@ export default function Header() {
       );
 
       setUserRole(user.app_metadata?.role ?? user.user_metadata?.role ?? null);
-
-      const profileIsComplete = Boolean(
-        profile?.full_name?.trim() &&
-        profile?.email?.trim() &&
-        profile?.phone?.trim(),
-      );
-
-      setProfileHref(profileIsComplete ? "/profile" : "/complete-profile");
+      setProfileHref(getProfileDestination(isComplete));
     };
 
     void loadUser();
@@ -83,16 +87,25 @@ export default function Header() {
         setIsLoggedIn(false);
         setUserName("");
         setUserRole(null);
-        setProfileHref("/profile");
+        setProfileHref("/complete-profile");
         return;
       }
 
       setIsLoggedIn(true);
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, email, phone")
-        .eq("id", user.id)
-        .maybeSingle();
+      const {
+        profile,
+        isComplete,
+        error: profileError,
+      } = await getProfileCompletionStatus(supabase, user.id);
+
+      if (profileError) {
+        console.error(
+          "Profile completion check failed while updating header profile link:",
+          profileError.message,
+        );
+        setProfileHref("/complete-profile");
+        return;
+      }
 
       setUserName(
         profile?.full_name ||
@@ -103,14 +116,7 @@ export default function Header() {
       );
 
       setUserRole(user.app_metadata?.role ?? user.user_metadata?.role ?? null);
-
-      const profileIsComplete = Boolean(
-        profile?.full_name?.trim() &&
-        profile?.email?.trim() &&
-        profile?.phone?.trim(),
-      );
-
-      setProfileHref(profileIsComplete ? "/profile" : "/complete-profile");
+      setProfileHref(getProfileDestination(isComplete));
     });
 
     return () => {
@@ -130,7 +136,7 @@ export default function Header() {
     setUserName("");
     setUserRole(null);
     setIsMenuOpen(false);
-    setProfileHref("/profile");
+    setProfileHref("/complete-profile");
 
     router.push("/");
     router.refresh();
