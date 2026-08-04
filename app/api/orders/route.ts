@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+
 import { createAdminClient } from "@/lib/supabase/admin";
-import { extraGroups, menuData, type MenuItem } from "@/data/menu";
+import { createClient } from "@/lib/supabase/server";
 import { DELIVERY_FEE } from "@/lib/delivery";
+import { extraGroups, menuData, type MenuItem } from "@/data/menu";
 
 type OrderItemRequest = {
   id?: unknown;
@@ -20,24 +21,75 @@ type OrderExtraRequest = {
 type CreateOrderRequest = {
   delivery_method?: unknown;
   payment_method?: unknown;
+
   bag_included?: unknown;
   bagIncluded?: unknown;
+
   customer_name?: unknown;
   customer_phone?: unknown;
   customer_email?: unknown;
+
   customer_address?: unknown;
+  customer_address_line1?: unknown;
+  customer_postal_code?: unknown;
+  customer_city?: unknown;
+  customer_floor_door?: unknown;
+  customer_place_id?: unknown;
+  customer_latitude?: unknown;
+  customer_longitude?: unknown;
+
   order_note?: unknown;
   requested_time?: unknown;
   items?: unknown;
 };
 
+type OrderSize = "normal" | "family" | "children" | "deepPan";
+
 type NormalizedOrderItem = {
   item_name: string;
   quantity: number;
   unit_price: number;
-  size: "normal" | "family" | "children" | "deepPan";
+  size: OrderSize;
   extras: string[];
 };
+
+const REQUIRED_RADIO_GROUPS = [
+  "proteinChoice",
+  "nachosProtein",
+  "drinkSizes",
+  "pizzaSaladProteinChoice",
+] as const;
+
+const MAX_QUANTITY = 50;
+const MAX_ORDER_ITEMS = 50;
+const BAG_FEE = 4;
+const SERVICE_FEE = 4;
+
+function getOptionalString(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmedValue = value.trim();
+
+  return trimmedValue || null;
+}
+
+function getOptionalNumber(value: unknown): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return null;
+  }
+
+  return value;
+}
+
+function isValidLatitude(value: number | null): value is number {
+  return value !== null && value >= -90 && value <= 90;
+}
+
+function isValidLongitude(value: number | null): value is number {
+  return value !== null && value >= -180 && value <= 180;
+}
 
 function isValidRequestedTime(value: unknown): value is string {
   if (value === "asap") {
@@ -67,7 +119,9 @@ function isValidRequestedTime(value: unknown): value is string {
   }
 
   const requestedMinutes = hours * 60 + minutes;
+
   const openingMinutes = 15 * 60 + 30;
+
   const closingMinutes = 20 * 60 + 30;
 
   return (
@@ -75,19 +129,7 @@ function isValidRequestedTime(value: unknown): value is string {
   );
 }
 
-function getOptionalString(value: unknown): string | null {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const trimmedValue = value.trim();
-
-  return trimmedValue || null;
-}
-
-function normalizeRequestedSize(
-  orderItem: OrderItemRequest,
-): "normal" | "family" | "children" | "deepPan" | null {
+function normalizeRequestedSize(orderItem: OrderItemRequest): OrderSize | null {
   if (orderItem.deepPan === true) {
     return "deepPan";
   }
@@ -110,10 +152,7 @@ function normalizeRequestedSize(
   return null;
 }
 
-function isValidSizeSelection(
-  menuItem: MenuItem,
-  size: "normal" | "family" | "children" | "deepPan",
-): boolean {
+function isValidSizeSelection(menuItem: MenuItem, size: OrderSize): boolean {
   if (size === "family") {
     return typeof menuItem.prices.family === "number";
   }
@@ -135,10 +174,7 @@ function isValidSizeSelection(
   );
 }
 
-function getBasePriceForSize(
-  menuItem: MenuItem,
-  size: "normal" | "family" | "children" | "deepPan",
-) {
+function getBasePriceForSize(menuItem: MenuItem, size: OrderSize): number {
   if (size === "family") {
     return menuItem.prices.family ?? 0;
   }
@@ -162,22 +198,31 @@ function getAllowedExtraGroupIds(menuItem: MenuItem): string[] {
   return [menuItem.extraGroupId.toString()];
 }
 
-const REQUIRED_RADIO_GROUPS = [
-  "proteinChoice",
-  "nachosProtein",
-  "drinkSizes",
-  "pizzaSaladProteinChoice",
-] as const;
-
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as CreateOrderRequest;
 
     const customerName = getOptionalString(body.customer_name);
+
     const customerPhone = getOptionalString(body.customer_phone);
+
     const customerEmail = getOptionalString(body.customer_email);
-    const customerAddress = getOptionalString(body.customer_address);
+
     const orderNote = getOptionalString(body.order_note);
+
+    const customerAddressLine1 = getOptionalString(body.customer_address_line1);
+
+    const customerPostalCode = getOptionalString(body.customer_postal_code);
+
+    const customerCity = getOptionalString(body.customer_city);
+
+    const customerFloorDoor = getOptionalString(body.customer_floor_door);
+
+    const customerPlaceId = getOptionalString(body.customer_place_id);
+
+    const customerLatitude = getOptionalNumber(body.customer_latitude);
+
+    const customerLongitude = getOptionalNumber(body.customer_longitude);
 
     const deliveryMethod =
       typeof body.delivery_method === "string"
@@ -190,7 +235,9 @@ export async function POST(request: NextRequest) {
         : "mobilepay";
 
     const requestedTime = body.requested_time;
+
     const items = body.items;
+
     const bagIncluded =
       typeof body.bag_included === "boolean"
         ? body.bag_included
@@ -198,7 +245,8 @@ export async function POST(request: NextRequest) {
           ? body.bagIncluded
           : true;
 
-    // ===== Validate required fields =====
+    // ===== Required customer fields =====
+
     if (
       !customerName ||
       !customerPhone ||
@@ -207,52 +255,109 @@ export async function POST(request: NextRequest) {
       items.length === 0
     ) {
       return NextResponse.json(
-        { error: "Missing or invalid required fields" },
+        {
+          error: "Missing or invalid required fields",
+        },
         { status: 400 },
       );
     }
 
-    // ===== Validate delivery method =====
-    if (!["pickup", "delivery"].includes(deliveryMethod)) {
+    if (orderNote && orderNote.length > 500) {
       return NextResponse.json(
-        { error: "Invalid delivery method" },
+        {
+          error: "Order note is too long",
+        },
         { status: 400 },
       );
     }
 
-    if (deliveryMethod === "delivery" && !customerAddress) {
+    // ===== Delivery method =====
+
+    if (deliveryMethod !== "pickup" && deliveryMethod !== "delivery") {
       return NextResponse.json(
-        { error: "Customer address is required for delivery" },
+        {
+          error: "Invalid delivery method",
+        },
         { status: 400 },
       );
     }
 
-    // ===== Validate payment method =====
-    if (!["mobilepay", "card"].includes(paymentMethod)) {
+    if (deliveryMethod === "delivery") {
+      if (
+        !customerAddressLine1 ||
+        !customerPostalCode ||
+        !customerCity ||
+        !customerPlaceId ||
+        !isValidLatitude(customerLatitude) ||
+        !isValidLongitude(customerLongitude)
+      ) {
+        return NextResponse.json(
+          {
+            error: "Complete delivery address is required",
+          },
+          { status: 400 },
+        );
+      }
+
+      if (!/^\d{4}$/.test(customerPostalCode)) {
+        return NextResponse.json(
+          {
+            error: "Invalid postal code",
+          },
+          { status: 400 },
+        );
+      }
+    }
+
+    // Construct the canonical address
+    // on the server rather than trusting
+    // one free-text frontend field.
+
+    const customerAddress =
+      deliveryMethod === "delivery"
+        ? [
+            customerAddressLine1,
+            customerFloorDoor,
+            [customerPostalCode, customerCity].filter(Boolean).join(" "),
+          ]
+            .filter(Boolean)
+            .join(", ")
+        : null;
+
+    // ===== Payment method =====
+
+    if (paymentMethod !== "mobilepay" && paymentMethod !== "card") {
       return NextResponse.json(
-        { error: "Invalid payment method" },
+        {
+          error: "Invalid payment method",
+        },
         { status: 400 },
       );
     }
 
-    // ===== Validate requested time =====
+    // ===== Requested time =====
+
     if (!isValidRequestedTime(requestedTime)) {
       return NextResponse.json(
-        { error: "Invalid requested time" },
+        {
+          error: "Invalid requested time",
+        },
         { status: 400 },
       );
     }
 
-    // ===== Validate order items =====
-    const MAX_QUANTITY = 50;
-    const MAX_ORDER_ITEMS = 50;
+    // ===== Order item limits =====
 
     if (items.length > MAX_ORDER_ITEMS) {
       return NextResponse.json(
-        { error: "Too many order items" },
+        {
+          error: "Too many order items",
+        },
         { status: 400 },
       );
     }
+
+    // ===== Validate and price items =====
 
     const normalizedItems = items.map((item: unknown) => {
       if (!item || typeof item !== "object") {
@@ -260,6 +365,7 @@ export async function POST(request: NextRequest) {
       }
 
       const orderItem = item as OrderItemRequest;
+
       const itemId = orderItem.id;
       const quantity = orderItem.quantity;
 
@@ -281,8 +387,11 @@ export async function POST(request: NextRequest) {
         return null;
       }
 
-      const isDisabled = (menuItem as MenuItem & { disabled?: boolean })
-        .disabled;
+      const isDisabled = (
+        menuItem as MenuItem & {
+          disabled?: boolean;
+        }
+      ).disabled;
 
       if (isDisabled === true) {
         return null;
@@ -297,8 +406,14 @@ export async function POST(request: NextRequest) {
       const extrasInput = Array.isArray(orderItem.extras)
         ? orderItem.extras
         : [];
+
       const allowedExtraGroupIds = getAllowedExtraGroupIds(menuItem);
-      const normalizedExtras: Array<{ name: string; price: number }> = [];
+
+      const normalizedExtras: Array<{
+        name: string;
+        price: number;
+      }> = [];
+
       const selectedExtraGroupCounts = new Map<string, number>();
 
       for (const extra of extrasInput) {
@@ -307,8 +422,10 @@ export async function POST(request: NextRequest) {
         }
 
         const orderExtra = extra as OrderExtraRequest;
+
         const extraName =
           typeof orderExtra.name === "string" ? orderExtra.name.trim() : "";
+
         const extraGroupId =
           typeof orderExtra.groupId === "string"
             ? orderExtra.groupId.trim()
@@ -327,6 +444,7 @@ export async function POST(request: NextRequest) {
         }
 
         const group = extraGroups[extraGroupId as keyof typeof extraGroups];
+
         const matchingExtra = group.find(
           (availableExtra) => availableExtra.name === extraName,
         );
@@ -336,6 +454,7 @@ export async function POST(request: NextRequest) {
         }
 
         const currentCount = selectedExtraGroupCounts.get(extraGroupId) ?? 0;
+
         selectedExtraGroupCounts.set(extraGroupId, currentCount + 1);
 
         normalizedExtras.push({
@@ -358,6 +477,7 @@ export async function POST(request: NextRequest) {
       }
 
       const basePrice = getBasePriceForSize(menuItem, requestedSize);
+
       const extrasTotal = normalizedExtras.reduce((total, extra) => {
         const extraPrice =
           requestedSize === "family" ? extra.price * 2 : extra.price;
@@ -378,7 +498,9 @@ export async function POST(request: NextRequest) {
 
     if (normalizedItems.some((item) => item === null)) {
       return NextResponse.json(
-        { error: "Invalid order items" },
+        {
+          error: "Invalid order items",
+        },
         { status: 400 },
       );
     }
@@ -387,18 +509,24 @@ export async function POST(request: NextRequest) {
       (item): item is NormalizedOrderItem => item !== null,
     );
 
+    // ===== Server-calculated totals =====
+
     const subtotal = validItems.reduce(
       (total, item) => total + item.unit_price * item.quantity,
       0,
     );
 
-    const bagFee = bagIncluded ? 4 : 0;
-    const serviceFee = 4;
+    const bagFee = bagIncluded ? BAG_FEE : 0;
+
+    const serviceFee = SERVICE_FEE;
+
     const deliveryFee = deliveryMethod === "delivery" ? DELIVERY_FEE : 0;
+
     const serverCalculatedTotalPrice =
       subtotal + bagFee + serviceFee + deliveryFee;
 
-    // ===== Get authenticated user, if available =====
+    // ===== Authenticated user =====
+
     const supabase = await createClient();
 
     const {
@@ -407,23 +535,54 @@ export async function POST(request: NextRequest) {
 
     const userId = user?.id ?? null;
 
-    // ===== Create order with server-only admin client =====
+    // ===== Create order =====
+
     const supabaseAdmin = createAdminClient();
 
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
       .insert({
         user_id: userId,
+
+        subtotal,
+        bag_included: bagIncluded,
+        bag_fee: bagFee,
+        service_fee: serviceFee,
+        delivery_fee: deliveryFee,
         total_price: serverCalculatedTotalPrice,
+
         delivery_method: deliveryMethod,
         payment_method: paymentMethod,
+
         customer_name: customerName,
         customer_phone: customerPhone,
         customer_email: customerEmail,
-        customer_address:
-          deliveryMethod === "delivery" ? customerAddress : null,
+
+        customer_address: customerAddress,
+
+        customer_address_line1:
+          deliveryMethod === "delivery" ? customerAddressLine1 : null,
+
+        customer_postal_code:
+          deliveryMethod === "delivery" ? customerPostalCode : null,
+
+        customer_city: deliveryMethod === "delivery" ? customerCity : null,
+
+        customer_floor_door:
+          deliveryMethod === "delivery" ? customerFloorDoor : null,
+
+        customer_place_id:
+          deliveryMethod === "delivery" ? customerPlaceId : null,
+
+        customer_latitude:
+          deliveryMethod === "delivery" ? customerLatitude : null,
+
+        customer_longitude:
+          deliveryMethod === "delivery" ? customerLongitude : null,
+
         order_note: orderNote,
         requested_time: requestedTime,
+
         status: "pending",
       })
       .select()
@@ -440,13 +599,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ===== Add order ID to items =====
+    // ===== Create order items =====
+
     const orderItems = validItems.map((item) => ({
       ...item,
       order_id: order.id,
     }));
 
-    // ===== Insert order items =====
     const { error: itemsError } = await supabaseAdmin
       .from("order_items")
       .insert(orderItems);
@@ -454,7 +613,8 @@ export async function POST(request: NextRequest) {
     if (itemsError) {
       console.error("Order items insert error:", itemsError);
 
-      // Remove incomplete order
+      // Roll back incomplete order.
+
       const { error: rollbackError } = await supabaseAdmin
         .from("orders")
         .delete()
@@ -464,7 +624,12 @@ export async function POST(request: NextRequest) {
         console.error("Order rollback error:", rollbackError);
       }
 
-      return NextResponse.json({ error: itemsError.message }, { status: 500 });
+      return NextResponse.json(
+        {
+          error: itemsError.message,
+        },
+        { status: 500 },
+      );
     }
 
     return NextResponse.json(
@@ -474,18 +639,22 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 },
     );
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Unexpected order creation error:", error);
 
     if (error instanceof SyntaxError) {
       return NextResponse.json(
-        { error: "Invalid request body" },
+        {
+          error: "Invalid request body",
+        },
         { status: 400 },
       );
     }
 
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error: "Internal server error",
+      },
       { status: 500 },
     );
   }

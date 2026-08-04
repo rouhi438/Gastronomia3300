@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CreditCard, Home, Truck, Smartphone } from "lucide-react";
+import { CreditCard, Home, Smartphone, Truck } from "lucide-react";
+
 import { useCart } from "@/context/CartContext";
+
 import styles from "./checkout.module.css";
 
 type PaymentMethod = "mobilepay" | "card";
 
 interface CheckoutForm {
   name: string;
-  address: string;
   phone: string;
   email: string;
 }
@@ -22,7 +24,6 @@ interface CreateOrderResponse {
 
 const initialForm: CheckoutForm = {
   name: "",
-  address: "",
   phone: "",
   email: "",
 };
@@ -35,15 +36,20 @@ export default function CheckoutPage() {
     totalPrice,
     bagIncluded,
     clearCart,
+
     deliveryMethod,
     setDeliveryMethod,
+    deliveryAddress,
+
     requestedTime,
   } = useCart();
 
   const [mounted, setMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [orderNote, setOrderNote] = useState("");
   const [form, setForm] = useState<CheckoutForm>(initialForm);
+
   const [payment, setPayment] = useState<PaymentMethod>("mobilepay");
 
   useEffect(() => {
@@ -66,13 +72,19 @@ export default function CheckoutPage() {
       const customer = parsed as {
         name?: unknown;
         phone?: unknown;
+        email?: unknown;
         orderNote?: unknown;
       };
 
       setForm((current) => ({
         ...current,
+
         name: typeof customer.name === "string" ? customer.name : "",
+
         phone: typeof customer.phone === "string" ? customer.phone : "",
+
+        email:
+          typeof customer.email === "string" ? customer.email : current.email,
       }));
 
       setOrderNote(
@@ -83,7 +95,7 @@ export default function CheckoutPage() {
     }
   }, []);
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
 
     setForm((current) => ({
@@ -92,7 +104,17 @@ export default function CheckoutPage() {
     }));
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const formattedDeliveryAddress = [
+    deliveryAddress.addressLine1,
+    deliveryAddress.floorDoor,
+    [deliveryAddress.postalCode, deliveryAddress.city]
+      .filter(Boolean)
+      .join(" "),
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (isSubmitting) {
@@ -101,6 +123,23 @@ export default function CheckoutPage() {
 
     if (items.length === 0) {
       alert("Din kurv er tom. Tilføj nogle varer først.");
+
+      return;
+    }
+
+    if (
+      deliveryMethod === "delivery" &&
+      (!deliveryAddress.addressLine1 ||
+        !deliveryAddress.postalCode ||
+        !deliveryAddress.city ||
+        !deliveryAddress.placeId ||
+        deliveryAddress.latitude === null ||
+        deliveryAddress.longitude === null)
+    ) {
+      alert(
+        "Leveringsadressen mangler oplysninger. Gå tilbage og vælg adressen igen.",
+      );
+
       return;
     }
 
@@ -132,25 +171,56 @@ export default function CheckoutPage() {
         };
       });
 
+      const customerAddress =
+        deliveryMethod === "delivery" ? formattedDeliveryAddress : null;
+
       const orderData = {
         delivery_method: deliveryMethod,
         payment_method: payment,
         bag_included: bagIncluded,
+
         customer_name: form.name.trim(),
         customer_phone: form.phone.trim(),
         customer_email: form.email.trim(),
-        customer_address:
-          deliveryMethod === "delivery" ? form.address.trim() : null,
+
+        customer_address: customerAddress,
+
+        customer_address_line1:
+          deliveryMethod === "delivery" ? deliveryAddress.addressLine1 : null,
+
+        customer_postal_code:
+          deliveryMethod === "delivery" ? deliveryAddress.postalCode : null,
+
+        customer_city:
+          deliveryMethod === "delivery" ? deliveryAddress.city : null,
+
+        customer_floor_door:
+          deliveryMethod === "delivery"
+            ? deliveryAddress.floorDoor || null
+            : null,
+
+        customer_place_id:
+          deliveryMethod === "delivery" ? deliveryAddress.placeId : null,
+
+        customer_latitude:
+          deliveryMethod === "delivery" ? deliveryAddress.latitude : null,
+
+        customer_longitude:
+          deliveryMethod === "delivery" ? deliveryAddress.longitude : null,
+
         requested_time: requestedTime,
         order_note: orderNote.trim() || null,
+
         items: orderItems,
       };
 
       const response = await fetch("/api/orders", {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
         },
+
         body: JSON.stringify(orderData),
       });
 
@@ -200,9 +270,9 @@ export default function CheckoutPage() {
 
           <p>Gå tilbage til menuen og tilføj nogle lækre pizzaer.</p>
 
-          <a href="/menu" className="btn-primary">
+          <Link href="/menu" className="btn-primary">
             Se menuen
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -233,20 +303,20 @@ export default function CheckoutPage() {
                 />
               </div>
 
-              <div className={styles.inputGroup}>
-                <label htmlFor="checkout-address">Adresse</label>
+              {deliveryMethod === "delivery" && (
+                <div className={styles.inputGroup}>
+                  <label htmlFor="checkout-address">Adresse</label>
 
-                <input
-                  id="checkout-address"
-                  type="text"
-                  name="address"
-                  value={form.address}
-                  onChange={handleChange}
-                  required={deliveryMethod === "delivery"}
-                  autoComplete="street-address"
-                  placeholder="Hillerødvej 38A, 3300 Frederiksværk"
-                />
-              </div>
+                  <input
+                    id="checkout-address"
+                    type="text"
+                    value={formattedDeliveryAddress}
+                    readOnly
+                    autoComplete="street-address"
+                    placeholder="Vælg adressen i kurven"
+                  />
+                </div>
+              )}
 
               <div className={styles.inputGroup}>
                 <label htmlFor="checkout-phone">Telefon</label>
@@ -289,6 +359,7 @@ export default function CheckoutPage() {
                     deliveryMethod === "pickup" ? styles.active : ""
                   }`}
                   onClick={() => setDeliveryMethod("pickup")}
+                  aria-pressed={deliveryMethod === "pickup"}
                 >
                   <Home size={20} />
                   <span>Afhentning</span>
@@ -300,6 +371,7 @@ export default function CheckoutPage() {
                     deliveryMethod === "delivery" ? styles.active : ""
                   }`}
                   onClick={() => setDeliveryMethod("delivery")}
+                  aria-pressed={deliveryMethod === "delivery"}
                 >
                   <Truck size={20} />
                   <span>Levering</span>

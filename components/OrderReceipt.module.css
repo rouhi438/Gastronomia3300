@@ -1,14 +1,19 @@
 .container {
-    max-width: 700px;
+    width: 100%;
+    max-width: 760px;
     margin: 0 auto;
     padding: 1.8rem 1.5rem;
-    font-family: "Arial", "Helvetica", sans-serif;
-    background: var(--bg-card);
+    overflow: hidden;
+
     color: var(--text-primary);
-    font-size: 12px;
-    line-height: 1.4;
+    background: var(--bg-card);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
+
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    line-height: 1.45;
+
     transition:
         background 0.3s,
         color 0.3s;
@@ -18,50 +23,67 @@
 
 .header {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    margin-bottom: 0.5rem;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.brand {
+    min-width: 0;
 }
 
 .brand h1 {
-    margin: 0 0 2px;
+    margin: 0 0 4px;
+
     color: var(--green);
-    font-size: 18px;
-    letter-spacing: 0.5px;
+
+    font-size: 20px;
+    line-height: 1.15;
+    letter-spacing: 0.4px;
 }
 
 .brand p {
-    margin: 1px 0;
+    margin: 2px 0;
+
     color: var(--text-secondary);
+
     font-size: 11px;
+    line-height: 1.35;
 }
 
 .orderInfo {
-    margin-top: 0.3rem;
+    flex-shrink: 0;
+    min-width: 190px;
+
     color: var(--text-secondary);
+
+    text-align: right;
     font-size: 11px;
 }
 
 .orderInfo p {
-    margin: 1px 0;
+    margin: 2px 0;
 }
 
 .orderTypeRow {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     gap: 6px;
-    margin-top: 4px;
+    margin-top: 6px;
 }
 
 .orderTypeBadge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+
     padding: 3px 9px;
+
     border: 1px solid transparent;
     border-radius: 999px;
+
     font-size: 10px;
     font-weight: 700;
     line-height: 1.2;
@@ -82,8 +104,9 @@
 /* ===== DIVIDER ===== */
 
 .divider {
-    margin: 0.5rem 0;
-    border: none;
+    margin: 0.65rem 0;
+
+    border: 0;
     border-top: 1px dashed var(--border-color);
 }
 
@@ -92,23 +115,62 @@
 .itemsTable {
     width: 100%;
     border-collapse: collapse;
-    font-size: 12px;
+    table-layout: fixed;
+
+    font-size: 11px;
 }
 
 .itemsTable th {
-    padding: 3px 0;
+    padding: 5px 5px;
+
     color: var(--text-secondary);
     border-bottom: 1px solid var(--border-color);
+
     text-align: left;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
 }
 
 .itemsTable td {
-    padding: 5px 0;
+    padding: 8px 5px;
+
     color: var(--text-primary);
     border-bottom: 1px solid var(--border-color);
+
     vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.itemsTable th:nth-child(1),
+.itemsTable td:nth-child(1) {
+    width: 48px;
+    text-align: center;
+}
+
+.itemsTable th:nth-child(2),
+.itemsTable td:nth-child(2) {
+    width: 48px;
+    text-align: center;
+}
+
+.itemsTable th:nth-child(3),
+.itemsTable td:nth-child(3) {
+    width: auto;
+}
+
+.itemsTable th:nth-child(4),
+.itemsTable td:nth-child(4) {
+    width: 90px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.itemsTable th:nth-child(5),
+.itemsTable td:nth-child(5) {
+    width: 90px;
+    text-align: right;
+    white-space: nowrap;
 }
 
 .priceColumn {
@@ -126,7 +188,10 @@
 }
 
 .itemName {
-    font-weight: 500;
+    color: var(--text-primary);
+
+    font-size: 11px;
+    font-weight: 700;
 }
 
 /* ===== BADGES ===== */
@@ -134,24 +199,32 @@
 .badge {
     display: inline-flex;
     align-items: center;
+
     padding: 2px 6px;
+
     color: var(--text-muted);
     background: var(--bg);
+    border: 1px solid var(--border-color);
     border-radius: 999px;
+
     font-size: 9px;
+    font-weight: 600;
     line-height: 1.2;
 }
 
 .proteinBadge {
     display: inline-flex;
     align-items: center;
+
     padding: 2px 7px;
+
     color: var(--text-secondary);
     background: rgba(128, 128, 128, 0.14);
     border: 1px solid rgba(128, 128, 128, 0.2);
     border-radius: 999px;
+
     font-size: 9px;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.2;
 }
 
@@ -160,52 +233,77 @@
 .extrasVertical {
     display: flex;
     flex-direction: column;
-    gap: 1px;
-    margin-top: 4px;
+    align-items: flex-start;
+    gap: 2px;
+
+    margin-top: 5px;
 }
 
 .extraItem {
     display: flex;
     align-items: baseline;
+    flex-wrap: wrap;
     gap: 4px;
+
     margin-left: 4px;
+
     color: var(--green);
+
     font-size: 10px;
     line-height: 1.35;
 }
 
 .extraPlus {
+    flex: 0 0 auto;
     min-width: 8px;
+
     font-size: 12px;
     font-weight: 700;
 }
 
 .extraPrice {
     font-size: 9px;
-    font-weight: 600;
+    font-weight: 700;
+    white-space: nowrap;
     opacity: 0.9;
 }
 
 /* ===== TOTALS ===== */
 
 .totals {
-    margin-top: 0.3rem;
-    text-align: right;
+    width: min(100%, 310px);
+    margin-top: 0.4rem;
+    margin-left: auto;
 }
 
 .totalRow {
-    display: flex;
-    justify-content: flex-end;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
     gap: 2rem;
-    padding: 1px 0;
+
+    padding: 2px 0;
+
     color: var(--text-primary);
+
     font-size: 12px;
 }
 
+.totalRow span:first-child {
+    text-align: left;
+}
+
+.totalRow span:last-child {
+    text-align: right;
+    white-space: nowrap;
+}
+
 .grandTotal {
-    margin-top: 2px;
-    padding-top: 4px;
+    margin-top: 5px;
+    padding-top: 7px;
+
     border-top: 2px solid var(--green);
+
     font-size: 15px;
 }
 
@@ -214,14 +312,18 @@
 .customer {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    margin-top: 0.6rem;
+    gap: 3px;
+
+    margin-top: 0.75rem;
+
     color: var(--text-primary);
+
     font-size: 11px;
 }
 
 .customer p {
     margin: 0;
+    overflow-wrap: anywhere;
 }
 
 .customer strong {
@@ -229,7 +331,14 @@
 }
 
 .orderNote {
-    color: #d32f2f;
+    margin-top: 5px !important;
+    padding: 7px 9px;
+
+    color: #b42318;
+    background: rgba(211, 47, 47, 0.08);
+    border-left: 3px solid #d32f2f;
+    border-radius: 4px;
+
     font-weight: 700;
     white-space: pre-wrap;
 }
@@ -240,10 +349,13 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+
     margin-top: 1rem;
-    padding-top: 0.6rem;
+    padding-top: 0.75rem;
+
     color: var(--text-muted);
     border-top: 1px solid var(--border-color);
+
     text-align: center;
     font-size: 11px;
 }
@@ -254,72 +366,176 @@
 
 .acceptTime {
     color: var(--green);
-    font-weight: 600;
+
+    font-weight: 700;
 }
 
 .powered {
     color: var(--text-muted);
+
     font-size: 9px;
+}
+
+/* ===== TABLET ===== */
+
+@media (max-width: 700px) {
+    .container {
+        padding: 1.4rem 1rem;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: center;
+
+        text-align: center;
+    }
+
+    .orderInfo {
+        min-width: 0;
+
+        text-align: center;
+    }
+
+    .orderTypeRow {
+        justify-content: center;
+    }
+
+    .itemsTable th:nth-child(2),
+    .itemsTable td:nth-child(2) {
+        display: none;
+    }
+
+    .itemsTable th:nth-child(1),
+    .itemsTable td:nth-child(1) {
+        width: 42px;
+    }
+
+    .itemsTable th:nth-child(4),
+    .itemsTable td:nth-child(4) {
+        width: 78px;
+    }
+
+    .itemsTable th:nth-child(5),
+    .itemsTable td:nth-child(5) {
+        width: 78px;
+    }
 }
 
 /* ===== MOBILE ===== */
 
 @media (max-width: 480px) {
     .container {
-        padding: 1.4rem 1rem;
+        padding: 1.1rem 0.75rem;
+        border-radius: 0;
     }
 
-    .itemsTable th:nth-child(3),
-    .itemsTable td:nth-child(3) {
+    .brand h1 {
+        font-size: 18px;
+    }
+
+    .itemsTable {
+        font-size: 10px;
+    }
+
+    .itemsTable th,
+    .itemsTable td {
+        padding-right: 3px;
+        padding-left: 3px;
+    }
+
+    .itemsTable th:nth-child(4),
+    .itemsTable td:nth-child(4) {
         display: none;
     }
 
-    .itemsTable th:first-child,
-    .itemsTable td:first-child {
-        width: 42px;
+    .itemsTable th:nth-child(1),
+    .itemsTable td:nth-child(1) {
+        width: 38px;
     }
 
-    .priceColumn {
-        width: 70px;
+    .itemsTable th:nth-child(5),
+    .itemsTable td:nth-child(5) {
+        width: 72px;
+    }
+
+    .itemName {
+        font-size: 10px;
+    }
+
+    .totals {
+        width: 100%;
     }
 }
 
 /* ===== PRINT ===== */
 
+@page {
+    size: A4;
+    margin: 10mm;
+}
+
 @media print {
 
     :global(html),
     :global(body) {
+        width: 100% !important;
+        min-height: 0 !important;
         margin: 0 !important;
         padding: 0 !important;
+
         background: #ffffff !important;
     }
 
-    :global(main) {
-        margin: 0 !important;
-        padding: 0 !important;
+    :global(body *) {
+        visibility: hidden !important;
     }
 
     .container,
     .container * {
-        visibility: visible;
+        visibility: visible !important;
     }
 
     .container {
+        position: absolute;
         top: 0;
         left: 0;
-        width: 100%;
-        max-width: 100%;
-        margin: 0;
-        padding: 1.5rem 1.2rem;
-        color: #1a1a1a !important;
+
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+
+        color: #111111 !important;
         background: #ffffff !important;
+        border: 0 !important;
         border-radius: 0 !important;
         box-shadow: none !important;
-        font-size: 11px;
-        break-after: auto;
-        page-break-after: auto;
 
+        font-size: 10px;
+
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .header {
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: space-between;
+
+        text-align: left;
+    }
+
+    .orderInfo {
+        min-width: 180px;
+
+        color: #111111 !important;
+
+        text-align: right;
+    }
+
+    .orderTypeRow {
+        justify-content: flex-end;
     }
 
     .brand h1 {
@@ -327,40 +543,58 @@
     }
 
     .brand p,
+    .orderInfo,
     .orderInfo p,
+    .customer,
     .customer p,
+    .customer strong,
     .totalRow,
     .footer {
-        color: #1a1a1a !important;
+        color: #111111 !important;
     }
 
+    .itemsTable {
+        table-layout: fixed;
+    }
+
+    .itemsTable th,
     .itemsTable td {
-        color: #1a1a1a !important;
-        border-bottom: 1px solid #e0e0e0 !important;
+        color: #111111 !important;
     }
 
     .itemsTable th {
-        color: #1a1a1a !important;
-        border-bottom: 1px solid #aaa !important;
+        border-bottom: 1px solid #777777 !important;
+    }
+
+    .itemsTable td {
+        border-bottom: 1px solid #dddddd !important;
+    }
+
+    .itemsTable th:nth-child(2),
+    .itemsTable td:nth-child(2),
+    .itemsTable th:nth-child(4),
+    .itemsTable td:nth-child(4) {
+        display: table-cell;
     }
 
     .divider {
-        border-top: 1px dashed #999 !important;
+        border-top-color: #888888 !important;
     }
 
     .grandTotal {
-        border-top: 2px solid #009246 !important;
+        border-top-color: #009246 !important;
     }
 
     .badge {
-        color: #555 !important;
+        color: #444444 !important;
         background: #f0f0f0 !important;
+        border-color: #cccccc !important;
     }
 
     .proteinBadge {
-        color: #444 !important;
+        color: #333333 !important;
         background: #eeeeee !important;
-        border-color: #d4d4d4 !important;
+        border-color: #cccccc !important;
     }
 
     .orderTypeBadge {
@@ -383,14 +617,24 @@
     .extraItem,
     .extraPrice,
     .extraPlus {
-        color: #009246 !important;
+        color: #007d41 !important;
+    }
+
+    .orderNote {
+        color: #9f1c14 !important;
+        background: #fff4f2 !important;
+        border-left-color: #d32f2f !important;
     }
 
     .acceptTime {
-        color: #009246 !important;
+        color: #007d41 !important;
     }
 
-    .itemsTable tr {
+    .itemsTable tr,
+    .totals,
+    .customer,
+    .footer {
+        break-inside: avoid;
         page-break-inside: avoid;
     }
 

@@ -3,26 +3,47 @@
 import { extraGroups, menuData } from "@/data/menu";
 import styles from "./OrderReceipt.module.css";
 
+type MoneyValue = number | string | null | undefined;
+
 interface OrderItem {
-  name: string;
+  name?: string;
+  item_name?: string;
   quantity: number;
-  unit_price: number;
-  size?: string;
-  extras?: string[];
+  unit_price: MoneyValue;
+  size?: string | null;
+  extras?: string[] | null;
 }
 
 interface OrderReceiptProps {
   order: {
     id: number;
     created_at: string;
+
     customer_name: string;
     customer_phone: string;
+    customer_email?: string | null;
+
     customer_address?: string | null;
+    customer_address_line1?: string | null;
+    customer_postal_code?: string | null;
+    customer_city?: string | null;
+    customer_floor_door?: string | null;
+
     order_note?: string | null;
+
     delivery_method: "pickup" | "delivery";
+    payment_method?: string | null;
+
     requested_time?: string | null;
     estimated_time?: number | null;
-    total_price: number;
+
+    subtotal?: MoneyValue;
+    bag_included?: boolean | null;
+    bag_fee?: MoneyValue;
+    service_fee?: MoneyValue;
+    delivery_fee?: MoneyValue;
+    total_price: MoneyValue;
+
     status: string;
     order_items: OrderItem[];
   };
@@ -40,83 +61,159 @@ const restaurantInfo = {
   website: "gastronomia3300.dk",
 };
 
-const proteinGroupIds = ["proteinChoice", "nachosProtein"] as const;
+const primaryChoiceGroupIds = [
+  "proteinChoice",
+  "nachosProtein",
+  "drinkSizes",
+  "pizzaSaladProteinChoice",
+] as const;
+
+function normalizeName(value: string) {
+  return value.trim().toLocaleLowerCase("da-DK");
+}
+
+function toNumber(value: MoneyValue): number {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  return 0;
+}
+
+function formatMoney(value: MoneyValue): string {
+  const amount = toNumber(value);
+
+  return `${new Intl.NumberFormat("da-DK", {
+    minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+
+    maximumFractionDigits: 2,
+  }).format(amount)} kr.`;
+}
 
 function getMenuItemByName(itemName: string) {
   return menuData.find(
-    (menuItem) =>
-      menuItem.name.trim().toLocaleLowerCase("da-DK") ===
-      itemName.trim().toLocaleLowerCase("da-DK"),
+    (menuItem) => normalizeName(menuItem.name) === normalizeName(itemName),
   );
 }
 
-function getItemGroupIds(itemName: string) {
+function getItemGroupIds(itemName: string): string[] {
   const menuItem = getMenuItemByName(itemName);
 
   if (!menuItem) {
     return [];
   }
 
-  return menuItem.extraGroupIds?.length
-    ? menuItem.extraGroupIds
-    : [menuItem.extraGroupId];
+  if (menuItem.extraGroupIds && menuItem.extraGroupIds.length > 0) {
+    return menuItem.extraGroupIds.map(String);
+  }
+
+  return [String(menuItem.extraGroupId)];
 }
 
-function getProteinChoice(
+function getSelectedPrimaryChoices(
   itemName: string,
   selectedExtras: string[] = [],
-): string | null {
+  size?: string | null,
+): ReceiptExtra[] {
   const itemGroupIds = getItemGroupIds(itemName);
 
-  const applicableProteinGroups = proteinGroupIds.filter((groupId) =>
-    itemGroupIds.includes(groupId),
-  );
+  const choices: ReceiptExtra[] = [];
+  const addedNames = new Set<string>();
 
-  for (const groupId of applicableProteinGroups) {
-    const proteinNames = new Set(
-      extraGroups[groupId].map((extra) =>
-        extra.name.trim().toLocaleLowerCase("da-DK"),
+  for (const groupId of primaryChoiceGroupIds) {
+    if (!itemGroupIds.includes(groupId)) {
+      continue;
+    }
+
+    const group = extraGroups[groupId as keyof typeof extraGroups];
+
+    const selectedExtra = selectedExtras.find((extraName) =>
+      group.some(
+        (availableExtra) =>
+          normalizeName(availableExtra.name) === normalizeName(extraName),
       ),
     );
 
-    const selectedProtein = selectedExtras.find((extraName) =>
-      proteinNames.has(extraName.trim().toLocaleLowerCase("da-DK")),
+    if (!selectedExtra) {
+      continue;
+    }
+
+    const normalizedSelectedName = normalizeName(selectedExtra);
+
+    if (addedNames.has(normalizedSelectedName)) {
+      continue;
+    }
+
+    const matchedExtra = group.find(
+      (availableExtra) =>
+        normalizeName(availableExtra.name) === normalizedSelectedName,
     );
 
-    if (selectedProtein) {
-      return selectedProtein;
-    }
+    const basePrice = matchedExtra?.price ?? 0;
+
+    const finalPrice = size === "family" ? basePrice * 2 : basePrice;
+
+    choices.push({
+      name: selectedExtra,
+      price: finalPrice,
+    });
+
+    addedNames.add(normalizedSelectedName);
   }
 
-  return null;
+  return choices;
 }
 
 function getPaidExtras(
   itemName: string,
   selectedExtras: string[] = [],
-  size?: string,
+  size?: string | null,
 ): ReceiptExtra[] {
   const itemGroupIds = getItemGroupIds(itemName);
-  const proteinChoice = getProteinChoice(itemName, selectedExtras);
+
+  const selectedChoices = getSelectedPrimaryChoices(
+    itemName,
+    selectedExtras,
+    size,
+  );
+
+  const selectedChoiceNames = new Set(
+    selectedChoices.map((choice) => normalizeName(choice.name)),
+  );
 
   return selectedExtras
-    .filter((extraName) => extraName !== proteinChoice)
+    .filter((extraName) => !selectedChoiceNames.has(normalizeName(extraName)))
     .map((extraName) => {
       let matchedPrice = 0;
 
       for (const groupId of itemGroupIds) {
-        if (groupId === "proteinChoice" || groupId === "nachosProtein") {
+        if (
+          primaryChoiceGroupIds.includes(
+            groupId as (typeof primaryChoiceGroupIds)[number],
+          )
+        ) {
           continue;
         }
 
-        const matchedExtra = extraGroups[groupId].find(
-          (extra) =>
-            extra.name.trim().toLocaleLowerCase("da-DK") ===
-            extraName.trim().toLocaleLowerCase("da-DK"),
+        if (!(groupId in extraGroups)) {
+          continue;
+        }
+
+        const group = extraGroups[groupId as keyof typeof extraGroups];
+
+        const matchedExtra = group.find(
+          (extra) => normalizeName(extra.name) === normalizeName(extraName),
         );
 
         if (matchedExtra) {
           matchedPrice = matchedExtra.price;
+
           break;
         }
       }
@@ -130,7 +227,7 @@ function getPaidExtras(
     });
 }
 
-function getSizeLabel(size?: string) {
+function getSizeLabel(size?: string | null) {
   switch (size) {
     case "family":
       return "Familie";
@@ -142,6 +239,7 @@ function getSizeLabel(size?: string) {
       return "Deep Pan";
 
     case "normal":
+    case null:
     case undefined:
       return null;
 
@@ -150,8 +248,44 @@ function getSizeLabel(size?: string) {
   }
 }
 
+function getStatusLabel(status: string) {
+  switch (status) {
+    case "pending":
+      return "Afventer";
+
+    case "accepted":
+      return "Accepteret";
+
+    case "rejected":
+      return "Afvist";
+
+    case "cancelled":
+      return "Annulleret";
+
+    case "completed":
+      return "Færdig";
+
+    default:
+      return status;
+  }
+}
+
+function getPaymentLabel(paymentMethod?: string | null) {
+  switch (paymentMethod) {
+    case "mobilepay":
+      return "MobilePay";
+
+    case "card":
+      return "Betalingskort";
+
+    default:
+      return paymentMethod || "Ikke angivet";
+  }
+}
+
 export default function OrderReceipt({ order }: OrderReceiptProps) {
   const orderDate = new Date(order.created_at).toLocaleString("da-DK", {
+    timeZone: "Europe/Copenhagen",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -167,18 +301,47 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
       ? "Hurtigst muligt"
       : order.requested_time;
 
-  // const showAddress =
-  //   order.delivery_method === "delivery" && Boolean(order.customer_address);
+  const statusLabel = getStatusLabel(order.status);
 
-  const status = order.status === "accepted" ? "Accepteret" : order.status;
+  const paymentLabel = getPaymentLabel(order.payment_method);
+
+  const itemSubtotal = order.order_items.reduce(
+    (total, item) => total + toNumber(item.unit_price) * item.quantity,
+    0,
+  );
+
+  const subtotal =
+    order.subtotal !== null && order.subtotal !== undefined
+      ? toNumber(order.subtotal)
+      : itemSubtotal;
+
+  const bagFee = toNumber(order.bag_fee);
+
+  const serviceFee = toNumber(order.service_fee);
+
+  const deliveryFee = toNumber(order.delivery_fee);
+
+  const structuredAddress = [
+    order.customer_address_line1,
+    order.customer_floor_door,
+    [order.customer_postal_code, order.customer_city].filter(Boolean).join(" "),
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  const customerAddress = structuredAddress || order.customer_address || "";
 
   return (
-    <div className={styles.container}>
+    <article className={styles.container}>
       <div className={styles.header}>
         <div className={styles.brand}>
           <h1>{restaurantInfo.name}</h1>
+
           <p>{restaurantInfo.address}</p>
+
           <p>Tlf: {restaurantInfo.phone}</p>
+
+          <p>{restaurantInfo.website}</p>
         </div>
 
         <div className={styles.orderInfo}>
@@ -191,7 +354,7 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
           </p>
 
           <div className={styles.orderTypeRow}>
-            <strong>Type:</strong>
+            <strong>Ordretype:</strong>
 
             <span
               className={`${styles.orderTypeBadge} ${
@@ -212,33 +375,62 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
         <thead>
           <tr>
             <th>Antal</th>
+            <th>Nr.</th>
             <th>Vare</th>
-            <th>Note</th>
+            <th>Stk. pris</th>
+
             <th className={styles.priceColumn}>Pris</th>
           </tr>
         </thead>
 
         <tbody>
           {order.order_items.map((item, index) => {
-            const proteinChoice = getProteinChoice(item.name, item.extras);
+            const itemName = item.item_name || item.name || "Ukendt vare";
 
-            const paidExtras = getPaidExtras(item.name, item.extras, item.size);
+            const menuItem = getMenuItemByName(itemName);
+
+            const selectedExtras = Array.isArray(item.extras)
+              ? item.extras
+              : [];
+
+            const primaryChoices = getSelectedPrimaryChoices(
+              itemName,
+              selectedExtras,
+              item.size,
+            );
+
+            const paidExtras = getPaidExtras(
+              itemName,
+              selectedExtras,
+              item.size,
+            );
 
             const sizeLabel = getSizeLabel(item.size);
 
+            const unitPrice = toNumber(item.unit_price);
+
+            const itemTotal = unitPrice * item.quantity;
+
             return (
-              <tr key={`${item.name}-${index}`}>
+              <tr key={`${itemName}-${index}`}>
                 <td>{item.quantity}</td>
+
+                <td>{menuItem?.id ?? "–"}</td>
 
                 <td>
                   <div className={styles.itemTitleRow}>
-                    <span className={styles.itemName}>{item.name}</span>
+                    <span className={styles.itemName}>{itemName}</span>
 
-                    {proteinChoice && (
-                      <span className={styles.proteinBadge}>
-                        {proteinChoice}
+                    {primaryChoices.map((choice, choiceIndex) => (
+                      <span
+                        key={`${choice.name}-${choiceIndex}`}
+                        className={styles.proteinBadge}
+                      >
+                        {choice.name}
+
+                        {choice.price > 0 && ` (+${formatMoney(choice.price)})`}
                       </span>
-                    )}
+                    ))}
 
                     {sizeLabel && (
                       <span className={styles.badge}>{sizeLabel}</span>
@@ -258,7 +450,7 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
 
                           {extra.price > 0 && (
                             <span className={styles.extraPrice}>
-                              ({extra.price} kr.)
+                              ({formatMoney(extra.price)})
                             </span>
                           )}
                         </span>
@@ -267,11 +459,9 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
                   )}
                 </td>
 
-                <td />
+                <td>{formatMoney(unitPrice)}</td>
 
-                <td className={styles.priceColumn}>
-                  {item.unit_price * item.quantity} kr.
-                </td>
+                <td className={styles.priceColumn}>{formatMoney(itemTotal)}</td>
               </tr>
             );
           })}
@@ -282,13 +472,35 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
 
       <div className={styles.totals}>
         <div className={styles.totalRow}>
-          <span>Subtotal:</span>
-          <span>{order.total_price} kr.</span>
+          <span>Varer i alt:</span>
+
+          <span>{formatMoney(subtotal)}</span>
         </div>
+
+        <div className={styles.totalRow}>
+          <span>Pose:</span>
+
+          <span>{formatMoney(bagFee)}</span>
+        </div>
+
+        <div className={styles.totalRow}>
+          <span>Servicegebyr:</span>
+
+          <span>{formatMoney(serviceFee)}</span>
+        </div>
+
+        {order.delivery_method === "delivery" && (
+          <div className={styles.totalRow}>
+            <span>Levering:</span>
+
+            <span>{formatMoney(deliveryFee)}</span>
+          </div>
+        )}
 
         <div className={`${styles.totalRow} ${styles.grandTotal}`}>
           <strong>I alt:</strong>
-          <strong>{order.total_price} kr.</strong>
+
+          <strong>{formatMoney(order.total_price)}</strong>
         </div>
       </div>
 
@@ -303,15 +515,15 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
           <strong>Tlf:</strong> {order.customer_phone}
         </p>
 
-        {order.delivery_method === "delivery" && order.customer_address && (
+        {order.customer_email && (
           <p>
-            <strong>Adresse:</strong> {order.customer_address}
+            <strong>E-mail:</strong> {order.customer_email}
           </p>
         )}
 
-        {order.order_note && (
-          <p className={styles.orderNote}>
-            <strong>Kommentar:</strong> {order.order_note}
+        {order.delivery_method === "delivery" && customerAddress && (
+          <p>
+            <strong>Adresse:</strong> {customerAddress}
           </p>
         )}
 
@@ -320,8 +532,18 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
         </p>
 
         <p>
-          <strong>Status:</strong> {status}
+          <strong>Betaling:</strong> {paymentLabel}
         </p>
+
+        <p>
+          <strong>Status:</strong> {statusLabel}
+        </p>
+
+        {order.order_note && (
+          <p className={styles.orderNote}>
+            <strong>Kommentar:</strong> {order.order_note}
+          </p>
+        )}
       </div>
 
       <div className={styles.footer}>
@@ -329,12 +551,12 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
 
         <p className={styles.acceptTime}>
           {order.status === "accepted" && order.estimated_time
-            ? `Din ordre er accepteret og forventes klar om cirka ${order.estimated_time} minutter.`
-            : "Din ordre er modtaget."}
+            ? `Ordren er accepteret og forventes klar om cirka ${order.estimated_time} minutter.`
+            : "Ordren er modtaget."}
         </p>
 
-        <p className={styles.powered}>Powered by Gastronomia 3300</p>
+        <p className={styles.powered}> Leveret af Gastronomia 3300</p>
       </div>
-    </div>
+    </article>
   );
 }
