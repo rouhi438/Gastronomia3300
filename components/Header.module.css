@@ -53,6 +53,11 @@
 
 .navLink:hover {
     color: var(--red);
+    text-decoration: underline;
+    text-underline-offset: 7px;
+    text-decoration-thickness: 4px;
+    transition: all ease 0.05s;
+
 }
 
 .loggedIn {

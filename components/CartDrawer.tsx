@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import type { User } from "@supabase/supabase-js";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -98,27 +99,38 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // add time to choosing from user
-  const availableTimes = useMemo(() => {
+  const timeAvailability = useMemo(() => {
     const now = new Date();
 
-    const openingMinutes = 15 * 60 + 30;
-    const closingMinutes = 20 * 60 + 15;
+    const selectionActivationMinutes = 10 * 60;
+    const firstOrderTimeMinutes = 15 * 60 + 30;
+    const lastOrderTimeMinutes = 20 * 60 + 30;
 
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
+    if (currentMinutes < selectionActivationMinutes) {
+      return {
+        isScheduledSelectionOpen: false,
+        times: [] as string[],
+      };
+    }
+
     const nextQuarter = Math.floor(currentMinutes / 15) * 15 + 15;
 
-    const firstAvailableTime = Math.max(openingMinutes, nextQuarter);
+    const firstAvailableTime = Math.max(firstOrderTimeMinutes, nextQuarter);
 
-    if (firstAvailableTime > closingMinutes) {
-      return [];
+    if (firstAvailableTime > lastOrderTimeMinutes) {
+      return {
+        isScheduledSelectionOpen: true,
+        times: [] as string[],
+      };
     }
 
     const times: string[] = [];
 
     for (
       let minutes = firstAvailableTime;
-      minutes <= closingMinutes;
+      minutes <= lastOrderTimeMinutes;
       minutes += 15
     ) {
       const hours = Math.floor(minutes / 60);
@@ -129,10 +141,13 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       );
     }
 
-    return times;
+    return {
+      isScheduledSelectionOpen: true,
+      times,
+    };
   }, [isOpen]);
 
-  const hasScheduledTime = requestedTime !== "asap";
+  const availableTimes = timeAvailability.times;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -180,55 +195,25 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   }, [orderNote, hasLoadedCustomer]);
 
   useEffect(() => {
-    if (!isOpen) return;
-    const supabaseClient = supabase;
+    if (!isOpen) {
+      return;
+    }
+
     let isMounted = true;
 
-    const loadCurrentUser = async () => {
-      const {
-        data: { user },
-      } = await supabaseClient.auth.getUser();
+    const applyUserToCustomerForm = async (user: User) => {
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("full_name, phone")
+        .eq("id", user.id)
+        .maybeSingle();
 
-      if (!isMounted || !user) return;
-
-      setIsLoggedIn(true);
-
-      const metadata = user.user_metadata ?? {};
-
-      const providerName =
-        getString(metadata.full_name) ||
-        getString(metadata.name) ||
-        [getString(metadata.first_name), getString(metadata.last_name)]
-          .filter(Boolean)
-          .join(" ");
-
-      const providerPhone =
-        getString(metadata.phone_number) ||
-        getString(metadata.phone) ||
-        user.phone ||
-        "";
-
-      const userLabel = providerName || user.email || "bruger";
-
-      setLoggedInLabel(userLabel);
-
-      setCustomerDetails((current) => ({
-        name: current.name || providerName,
-        phone: current.phone || providerPhone,
-      }));
-    };
-
-    loadCurrentUser();
-
-    const {
-      data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange((_event, session) => {
-      const user = session?.user;
-
-      if (!user) {
-        setIsLoggedIn(false);
-        setLoggedInLabel("");
+      if (!isMounted) {
         return;
+      }
+
+      if (profileError) {
+        console.error("Failed to load checkout profile:", profileError.message);
       }
 
       const metadata = user.user_metadata ?? {};
@@ -246,13 +231,55 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         user.phone ||
         "";
 
+      const profileName = getString(profile?.full_name);
+      const profilePhone = getString(profile?.phone);
+
+      const resolvedName = profileName || providerName;
+      const resolvedPhone = profilePhone || providerPhone;
+
       setIsLoggedIn(true);
-      setLoggedInLabel(providerName || user.email || "bruger");
+      setLoggedInLabel(resolvedName || user.email || "bruger");
 
       setCustomerDetails((current) => ({
-        name: current.name || providerName,
-        phone: current.phone || providerPhone,
+        name: resolvedName || current.name,
+        phone: resolvedPhone || current.phone,
       }));
+    };
+
+    const loadCurrentUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (!user) {
+        setIsLoggedIn(false);
+        setLoggedInLabel("");
+        return;
+      }
+
+      await applyUserToCustomerForm(user);
+    };
+
+    void loadCurrentUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user;
+
+      if (!user) {
+        setIsLoggedIn(false);
+        setLoggedInLabel("");
+        return;
+      }
+
+      window.setTimeout(() => {
+        void applyUserToCustomerForm(user);
+      }, 0);
     });
 
     return () => {
@@ -492,6 +519,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     deliveryMethod={deliveryMethod}
                     requestedTime={requestedTime}
                     availableTimes={availableTimes}
+                    isScheduledSelectionOpen={
+                      timeAvailability.isScheduledSelectionOpen
+                    }
                     onRequestedTimeChange={setRequestedTime}
                     customerDetails={customerDetails}
                     deliveryAddress={deliveryAddress}
@@ -596,6 +626,13 @@ function CartStep({
   onSelectMethod,
   formatPrice,
 }: CartStepProps) {
+  const primarySelectionGroupIds = [
+    "proteinChoice",
+    "nachosProtein",
+    "pizzaSaladProteinChoice",
+    "drinkSizes",
+  ] as const;
+
   return (
     <div className={styles.cartStep}>
       <section className={styles.cartSection}>
@@ -608,18 +645,31 @@ function CartStep({
 
         <ul className={styles.list}>
           {items.map((item) => {
-            const proteinChoice = item.extras?.find(
-              (extra) =>
-                extra.groupId === "proteinChoice" ||
-                extra.groupId === "nachosProtein",
-            );
+            const menuItem = menuData.find((entry) => entry.id === item.id);
+            const primarySelections =
+              item.extras?.filter((extra) =>
+                extra.groupId
+                  ? primarySelectionGroupIds.includes(
+                      extra.groupId as (typeof primarySelectionGroupIds)[number],
+                    )
+                  : false,
+              ) ?? [];
 
             const paidExtras =
-              item.extras?.filter(
-                (extra) =>
-                  extra.groupId !== "proteinChoice" &&
-                  extra.groupId !== "nachosProtein",
-              ) ?? [];
+              item.extras?.filter((extra) => {
+                if (!extra.groupId) {
+                  return true;
+                }
+
+                return !primarySelectionGroupIds.includes(
+                  extra.groupId as (typeof primarySelectionGroupIds)[number],
+                );
+              }) ?? [];
+
+            const hasAlternativeSizeOptions =
+              Boolean(menuItem?.prices.family ?? menuItem?.prices.children) ||
+              (Boolean(menuItem?.deepPanExtra) &&
+                (menuItem?.deepPanExtra ?? 0) > 0);
 
             const itemSizeLabel =
               item.size === "family"
@@ -628,7 +678,7 @@ function CartStep({
                   ? "Børn"
                   : item.deepPan || item.size === "deepPan"
                     ? "Deep Pan"
-                    : item.size
+                    : item.size && hasAlternativeSizeOptions
                       ? "Almindelig"
                       : null;
 
@@ -645,10 +695,17 @@ function CartStep({
                       <div className={styles.itemTitleRow}>
                         <h4 className={styles.itemName}>{item.name}</h4>
 
-                        {proteinChoice && (
-                          <span className={styles.proteinLabel}>
-                            {proteinChoice.name}
-                          </span>
+                        {primarySelections.length > 0 && (
+                          <div className={styles.variantBadges}>
+                            {primarySelections.map((extra, index) => (
+                              <span
+                                key={`${item.cartId}-${extra.name}-${index}`}
+                                className={styles.proteinLabel}
+                              >
+                                {extra.name}
+                              </span>
+                            ))}
+                          </div>
                         )}
                       </div>
 
@@ -669,20 +726,29 @@ function CartStep({
 
                     {paidExtras.length > 0 && (
                       <div className={styles.extrasColumn}>
-                        {paidExtras.map((extra, index) => (
-                          <span
-                            key={`${item.cartId}-${extra.name}-${index}`}
-                            className={styles.extraItem}
-                          >
-                            <Plus size={12} aria-hidden="true" />
+                        {paidExtras.map((extra, index) => {
+                          const displayedExtraPrice =
+                            item.size === "family"
+                              ? extra.price * 2
+                              : extra.price;
 
-                            <span>{extra.name}</span>
+                          return (
+                            <span
+                              key={`${item.cartId}-${extra.name}-${index}`}
+                              className={styles.extraItem}
+                            >
+                              <Plus size={12} aria-hidden="true" />
 
-                            {extra.price > 0 && (
-                              <small>({formatPrice(extra.price)})</small>
-                            )}
-                          </span>
-                        ))}
+                              <span>{extra.name}</span>
+
+                              {displayedExtraPrice > 0 && (
+                                <small>
+                                  ({formatPrice(displayedExtraPrice)})
+                                </small>
+                              )}
+                            </span>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -874,6 +940,7 @@ interface DetailsStepProps {
   requestedTime: ReturnType<typeof useCart>["requestedTime"];
   availableTimes: string[];
 
+  isScheduledSelectionOpen: boolean;
   onRequestedTimeChange: ReturnType<typeof useCart>["setRequestedTime"];
 
   customerDetails: CustomerDetails;
@@ -897,6 +964,7 @@ function DetailsStep({
   deliveryMethod,
   requestedTime,
   availableTimes,
+  isScheduledSelectionOpen,
   onRequestedTimeChange,
   customerDetails,
   deliveryAddress,
@@ -1015,7 +1083,9 @@ function DetailsStep({
 
         {availableTimes.length === 0 && (
           <p className={styles.noTimesMessage}>
-            Der er ingen flere valgbare tider i dag. Vælg hurtigst muligt.
+            {isScheduledSelectionOpen
+              ? "Der er ingen flere valgbare tider i dag. Vælg hurtigst muligt."
+              : "Valg af tidspunkt åbner hver dag kl. 10:00."}
           </p>
         )}
       </section>

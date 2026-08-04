@@ -712,6 +712,12 @@
     white-space: nowrap;
 }
 
+.variantBadges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
 .proteinLabel {
     display: inline-flex;
     align-items: center;
@@ -740,14 +746,14 @@
     min-height: 22px;
     padding: 3px 8px;
     border-radius: 999px;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 750;
     line-height: 1;
 }
 
 .itemSize {
     background: #fff1f1;
-    color: #b61d24;
+    color: #009246;
 }
 
 .itemQty {
@@ -773,7 +779,7 @@
 
 .extraItem svg {
     flex: 0 0 auto;
-    color: #d2232a;
+    color: #009246;
 }
 
 .extraItem small {
@@ -2032,4 +2038,465 @@
     .detailsBackButton {
         transition: none;
     }
+}
+
+/* =========================================
+   DARK MODE
+   ========================================= */
+
+:global(.dark) .drawer {
+    color-scheme: dark;
+    background: #101216;
+    color: #f3f4f6;
+    box-shadow: -20px 0 60px rgba(0, 0, 0, 0.55);
+}
+
+:global(.dark) .header {
+    border-bottom-color: #2a2e35;
+    background: rgba(16, 18, 22, 0.96);
+}
+
+:global(.dark) .eyebrow {
+    color: #9299a3;
+}
+
+:global(.dark) .title {
+    color: #f7f8fa;
+}
+
+:global(.dark) .itemCount {
+    background: #f3f4f6;
+    color: #111318;
+}
+
+:global(.dark) .backButton,
+:global(.dark) .closeBtn {
+    border-color: #343941;
+    background: #1b1e23;
+    color: #e9ebee;
+}
+
+:global(.dark) .backButton:hover,
+:global(.dark) .closeBtn:hover {
+    border-color: #484e57;
+    background: #25292f;
+    color: #ffffff;
+}
+
+:global(.dark) .progress {
+    border-bottom-color: #292d33;
+    background: #13161a;
+}
+
+:global(.dark) .progressItem {
+    color: #7f8791;
+}
+
+:global(.dark) .progressItem>span {
+    border-color: #3a3f47;
+    background: #1a1d22;
+    color: #a6adb7;
+}
+
+:global(.dark) .progressItemActive {
+    color: #f5f6f7;
+}
+
+:global(.dark) .progressItemActive>span {
+    border-color: #d2232a;
+    background: #d2232a;
+    color: #ffffff;
+}
+
+:global(.dark) .progressItemDone {
+    color: #b6bdc6;
+}
+
+:global(.dark) .progressItemDone>span {
+    border-color: #168b56;
+    background: #168b56;
+    color: #ffffff;
+}
+
+:global(.dark) .progressLine {
+    background: #343941;
+}
+
+:global(.dark) .body {
+    background: #0d0f12;
+}
+
+:global(.dark) .stepPanel {
+    scrollbar-color: #4a5059 transparent;
+}
+
+:global(.dark) .stepPanel::-webkit-scrollbar-thumb {
+    background: #4a5059;
+}
+
+:global(.dark) .stepPanel::-webkit-scrollbar-thumb:hover {
+    background: #616873;
+}
+
+/* ===== TEXT ===== */
+
+:global(.dark) .sectionHeading h3,
+:global(.dark) .emptyText h3,
+:global(.dark) .itemName,
+:global(.dark) .itemPrice,
+:global(.dark) .fieldLabel,
+:global(.dark) .bagInfo strong,
+:global(.dark) .methodHeading h3,
+:global(.dark) .methodText strong,
+:global(.dark) .detailsIntro h3,
+:global(.dark) .loginCard strong,
+:global(.dark) .detailsTotal strong,
+:global(.dark) .totalRow>div>span,
+:global(.dark) .totalRow strong,
+:global(.dark) .timeHeader strong {
+    color: #f2f4f7;
+}
+
+:global(.dark) .sectionHeading p,
+:global(.dark) .emptyText p,
+:global(.dark) .detailsIntro p,
+:global(.dark) .methodHeading p,
+:global(.dark) .methodText small,
+:global(.dark) .bagInfo small,
+:global(.dark) .loginCard span,
+:global(.dark) .timeHeader small {
+    color: #969da7;
+}
+
+/* ===== CARDS ===== */
+
+:global(.dark) .item,
+:global(.dark) .noteSection,
+:global(.dark) .bagCard,
+:global(.dark) .summary,
+:global(.dark) .methodSection,
+:global(.dark) .detailsIntro,
+:global(.dark) .loginCard,
+:global(.dark) .formFields,
+:global(.dark) .detailsFooter,
+:global(.dark) .timeCard {
+    border-color: #2b3037;
+    background: #171a1f;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.22);
+}
+
+:global(.dark) .item:hover {
+    border-color: #414751;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+}
+
+:global(.dark) .itemEditArea {
+    color: #f1f3f5;
+}
+
+:global(.dark) .actions {
+    border-top-color: #2b3037;
+    background: #14171b;
+}
+
+/* ===== BADGES ===== */
+
+:global(.dark) .proteinLabel {
+    background: #292d33;
+    color: #c5cad1;
+}
+
+:global(.dark) .itemSize {
+    background: rgba(210, 35, 42, 0.18);
+    color: #ff858a;
+}
+
+:global(.dark) .itemQty {
+    background: #292d33;
+    color: #c1c7cf;
+}
+
+:global(.dark) .extraItem {
+    color: #aeb5bf;
+}
+
+:global(.dark) .extraItem small {
+    color: #7f8791;
+}
+
+/* ===== QUANTITY ===== */
+
+:global(.dark) .quantityControl {
+    border-color: #373c44;
+    background: #1c2025;
+}
+
+:global(.dark) .quantityControl button {
+    color: #e8eaed;
+}
+
+:global(.dark) .quantityControl button:hover {
+    background: #2a2f36;
+    color: #ffffff;
+}
+
+:global(.dark) .qtyNumber {
+    color: #f5f6f7;
+}
+
+:global(.dark) .removeBtn {
+    color: #969da7;
+}
+
+:global(.dark) .removeBtn:hover {
+    background: rgba(210, 35, 42, 0.15);
+    color: #ff777d;
+}
+
+/* ===== INPUTS ===== */
+
+:global(.dark) .noteInput,
+:global(.dark) .textInput,
+:global(.dark) .addressInput,
+:global(.dark) .timeSelect {
+    border-color: #383e46;
+    background: #111419;
+    color: #f3f4f6;
+}
+
+:global(.dark) .noteInput::placeholder,
+:global(.dark) .textInput::placeholder,
+:global(.dark) .addressInput::placeholder {
+    color: #717985;
+}
+
+:global(.dark) .noteInput:hover,
+:global(.dark) .textInput:hover,
+:global(.dark) .addressInput:hover,
+:global(.dark) .timeSelect:hover {
+    border-color: #505762;
+}
+
+:global(.dark) .noteInput:focus,
+:global(.dark) .textInput:focus,
+:global(.dark) .addressInput:focus,
+:global(.dark) .timeSelect:focus {
+    border-color: #d2232a;
+    background: #15181d;
+    box-shadow: 0 0 0 3px rgba(210, 35, 42, 0.2);
+}
+
+:global(.dark) .textInput:disabled {
+    background: #20242a;
+    color: #757d87;
+}
+
+:global(.dark) .noteMeta,
+:global(.dark) .optional,
+:global(.dark) .addressHelper {
+    color: #848c97;
+}
+
+/* ===== BAG ===== */
+
+:global(.dark) .bagIcon {
+    background: #292d33;
+    color: #d9dde2;
+}
+
+:global(.dark) .bagAction span {
+    color: #e7e9ec;
+}
+
+:global(.dark) .bagAction button,
+:global(.dark) .addBagButton {
+    border-color: #3a4048;
+    background: #1b1f24;
+    color: #b8bec7;
+}
+
+:global(.dark) .bagAction button:hover {
+    border-color: rgba(210, 35, 42, 0.55);
+    background: rgba(210, 35, 42, 0.15);
+    color: #ff7d83;
+}
+
+:global(.dark) .addBagButton:hover {
+    border-color: rgba(22, 139, 86, 0.65);
+    background: rgba(22, 139, 86, 0.16);
+    color: #60d49a;
+}
+
+/* ===== SUMMARY ===== */
+
+:global(.dark) .summaryRow {
+    color: #a6adb6;
+}
+
+:global(.dark) .summaryRow span:last-child {
+    color: #d5d9de;
+}
+
+:global(.dark) .deliveryPreviewRow {
+    border-top-color: #343941;
+    color: #8d959f;
+}
+
+:global(.dark) .totalRow {
+    border-top-color: #343941;
+}
+
+:global(.dark) .totalRow small {
+    color: #7f8791;
+}
+
+/* ===== DELIVERY METHOD ===== */
+
+:global(.dark) .methodButton {
+    border-color: #373c44;
+    background: #12151a;
+    color: #e9ebee;
+}
+
+:global(.dark) .methodButton:hover {
+    border-color: #d2232a;
+    background: rgba(210, 35, 42, 0.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.26);
+}
+
+:global(.dark) .methodIcon {
+    background: #292e35;
+    color: #d5d9df;
+}
+
+:global(.dark) .methodArrow {
+    color: #8b929c;
+}
+
+/* ===== TIME ===== */
+
+:global(.dark) .timeOption {
+    border-color: #3a4048;
+    background: #111419;
+    color: #e9ebee;
+}
+
+:global(.dark) .timeOption:hover {
+    border-color: #4f83e8;
+}
+
+:global(.dark) .timeOptionActive {
+    border-color: #4f83e8;
+    background: rgba(37, 99, 235, 0.14);
+}
+
+:global(.dark) .timeIcon {
+    background: rgba(37, 99, 235, 0.17);
+    color: #72a2ff;
+}
+
+:global(.dark) .noTimesMessage {
+    color: #f0ad5f;
+}
+
+/* ===== LOGIN / PROFILE ===== */
+
+:global(.dark) .loggedInCard {
+    border-color: rgba(22, 139, 86, 0.48);
+    background: rgba(22, 139, 86, 0.12);
+    color: #73d8a6;
+}
+
+:global(.dark) .loggedInIcon {
+    background: rgba(22, 139, 86, 0.2);
+    color: #69d29f;
+}
+
+:global(.dark) .loggedInCard small {
+    color: #85aa98;
+}
+
+:global(.dark) .loggedInCard strong {
+    color: #8ae0b4;
+}
+
+:global(.dark) .loginButton {
+    border-color: #3a4048;
+    background: #1b1f24;
+    color: #d6dae0;
+}
+
+:global(.dark) .loginButton:hover {
+    border-color: #d2232a;
+    background: rgba(210, 35, 42, 0.12);
+    color: #ff7c82;
+}
+
+/* ===== ADDRESS ===== */
+
+:global(.dark) .selectedAddress {
+    border-color: rgba(22, 139, 86, 0.48);
+    background: rgba(22, 139, 86, 0.12);
+    color: #70d5a3;
+}
+
+:global(.dark) .selectedAddress strong {
+    color: #8ae0b4;
+}
+
+:global(.dark) .selectedAddress span {
+    color: #82a994;
+}
+
+:global(.dark) .addressSuggestions {
+    border-color: #373d45;
+    background: #171a1f;
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.55);
+}
+
+:global(.dark) .addressSuggestion {
+    color: #e8eaed;
+}
+
+:global(.dark) .addressSuggestion:hover,
+:global(.dark) .addressSuggestionActive {
+    background: rgba(210, 35, 42, 0.14);
+    color: #ff8086;
+}
+
+:global(.dark) .addressSuggestion span {
+    color: #929aa5;
+}
+
+/* ===== ERRORS ===== */
+
+:global(.dark) .formError,
+:global(.dark) .addressError {
+    border-color: rgba(210, 35, 42, 0.45);
+    background: rgba(210, 35, 42, 0.14);
+    color: #ff8b91;
+}
+
+/* ===== FOOTER ===== */
+
+:global(.dark) .detailsTotal {
+    border-bottom-color: #343941;
+}
+
+:global(.dark) .detailsTotal span {
+    color: #b5bbc4;
+}
+
+:global(.dark) .detailsBackButton {
+    color: #aab1ba;
+}
+
+:global(.dark) .detailsBackButton:hover {
+    background: #272c33;
+    color: #ffffff;
+}
+
+:global(.dark) .paymentButton:disabled {
+    background: #353a41;
+    color: #7f8791;
 }

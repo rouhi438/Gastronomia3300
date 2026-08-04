@@ -5,7 +5,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { Home, User, ShoppingCart, Menu, X, Moon, Sun } from "lucide-react";
+import {
+  Home,
+  User,
+  ShoppingCart,
+  Menu,
+  X,
+  Moon,
+  Sun,
+  SquareMenu,
+} from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -206,7 +215,10 @@ export default function Header() {
             <Home size={18} />
             <span>Hjem</span>
           </Link>
-
+          <Link href="/menu" className={styles.navLink} onClick={closeMenu}>
+            <SquareMenu size={20} />
+            <span>Menu</span>
+          </Link>
           <button type="button" className={styles.navLink} onClick={openCart}>
             <div className={styles.cartIconWrapper}>
               <ShoppingCart size={18} />
@@ -319,7 +331,14 @@ export default function Header() {
               <Home size={20} />
               <span>Hjem</span>
             </Link>
-
+            <Link
+              href="/menu"
+              className={styles.mobileNavLink}
+              onClick={closeMenu}
+            >
+              <SquareMenu size={20} />
+              <span>Menu</span>
+            </Link>
             <button
               type="button"
               className={styles.mobileNavLink}

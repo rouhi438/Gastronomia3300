@@ -1,67 +1,103 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useCart } from "@/context/CartContext";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Truck, Home, CreditCard, Wallet } from "lucide-react";
+import { CreditCard, Home, Truck, Smartphone } from "lucide-react";
+import { useCart } from "@/context/CartContext";
 import styles from "./checkout.module.css";
 
-type PaymentMethod = "mobilepay" | "cash";
+type PaymentMethod = "mobilepay" | "card";
+
+interface CheckoutForm {
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+}
+
+interface CreateOrderResponse {
+  order_id?: number;
+  error?: string;
+}
+
+const initialForm: CheckoutForm = {
+  name: "",
+  address: "",
+  phone: "",
+  email: "",
+};
 
 export default function CheckoutPage() {
   const router = useRouter();
+
   const {
     items,
     totalPrice,
+    bagIncluded,
     clearCart,
     deliveryMethod,
     setDeliveryMethod,
     requestedTime,
   } = useCart();
+
   const [mounted, setMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderNote, setOrderNote] = useState("");
+  const [form, setForm] = useState<CheckoutForm>(initialForm);
+  const [payment, setPayment] = useState<PaymentMethod>("mobilepay");
 
   useEffect(() => {
     setMounted(true);
 
     const storedCheckoutCustomer = localStorage.getItem("checkout-customer");
 
-    if (!storedCheckoutCustomer) return;
+    if (!storedCheckoutCustomer) {
+      return;
+    }
 
     try {
-      const parsed = JSON.parse(storedCheckoutCustomer);
+      const parsed: unknown = JSON.parse(storedCheckoutCustomer);
+
+      if (!parsed || typeof parsed !== "object") {
+        localStorage.removeItem("checkout-customer");
+        return;
+      }
+
+      const customer = parsed as {
+        name?: unknown;
+        phone?: unknown;
+        orderNote?: unknown;
+      };
 
       setForm((current) => ({
         ...current,
-        name: typeof parsed.name === "string" ? parsed.name : "",
-        phone: typeof parsed.phone === "string" ? parsed.phone : "",
+        name: typeof customer.name === "string" ? customer.name : "",
+        phone: typeof customer.phone === "string" ? customer.phone : "",
       }));
 
       setOrderNote(
-        typeof parsed.orderNote === "string" ? parsed.orderNote : "",
+        typeof customer.orderNote === "string" ? customer.orderNote : "",
       );
     } catch {
       localStorage.removeItem("checkout-customer");
     }
   }, []);
 
-  const [form, setForm] = useState({
-    name: "",
-    address: "",
-    phone: "",
-    email: "",
-  });
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
 
-  const [payment, setPayment] = useState<PaymentMethod>("mobilepay");
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
   };
 
-  // SUBMIT ORDER TO API
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
 
     if (items.length === 0) {
       alert("Din kurv er tom. Tilføj nogle varer først.");
@@ -71,23 +107,43 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
+      const orderItems = items.map((item) => {
+        const extras = (item.extras ?? []).map((extra) => {
+          const groupId = extra.groupId;
+
+          if (typeof groupId !== "string" || groupId.trim() === "") {
+            throw new Error(
+              "Hver valgt ekstra skal have en ikke-tom gruppe-id.",
+            );
+          }
+
+          return {
+            name: extra.name,
+            groupId: groupId.trim(),
+          };
+        });
+
+        return {
+          id: item.id,
+          quantity: item.quantity,
+          size: item.size || "normal",
+          deepPan: Boolean(item.deepPan),
+          extras,
+        };
+      });
+
       const orderData = {
-        total_price: totalPrice,
         delivery_method: deliveryMethod,
         payment_method: payment,
-        customer_name: form.name,
-        customer_phone: form.phone,
+        bag_included: bagIncluded,
+        customer_name: form.name.trim(),
+        customer_phone: form.phone.trim(),
         customer_email: form.email.trim(),
-        customer_address: deliveryMethod === "delivery" ? form.address : null,
+        customer_address:
+          deliveryMethod === "delivery" ? form.address.trim() : null,
         requested_time: requestedTime,
         order_note: orderNote.trim() || null,
-        items: items.map((item) => ({
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-          size: item.size || "normal",
-          extras: item.extras?.map((e) => e.name) || [],
-        })),
+        items: orderItems,
       };
 
       const response = await fetch("/api/orders", {
@@ -98,36 +154,35 @@ export default function CheckoutPage() {
         body: JSON.stringify(orderData),
       });
 
-      const result = await response.json();
+      const result = (await response.json()) as CreateOrderResponse;
 
       if (!response.ok) {
         throw new Error(result.error || "Failed to create order");
       }
 
+      if (typeof result.order_id !== "number") {
+        throw new Error("Ordren blev oprettet uden et gyldigt ordre-id.");
+      }
+
       alert(`Tak for din bestilling! Ordre #${result.order_id} er modtaget.`);
 
-      // Clear cart state
       clearCart();
 
-      // Clear temporary checkout data
       localStorage.removeItem("checkout-customer");
       localStorage.removeItem("checkout-customer-details");
       localStorage.removeItem("checkout-order-note");
 
-      // Reset local checkout state
       setOrderNote("");
+      setForm(initialForm);
 
-      setForm({
-        name: "",
-        address: "",
-        phone: "",
-        email: "",
-      });
+      router.replace("/");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Ukendt fejl ved oprettelse af ordre";
 
-      // Redirect after order
-      router.replace("/admin/new-order");
-    } catch (error: any) {
-      alert(`Fejl ved oprettelse af ordre: ${error.message}`);
+      alert(`Fejl ved oprettelse af ordre: ${message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -142,7 +197,9 @@ export default function CheckoutPage() {
       <div className={styles.empty}>
         <div className={styles.emptyContent}>
           <h2>Din kurv er tom</h2>
+
           <p>Gå tilbage til menuen og tilføj nogle lækre pizzaer.</p>
+
           <a href="/menu" className="btn-primary">
             Se menuen
           </a>
@@ -160,47 +217,63 @@ export default function CheckoutPage() {
           <form onSubmit={handleSubmit} className={styles.form}>
             <div className={styles.section}>
               <h3>Kundeoplysninger</h3>
+
               <div className={styles.inputGroup}>
-                <label>Fulde navn</label>
+                <label htmlFor="checkout-name">Fulde navn</label>
+
                 <input
+                  id="checkout-name"
                   type="text"
                   name="name"
                   value={form.name}
                   onChange={handleChange}
                   required
+                  autoComplete="name"
                   placeholder="Mads Jensen"
                 />
               </div>
+
               <div className={styles.inputGroup}>
-                <label>Adresse</label>
+                <label htmlFor="checkout-address">Adresse</label>
+
                 <input
+                  id="checkout-address"
                   type="text"
                   name="address"
                   value={form.address}
                   onChange={handleChange}
                   required={deliveryMethod === "delivery"}
+                  autoComplete="street-address"
                   placeholder="Hillerødvej 38A, 3300 Frederiksværk"
                 />
               </div>
+
               <div className={styles.inputGroup}>
-                <label>Telefon</label>
+                <label htmlFor="checkout-phone">Telefon</label>
+
                 <input
+                  id="checkout-phone"
                   type="tel"
                   name="phone"
                   value={form.phone}
                   onChange={handleChange}
                   required
+                  autoComplete="tel"
                   placeholder="+45 40 40 41 83"
                 />
               </div>
+
               <div className={styles.inputGroup}>
-                <label>E-mail</label>
+                <label htmlFor="checkout-email">E-mail</label>
+
                 <input
+                  id="checkout-email"
                   type="email"
                   name="email"
                   value={form.email}
                   onChange={handleChange}
                   required
+                  autoComplete="email"
                   placeholder="din@email.dk"
                 />
               </div>
@@ -208,6 +281,7 @@ export default function CheckoutPage() {
 
             <div className={styles.section}>
               <h3>Levering</h3>
+
               <div className={styles.options}>
                 <button
                   type="button"
@@ -219,6 +293,7 @@ export default function CheckoutPage() {
                   <Home size={20} />
                   <span>Afhentning</span>
                 </button>
+
                 <button
                   type="button"
                   className={`${styles.optionBtn} ${
@@ -234,6 +309,7 @@ export default function CheckoutPage() {
 
             <div className={styles.section}>
               <h3>Betaling</h3>
+
               <div className={styles.options}>
                 <button
                   type="button"
@@ -241,19 +317,22 @@ export default function CheckoutPage() {
                     payment === "mobilepay" ? styles.active : ""
                   }`}
                   onClick={() => setPayment("mobilepay")}
+                  aria-pressed={payment === "mobilepay"}
                 >
-                  <CreditCard size={20} />
+                  <Smartphone size={20} />
                   <span>MobilePay</span>
                 </button>
+
                 <button
                   type="button"
                   className={`${styles.optionBtn} ${
-                    payment === "cash" ? styles.active : ""
+                    payment === "card" ? styles.active : ""
                   }`}
-                  onClick={() => setPayment("cash")}
+                  onClick={() => setPayment("card")}
+                  aria-pressed={payment === "card"}
                 >
-                  <Wallet size={20} />
-                  <span>Kontant</span>
+                  <CreditCard size={20} />
+                  <span>Betalingskort</span>
                 </button>
               </div>
             </div>
@@ -269,21 +348,26 @@ export default function CheckoutPage() {
 
           <div className={styles.summary}>
             <h3>Din ordre</h3>
+
             <ul className={styles.itemList}>
               {items.map((item, index) => {
-                const uniqueKey = `${item.cartId || index}`;
+                const uniqueKey = item.cartId || index;
+
                 return (
                   <li key={uniqueKey} className={styles.summaryItem}>
                     <div>
                       <span className={styles.summaryName}>
                         {item.quantity}× {item.name}
                       </span>
+
                       {item.extras && item.extras.length > 0 && (
                         <span className={styles.summaryExtras}>
-                          (+{item.extras.map((e) => e.name).join(", ")})
+                          (+
+                          {item.extras.map((extra) => extra.name).join(", ")})
                         </span>
                       )}
                     </div>
+
                     <span className={styles.summaryPrice}>
                       {item.price * item.quantity} kr.
                     </span>
@@ -291,8 +375,10 @@ export default function CheckoutPage() {
                 );
               })}
             </ul>
+
             <div className={styles.totalRow}>
               <span>I alt</span>
+
               <span className={styles.totalPrice}>{totalPrice} kr.</span>
             </div>
           </div>

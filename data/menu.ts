@@ -567,7 +567,7 @@ export const menuData: MenuItem[] = [
   {
     id: 40,
     menuNumber: 40,
-    name: "SALAT kebab/kylling/skinke/tunfisk",
+    name: "SALAT",
     description: "Med iceberg, tomat, agurk og dressing",
     category: "salad",
     prices: { fixed: 55 },
@@ -578,11 +578,11 @@ export const menuData: MenuItem[] = [
     id: 41,
     menuNumber: 41,
     name: "PASTA SALAT",
-    description: "Med pasta, kebab, skinke/kylling og dressing",
+    description: "Med pasta, kebab, skinke, kylling / flafel og dressing",
     category: "salad",
     prices: { fixed: 55 },
     image: "",
-    extraGroupId: "none",
+    extraGroupId: "proteinChoice",
   },
   {
     id: 42,
