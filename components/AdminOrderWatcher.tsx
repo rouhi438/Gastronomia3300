@@ -91,22 +91,13 @@ export default function AdminOrderWatcher() {
   }, [openNewOrderPage]);
 
   useEffect(() => {
-    let cancelled = false;
     let intervalId: number | null = null;
 
-    const startWatcher = async () => {
-      const isAdmin = await checkPendingOrder();
+    void checkPendingOrder();
 
-      if (cancelled || !isAdmin) {
-        return;
-      }
-
-      intervalId = window.setInterval(() => {
-        void checkPendingOrder();
-      }, CHECK_INTERVAL_MS);
-    };
-
-    void startWatcher();
+    intervalId = window.setInterval(() => {
+      void checkPendingOrder();
+    }, CHECK_INTERVAL_MS);
 
     const handlePageVisible = () => {
       if (document.visibilityState === "visible") {
@@ -144,8 +135,6 @@ export default function AdminOrderWatcher() {
       .subscribe();
 
     return () => {
-      cancelled = true;
-
       if (intervalId !== null) {
         window.clearInterval(intervalId);
       }

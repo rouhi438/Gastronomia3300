@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { DELIVERY_FEE } from "@/lib/delivery";
 import { extraGroups, menuData, type MenuItem } from "@/data/menu";
-
+import { sendOrderReceivedEmail } from "@/lib/email/orderEmails";
 type OrderItemRequest = {
   id?: unknown;
   quantity?: unknown;
@@ -630,6 +630,37 @@ export async function POST(request: NextRequest) {
         },
         { status: 500 },
       );
+    }
+
+    try {
+      const origin = new URL(request.url).origin;
+
+      const receiptUrl = `${origin}/order/${encodeURIComponent(
+        String(order.public_token),
+      )}`;
+
+      await sendOrderReceivedEmail({
+        to: customerEmail,
+        customerName,
+        orderId: order.id,
+        receiptUrl,
+      });
+
+      const { error: emailTimestampError } = await supabaseAdmin
+        .from("orders")
+        .update({
+          confirmation_email_sent_at: new Date().toISOString(),
+        })
+        .eq("id", order.id);
+
+      if (emailTimestampError) {
+        console.error(
+          "Confirmation email timestamp update failed:",
+          emailTimestampError,
+        );
+      }
+    } catch (emailError: unknown) {
+      console.error("Order confirmation email failed:", emailError);
     }
 
     return NextResponse.json(
