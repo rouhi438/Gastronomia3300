@@ -155,10 +155,12 @@ export default function OrderDetailPage() {
     status,
     cancelReason,
     estimatedTime,
+    useRequestedTime,
   }: {
     status: OrderAction;
     cancelReason?: string;
     estimatedTime?: number;
+    useRequestedTime?: boolean;
   }) => {
     if (!order || submittingAction) return;
 
@@ -177,6 +179,7 @@ export default function OrderDetailPage() {
           status,
           cancelReason: status === "cancelled" ? cancelReason : null,
           estimatedTime: status === "accepted" ? estimatedTime : null,
+          useRequestedTime: status === "accepted" && useRequestedTime === true,
         }),
       });
 
@@ -196,6 +199,10 @@ export default function OrderDetailPage() {
       setIsAcceptSheetOpen(false);
       setIsCancelSheetOpen(false);
 
+      if (status === "accepted") {
+        router.push(`/admin/order-accepted/${order.id}`);
+        return;
+      }
       router.push("/admin/orders");
       router.refresh();
     } catch (err) {
@@ -247,6 +254,17 @@ export default function OrderDetailPage() {
     await updateOrderStatus({
       status: "accepted",
       estimatedTime: finalEstimatedTime,
+    });
+  };
+
+  const handleAcceptRequestedTime = async () => {
+    if (!order?.requested_time || order.requested_time === "asap") {
+      return;
+    }
+
+    await updateOrderStatus({
+      status: "accepted",
+      useRequestedTime: true,
     });
   };
 
@@ -548,6 +566,22 @@ export default function OrderDetailPage() {
                 ×
               </button>
             </div>
+
+            {order.requested_time && order.requested_time !== "asap" && (
+              <button
+                className={styles.timeOption}
+                style={{ width: "100%", marginBottom: "16px" }}
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => {
+                  setActionError("");
+                  void handleAcceptRequestedTime();
+                }}
+              >
+                <strong>OK</strong>
+                <span>Ønsket tid: {order.requested_time}</span>
+              </button>
+            )}
 
             <div className={styles.timeGrid}>
               {estimatedTimeOptions.map((time) => {

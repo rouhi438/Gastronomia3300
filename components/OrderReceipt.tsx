@@ -550,8 +550,12 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
         <p>Tak for din bestilling!</p>
 
         <p className={styles.acceptTime}>
-          {order.status === "accepted" && order.estimated_time
-            ? `Ordren er accepteret og forventes klar om cirka ${order.estimated_time} minutter.`
+          {order.status === "accepted"
+            ? order.estimated_time
+              ? `Ordren er accepteret og forventes klar om cirka ${order.estimated_time} minutter.`
+              : order.requested_time && order.requested_time !== "asap"
+                ? `Ordren er accepteret til ønsket tid: ${order.requested_time}.`
+                : "Ordren er accepteret."
             : "Ordren er modtaget."}
         </p>
 

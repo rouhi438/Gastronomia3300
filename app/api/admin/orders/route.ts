@@ -7,6 +7,7 @@ const ALLOWED_STATUSES = ["accepted", "cancelled"] as const;
 type OrderStatus = (typeof ALLOWED_STATUSES)[number];
 
 type UpdateOrderRequest = {
+  useRequestedTime?: boolean;
   orderId?: number | string;
   status?: string;
   cancelReason?: string;
@@ -98,6 +99,7 @@ export async function PATCH(request: NextRequest) {
     const orderId = Number(body.orderId);
     const status = body.status?.trim().toLowerCase();
     const estimatedTime = Number(body.estimatedTime);
+    const useRequestedTime = body.useRequestedTime === true;
 
     const cancelReason =
       typeof body.cancelReason === "string" ? body.cancelReason.trim() : "";
@@ -116,7 +118,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // ===== Validate accepted order =====
-    if (status === "accepted") {
+    if (status === "accepted" && !useRequestedTime) {
       if (
         !Number.isInteger(estimatedTime) ||
         estimatedTime < 1 ||
@@ -144,7 +146,7 @@ export async function PATCH(request: NextRequest) {
       status === "accepted"
         ? {
             status: "accepted",
-            estimated_time: estimatedTime,
+            estimated_time: useRequestedTime ? null : estimatedTime,
             cancel_reason: null,
           }
         : {

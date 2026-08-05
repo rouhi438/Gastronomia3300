@@ -1,3 +1,4 @@
+import AdminOrderWatcher from "@/components/AdminOrderWatcher";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BottomCartBar from "@/components/BottomCartBar";
@@ -20,9 +21,14 @@ export default function ShopLayout({
         transition: "background-color 0.3s ease",
       }}
     >
+      <AdminOrderWatcher />
+
       <Header />
+
       <main style={{ flex: 1 }}>{children}</main>
+
       <Footer />
+
       <BottomCartBar />
     </div>
   );
