@@ -3,10 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import {
-  getProfileCompletionStatus,
-  getProfileDestination,
-} from "@/lib/profile";
+
 import { FcGoogle } from "react-icons/fc";
 import { FaApple, FaFacebookF } from "react-icons/fa";
 import { Eye, EyeOff, LockKeyhole, Mail, Phone, User } from "lucide-react";
@@ -131,26 +128,7 @@ export default function AuthPage() {
       }
 
       if (isLogin) {
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
-
-        if (userError || !user) {
-          throw new Error("Login mislykkedes. Prøv igen.");
-        }
-
-        const { isComplete, error: profileError } =
-          await getProfileCompletionStatus(supabase, user.id);
-
-        if (profileError) {
-          console.error(
-            "Profile completion check failed after login:",
-            profileError.message,
-          );
-        }
-
-        router.replace(getProfileDestination(isComplete));
+        router.replace("/menu");
         router.refresh();
         return;
       }
@@ -364,7 +342,6 @@ export default function AuthPage() {
                 {showPassword ? <Eye size={19} /> : <EyeOff size={19} />}
               </button>
             </div>
-            Off
           </div>
 
           {!isLogin && (

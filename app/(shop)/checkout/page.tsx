@@ -19,6 +19,7 @@ interface CheckoutForm {
 
 interface CreateOrderResponse {
   order_id?: number;
+  public_token?: string;
   error?: string;
 }
 
@@ -233,8 +234,15 @@ export default function CheckoutPage() {
       if (typeof result.order_id !== "number") {
         throw new Error("Ordren blev oprettet uden et gyldigt ordre-id.");
       }
-
-      alert(`Tak for din bestilling! Ordre #${result.order_id} er modtaget.`);
+      if (
+        typeof result.public_token !== "string" ||
+        result.public_token.trim() === ""
+      ) {
+        throw new Error(
+          "Ordren blev oprettet uden et gyldigt link til kvitteringen.",
+        );
+      }
+      const receiptToken = result.public_token.trim();
 
       clearCart();
 
@@ -245,7 +253,7 @@ export default function CheckoutPage() {
       setOrderNote("");
       setForm(initialForm);
 
-      router.replace("/");
+      router.replace(`/order/${encodeURIComponent(receiptToken)}`);
     } catch (error: unknown) {
       const message =
         error instanceof Error

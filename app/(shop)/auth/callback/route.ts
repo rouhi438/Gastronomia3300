@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
-import {
-  getProfileCompletionStatus,
-  getProfileDestination,
-} from "@/lib/profile";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -37,16 +34,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/auth?error=oauth`);
   }
 
-  const { isComplete, error: profileError } = await getProfileCompletionStatus(
-    supabase,
-    user.id,
-  );
-
-  if (profileError) {
-    console.error("OAuth callback profile error:", profileError.message);
-
-    return NextResponse.redirect(`${origin}/complete-profile`);
-  }
-
-  return NextResponse.redirect(`${origin}${getProfileDestination(isComplete)}`);
+  return NextResponse.redirect(`${origin}/menu`);
 }

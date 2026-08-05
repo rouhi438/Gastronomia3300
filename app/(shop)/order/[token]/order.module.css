@@ -1,0 +1,216 @@
+.page {
+    width: 100%;
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+    background: var(--bg);
+}
+
+.statusCard {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto 1.25rem;
+    padding: 1.25rem 1.4rem;
+
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.pending {
+    color: #6b4f00;
+    background: #fff8dd;
+    border-color: #ecd47a;
+}
+
+.accepted {
+    color: #075c35;
+    background: #eaf8f0;
+    border-color: #a8dbbe;
+}
+
+.cancelled {
+    color: #8d2119;
+    background: #fff0ee;
+    border-color: #eab2ac;
+}
+
+.statusIcon {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+
+    width: 56px;
+    height: 56px;
+
+    color: currentColor;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+}
+
+.statusText {
+    min-width: 0;
+}
+
+.orderNumber {
+    margin: 0 0 0.15rem;
+
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.75;
+}
+
+.statusText h1 {
+    margin: 0;
+
+    color: currentColor;
+
+    font-size: clamp(1.3rem,
+            4vw,
+            1.8rem);
+    line-height: 1.2;
+}
+
+.statusText p:last-child {
+    margin: 0.35rem 0 0;
+
+    color: currentColor;
+
+    font-size: 0.95rem;
+    line-height: 1.5;
+    opacity: 0.85;
+}
+
+.refreshingIcon {
+    flex: 0 0 auto;
+    margin-left: auto;
+
+    animation: spin 0.9s linear infinite;
+}
+
+.autoUpdate {
+    margin: 1rem auto 0;
+
+    color: var(--text-muted);
+
+    text-align: center;
+    font-size: 0.82rem;
+}
+
+.statePage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 70vh;
+    padding: 2rem;
+
+    color: var(--text-primary);
+
+    text-align: center;
+}
+
+.statePage h1 {
+    margin: 1rem 0 0.4rem;
+
+    font-size: 1.7rem;
+}
+
+.statePage p {
+    max-width: 430px;
+    margin: 0;
+
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.spinner {
+    color: var(--green);
+
+    animation: spin 0.9s linear infinite;
+}
+
+.errorIcon {
+    color: #c7352b;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 560px) {
+    .page {
+        padding:
+            1rem 0.65rem 3rem;
+    }
+
+    .statusCard {
+        align-items: flex-start;
+        padding: 1rem;
+    }
+
+    .statusIcon {
+        width: 46px;
+        height: 46px;
+    }
+
+    .refreshingIcon {
+        position: absolute;
+        top: 0.8rem;
+        right: 0.8rem;
+    }
+}
+
+@media print {
+
+    .statusCard,
+    .autoUpdate {
+        display: none !important;
+    }
+}
+
+:global(.dark) .page {
+    background: var(--bg);
+}
+
+:global(.dark) .pending {
+    color: #f7d774;
+    background: rgba(202, 138, 4, 0.14);
+    border-color: rgba(250, 204, 21, 0.34);
+}
+
+:global(.dark) .accepted {
+    color: #86efac;
+    background: rgba(22, 163, 74, 0.14);
+    border-color: rgba(74, 222, 128, 0.32);
+}
+
+:global(.dark) .cancelled {
+    color: #fca5a5;
+    background: rgba(220, 38, 38, 0.14);
+    border-color: rgba(248, 113, 113, 0.32);
+}
+
+:global(.dark) .statusIcon {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+:global(.dark) .statePage {
+    color: var(--text-primary);
+}
+
+:global(.dark) .statePage p,
+:global(.dark) .autoUpdate {
+    color: var(--text-secondary);
+}

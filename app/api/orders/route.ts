@@ -634,8 +634,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        message: "Order created successfully",
+        message: "Ordren blev oprettet",
         order_id: order.id,
+        public_token: order.public_token,
       },
       { status: 201 },
     );
