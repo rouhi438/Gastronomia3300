@@ -633,7 +633,9 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const origin = new URL(request.url).origin;
+      const origin = (
+        process.env.SITE_URL ?? new URL(request.url).origin
+      ).replace(/\/+$/, "");
 
       const receiptUrl = `${origin}/order/${encodeURIComponent(
         String(order.public_token),
