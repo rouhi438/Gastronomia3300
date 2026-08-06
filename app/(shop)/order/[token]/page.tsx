@@ -2,14 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import {
-  CheckCircle2,
-  Clock3,
-  MailCheck,
-  MailWarning,
-  RefreshCw,
-  XCircle,
-} from "lucide-react";
+import { CheckCircle2, Clock3, RefreshCw, XCircle } from "lucide-react";
 
 import OrderReceipt from "@/components/OrderReceipt";
 
@@ -67,15 +60,23 @@ interface PublicOrderResponse {
   error?: string;
 }
 
-function getStatusContent(order: PublicOrder) {
+function getStatusContent(order: PublicOrder, emailStatus: string | null) {
   if (order.status === "accepted") {
+    const description =
+      order.estimated_time && order.estimated_time > 0
+        ? order.delivery_method === "delivery"
+          ? `Din ordre forventes leveret om cirka ${order.estimated_time} minutter.`
+          : `Din ordre forventes klar til afhentning om cirka ${order.estimated_time} minutter.`
+        : order.requested_time && order.requested_time !== "asap"
+          ? order.delivery_method === "delivery"
+            ? `Din ordre forventes leveret på det valgte tidspunkt kl. ${order.requested_time.replace(":", ".")}.`
+            : `Din ordre forventes klar til afhentning på det valgte tidspunkt kl. ${order.requested_time.replace(":", ".")}.`
+          : "Restauranten er begyndt at behandle din ordre.";
+
     return {
       icon: CheckCircle2,
       title: "Din ordre er accepteret",
-      description:
-        order.estimated_time && order.estimated_time > 0
-          ? `Restauranten forventer, at ordren er klar om cirka ${order.estimated_time} minutter.`
-          : "Restauranten er begyndt at behandle din ordre.",
+      description,
       className: styles.accepted,
     };
   }
@@ -90,9 +91,29 @@ function getStatusContent(order: PublicOrder) {
     };
   }
 
+  if (emailStatus === "sent") {
+    return {
+      icon: Clock3,
+      title: "Din ordre er sendt",
+      description:
+        "Ordren er registreret og sendt til Gastronomia 3300. Tjek din indbakke og eventuelt din spam-mappe.",
+      className: styles.pending,
+    };
+  }
+
+  if (emailStatus === "failed") {
+    return {
+      icon: Clock3,
+      title: "Din ordre er registreret",
+      description:
+        "Bekræftelsesmailen kunne ikke sendes, men du kan følge ordrestatus direkte på denne side.",
+      className: styles.pending,
+    };
+  }
+
   return {
     icon: Clock3,
-    title: "Vi har modtaget din ordre",
+    title: "Din ordre er sendt",
     description:
       "Restauranten gennemgår din ordre. Siden opdateres automatisk.",
     className: styles.pending,
@@ -212,7 +233,7 @@ export default function CustomerOrderPage() {
     );
   }
 
-  const statusContent = getStatusContent(order);
+  const statusContent = getStatusContent(order, emailStatus);
 
   const StatusIcon = statusContent.icon;
 
@@ -242,44 +263,6 @@ export default function CustomerOrderPage() {
           />
         )}
       </section>
-
-      {emailStatus === "sent" && (
-        <section className={`${styles.emailNotice} ${styles.emailSuccess}`}>
-          <MailCheck size={28} aria-hidden="true" />
-
-          <div>
-            <h2>Tak! Din ordre er sendt</h2>
-
-            <p>
-              Din ordre #{order.id} er registreret og sendt til Gastronomia
-              3300.
-            </p>
-
-            <p>
-              Tjek din indbakke og eventuelt din spam-mappe. Du modtager en ny
-              e-mail, når restauranten har accepteret ordren og bekræftet
-              tidspunktet.
-            </p>
-          </div>
-        </section>
-      )}
-
-      {emailStatus === "failed" && (
-        <section className={`${styles.emailNotice} ${styles.emailWarning}`}>
-          <MailWarning size={28} aria-hidden="true" />
-
-          <div>
-            <h2>Din ordre er registreret</h2>
-
-            <p>
-              Bekræftelsesmailen kunne ikke sendes, men ordren er stadig sendt
-              til Gastronomia 3300.
-            </p>
-
-            <p>Du kan følge ordrestatus direkte på denne side.</p>
-          </div>
-        </section>
-      )}
 
       <OrderReceipt order={order} />
 

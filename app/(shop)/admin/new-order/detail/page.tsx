@@ -346,9 +346,19 @@ export default function OrderDetailPage() {
           >
             <span className={styles.orderTypeLabel}>Ordretype</span>
 
-            <strong className={styles.orderTypeValue}>
-              {order.delivery_method === "delivery" ? "LEVERING" : "AFHENTNING"}
-            </strong>
+            <div className={styles.orderTypeDetails}>
+              <strong className={styles.orderTypeValue}>
+                {order.delivery_method === "delivery"
+                  ? "LEVERING"
+                  : "AFHENTNING"}
+              </strong>
+
+              <span className={styles.orderRequestedTime}>
+                {order.requested_time && order.requested_time !== "asap"
+                  ? `Ønsket tid: ${order.requested_time}`
+                  : "Tid: Hurtigst muligt"}
+              </span>
+            </div>
           </div>
           <div className={styles.customerInfo}>
             <div className={styles.infoRow}>
@@ -544,9 +554,17 @@ export default function OrderDetailPage() {
                       : styles.acceptOrderTypePickup
                   }`}
                 >
-                  {order.delivery_method === "delivery"
-                    ? "LEVERING"
-                    : "AFHENTNING"}
+                  <strong>
+                    {order.delivery_method === "delivery"
+                      ? "LEVERING"
+                      : "AFHENTNING"}
+                  </strong>
+
+                  <span className={styles.acceptRequestedTime}>
+                    {order.requested_time && order.requested_time !== "asap"
+                      ? `Ønsket tid: ${order.requested_time}`
+                      : "Tid: Hurtigst muligt"}
+                  </span>
                 </div>
 
                 <p className={styles.sheetDescription}>
