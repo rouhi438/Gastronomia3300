@@ -20,6 +20,7 @@ interface CheckoutForm {
 interface CreateOrderResponse {
   order_id?: number;
   public_token?: string;
+  email_sent?: boolean;
   error?: string;
 }
 
@@ -253,7 +254,11 @@ export default function CheckoutPage() {
       setOrderNote("");
       setForm(initialForm);
 
-      router.replace(`/order/${encodeURIComponent(receiptToken)}`);
+      const emailStatus = result.email_sent === true ? "sent" : "failed";
+
+      router.replace(
+        `/order/${encodeURIComponent(receiptToken)}?email=${emailStatus}`,
+      );
     } catch (error: unknown) {
       const message =
         error instanceof Error

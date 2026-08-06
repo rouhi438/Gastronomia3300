@@ -1,8 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { CheckCircle2, Clock3, RefreshCw, XCircle } from "lucide-react";
+import { useParams, useSearchParams } from "next/navigation";
+import {
+  CheckCircle2,
+  Clock3,
+  MailCheck,
+  MailWarning,
+  RefreshCw,
+  XCircle,
+} from "lucide-react";
 
 import OrderReceipt from "@/components/OrderReceipt";
 
@@ -94,6 +101,10 @@ function getStatusContent(order: PublicOrder) {
 
 export default function CustomerOrderPage() {
   const params = useParams();
+
+  const searchParams = useSearchParams();
+
+  const emailStatus = searchParams.get("email");
 
   const rawToken = params.token;
 
@@ -231,6 +242,44 @@ export default function CustomerOrderPage() {
           />
         )}
       </section>
+
+      {emailStatus === "sent" && (
+        <section className={`${styles.emailNotice} ${styles.emailSuccess}`}>
+          <MailCheck size={28} aria-hidden="true" />
+
+          <div>
+            <h2>Tak! Din ordre er sendt</h2>
+
+            <p>
+              Din ordre #{order.id} er registreret og sendt til Gastronomia
+              3300.
+            </p>
+
+            <p>
+              Tjek din indbakke og eventuelt din spam-mappe. Du modtager en ny
+              e-mail, når restauranten har accepteret ordren og bekræftet
+              tidspunktet.
+            </p>
+          </div>
+        </section>
+      )}
+
+      {emailStatus === "failed" && (
+        <section className={`${styles.emailNotice} ${styles.emailWarning}`}>
+          <MailWarning size={28} aria-hidden="true" />
+
+          <div>
+            <h2>Din ordre er registreret</h2>
+
+            <p>
+              Bekræftelsesmailen kunne ikke sendes, men ordren er stadig sendt
+              til Gastronomia 3300.
+            </p>
+
+            <p>Du kan følge ordrestatus direkte på denne side.</p>
+          </div>
+        </section>
+      )}
 
       <OrderReceipt order={order} />
 

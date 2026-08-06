@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sendOrderAcceptedEmail } from "@/lib/email/orderEmails";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -185,7 +186,44 @@ export async function PATCH(request: NextRequest) {
         { status: 409 },
       );
     }
+    if (status === "accepted") {
+      try {
+        const origin = (process.env.SITE_URL ?? request.nextUrl.origin).replace(
+          /\/+$/,
+          "",
+        );
 
+        const receiptUrl = `${origin}/order/${encodeURIComponent(
+          String(order.public_token),
+        )}`;
+
+        await sendOrderAcceptedEmail({
+          to: order.customer_email,
+          customerName: order.customer_name,
+          orderId: order.id,
+          receiptUrl,
+          estimatedTime: order.estimated_time,
+          requestedTime: order.requested_time,
+          deliveryMethod: order.delivery_method,
+        });
+
+        const { error: emailTimestampError } = await supabaseAdmin
+          .from("orders")
+          .update({
+            accepted_email_sent_at: new Date().toISOString(),
+          })
+          .eq("id", order.id);
+
+        if (emailTimestampError) {
+          console.error(
+            "Accepted email timestamp update failed:",
+            emailTimestampError,
+          );
+        }
+      } catch (emailError: unknown) {
+        console.error("Accepted order email failed:", emailError);
+      }
+    }
     return NextResponse.json({ order }, { status: 200 });
   } catch (error) {
     console.error("Unexpected PATCH orders error:", error);

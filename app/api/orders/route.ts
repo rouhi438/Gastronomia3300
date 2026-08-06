@@ -632,6 +632,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let confirmationEmailSent = false;
     try {
       const origin = (
         process.env.SITE_URL ?? new URL(request.url).origin
@@ -647,6 +648,7 @@ export async function POST(request: NextRequest) {
         orderId: order.id,
         receiptUrl,
       });
+      confirmationEmailSent = true;
 
       const { error: emailTimestampError } = await supabaseAdmin
         .from("orders")
@@ -670,6 +672,7 @@ export async function POST(request: NextRequest) {
         message: "Ordren blev oprettet",
         order_id: order.id,
         public_token: order.public_token,
+        email_sent: confirmationEmailSent,
       },
       { status: 201 },
     );
