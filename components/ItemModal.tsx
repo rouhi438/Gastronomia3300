@@ -29,6 +29,7 @@ const RADIO_GROUP_IDS: ExtraGroupId[] = [
   "pizzaSaladProteinChoice",
 ];
 
+const EMPTY_EXTRAS: Extra[] = [];
 const getExtraKey = (extra: Extra, groupId: ExtraGroupId) =>
   `${groupId}:${extra.name}`;
 
@@ -36,7 +37,7 @@ export default function ItemModal({
   item,
   isOpen,
   onClose,
-  initialExtras = [],
+  initialExtras = EMPTY_EXTRAS,
   initialSize = "normal",
   editingCartId = null,
 }: ItemModalProps) {
