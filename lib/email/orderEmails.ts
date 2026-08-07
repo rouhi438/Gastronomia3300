@@ -215,3 +215,107 @@ export async function sendOrderAcceptedEmail({
 
   return data;
 }
+// == reject order email
+type SendOrderRejectedEmailInput = {
+  to: string;
+  customerName: string;
+  orderId: number;
+  receiptUrl: string;
+  cancelReason: string;
+};
+
+export async function sendOrderRejectedEmail({
+  to,
+  customerName,
+  orderId,
+  receiptUrl,
+  cancelReason,
+}: SendOrderRejectedEmailInput) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM;
+
+  if (!apiKey || !from) {
+    throw new Error("RESEND_API_KEY eller EMAIL_FROM mangler.");
+  }
+
+  const resend = new Resend(apiKey);
+
+  const safeCustomerName = escapeHtml(customerName);
+  const safeReceiptUrl = escapeHtml(receiptUrl);
+  const safeCancelReason = escapeHtml(cancelReason);
+
+  const { data, error } = await resend.emails.send({
+    from,
+    to,
+    subject: `Din ordre #${orderId} kunne ikke accepteres`,
+    html: `
+      <!doctype html>
+      <html lang="da">
+        <body style="margin:0;background:#f5f5f5;font-family:Arial,sans-serif;color:#1f2937;">
+          <div style="max-width:600px;margin:0 auto;padding:32px 16px;">
+            <div style="background:#ffffff;border-radius:16px;padding:32px;box-shadow:0 8px 24px rgba(0,0,0,0.08);">
+              
+              <p style="margin:0 0 8px;font-size:14px;color:#6b7280;">
+                Gastronomia 3300
+              </p>
+
+              <h1 style="margin:0 0 20px;font-size:26px;color:#b91c1c;">
+                Din ordre kunne ikke accepteres
+              </h1>
+
+              <p style="margin:0 0 16px;line-height:1.6;">
+                Hej ${safeCustomerName},
+              </p>
+
+              <p style="margin:0 0 16px;line-height:1.6;">
+                Gastronomia 3300 kunne desværre ikke acceptere din ordre
+                <strong>#${orderId}</strong>.
+              </p>
+
+              <div
+                style="
+                  margin:0 0 24px;
+                  padding:14px 16px;
+                  background:#fff1f2;
+                  border:1px solid #fecdd3;
+                  border-radius:10px;
+                "
+              >
+                <strong>Årsag:</strong>
+                <div style="margin-top:6px;">
+                  ${safeCancelReason}
+                </div>
+              </div>
+
+              <a
+                href="${safeReceiptUrl}"
+                style="
+                  display:inline-block;
+                  padding:14px 22px;
+                  border-radius:10px;
+                  background:#374151;
+                  color:#ffffff;
+                  text-decoration:none;
+                  font-weight:700;
+                "
+              >
+                Se din ordre
+              </a>
+
+              <p style="margin:28px 0 0;font-size:13px;color:#6b7280;line-height:1.5;">
+                Kontakt Gastronomia 3300, hvis du har spørgsmål til ordren.
+              </p>
+
+            </div>
+          </div>
+        </body>
+      </html>
+    `,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}

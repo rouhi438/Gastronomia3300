@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendOrderAcceptedEmail } from "@/lib/email/orderEmails";
+import {
+  sendOrderAcceptedEmail,
+  sendOrderRejectedEmail,
+} from "@/lib/email/orderEmails";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -186,6 +189,7 @@ export async function PATCH(request: NextRequest) {
         { status: 409 },
       );
     }
+
     if (status === "accepted") {
       try {
         const origin = (process.env.SITE_URL ?? request.nextUrl.origin).replace(
@@ -224,6 +228,44 @@ export async function PATCH(request: NextRequest) {
         console.error("Accepted order email failed:", emailError);
       }
     }
+    // ==== validate reject order ====
+    if (order.status === "cancelled") {
+      try {
+        const origin = (process.env.SITE_URL ?? request.nextUrl.origin).replace(
+          /\/+$/,
+          "",
+        );
+
+        const receiptUrl = `${origin}/order/${encodeURIComponent(
+          String(order.public_token),
+        )}`;
+
+        await sendOrderRejectedEmail({
+          to: order.customer_email,
+          customerName: order.customer_name,
+          orderId: order.id,
+          receiptUrl,
+          cancelReason: order.cancel_reason,
+        });
+
+        const { error: emailTimestampError } = await supabaseAdmin
+          .from("orders")
+          .update({
+            rejected_email_sent_at: new Date().toISOString(),
+          })
+          .eq("id", order.id);
+
+        if (emailTimestampError) {
+          console.error(
+            "Rejected email timestamp update failed:",
+            emailTimestampError,
+          );
+        }
+      } catch (emailError: unknown) {
+        console.error("Rejected order email failed:", emailError);
+      }
+    }
+
     return NextResponse.json({ order }, { status: 200 });
   } catch (error) {
     console.error("Unexpected PATCH orders error:", error);
