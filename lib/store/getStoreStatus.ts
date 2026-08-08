@@ -21,10 +21,179 @@ export type StoreStatus = {
   overrideReason: string | null;
 };
 
+export type StoreServiceType = "pickup" | "delivery";
+
+export type StoreServiceStatus = {
+  serviceType: StoreServiceType;
+  status: StoreOrderingStatus;
+
+  canOrder: boolean;
+  canOrderAsap: boolean;
+  canSchedule: boolean;
+
+  message: string;
+
+  preorderStart: string;
+  openingTime: string;
+  closingTime: string;
+  firstScheduledTime: string;
+  lastScheduledTime: string;
+  slotIntervalMinutes: number;
+
+  overrideUntil: string | null;
+  overrideReason: string | null;
+};
+
+export type StoreServiceStatuses = Record<StoreServiceType, StoreServiceStatus>;
+
+type StoreServiceHoursRow = {
+  service_type: StoreServiceType;
+  is_enabled: boolean;
+  preorder_start: string;
+  opening_time: string;
+  first_scheduled_time: string;
+  last_scheduled_time: string;
+  closing_time: string;
+  slot_interval_minutes: number;
+};
+
+type StoreSettingsRow = {
+  ordering_mode: string;
+  override_until: string | null;
+  override_reason: string | null;
+};
+
 function timeToMinutes(value: string): number {
   const [hours, minutes] = value.slice(0, 5).split(":").map(Number);
 
   return hours * 60 + minutes;
+}
+
+function shortTime(value: string): string {
+  return value.slice(0, 5);
+}
+
+function getServiceLabel(serviceType: StoreServiceType): string {
+  return serviceType === "pickup" ? "Afhentning" : "Levering";
+}
+
+function buildServiceStatus(
+  hours: StoreServiceHoursRow,
+  settings: StoreSettingsRow,
+  currentMinutes: number,
+): StoreServiceStatus {
+  const preorderStart = shortTime(hours.preorder_start);
+  const openingTime = shortTime(hours.opening_time);
+  const firstScheduledTime = shortTime(hours.first_scheduled_time);
+  const lastScheduledTime = shortTime(hours.last_scheduled_time);
+  const closingTime = shortTime(hours.closing_time);
+
+  const serviceLabel = getServiceLabel(hours.service_type);
+
+  const base = {
+    serviceType: hours.service_type,
+    preorderStart,
+    openingTime,
+    closingTime,
+    firstScheduledTime,
+    lastScheduledTime,
+    slotIntervalMinutes: hours.slot_interval_minutes,
+    overrideUntil: settings.override_until,
+    overrideReason: settings.override_reason,
+  };
+
+  const overrideUntil =
+    settings.override_until !== null ? new Date(settings.override_until) : null;
+
+  const overrideIsActive =
+    overrideUntil === null || overrideUntil.getTime() > Date.now();
+
+  if (settings.ordering_mode === "closed" && overrideIsActive) {
+    return {
+      ...base,
+      status: "closed",
+      canOrder: false,
+      canOrderAsap: false,
+      canSchedule: false,
+      message:
+        settings.override_reason || "Online bestilling er midlertidigt lukket.",
+    };
+  }
+
+  if (settings.ordering_mode === "paused" && overrideIsActive) {
+    return {
+      ...base,
+      status: "paused",
+      canOrder: false,
+      canOrderAsap: false,
+      canSchedule: false,
+      message:
+        settings.override_reason ||
+        "Vi holder en kort pause fra online bestillinger.",
+    };
+  }
+
+  if (!hours.is_enabled) {
+    return {
+      ...base,
+      status: "closed",
+      canOrder: false,
+      canOrderAsap: false,
+      canSchedule: false,
+      message: `${serviceLabel} er lukket i dag.`,
+    };
+  }
+
+  const preorderStartMinutes = timeToMinutes(hours.preorder_start);
+  const openingMinutes = timeToMinutes(hours.opening_time);
+  const lastScheduledMinutes = timeToMinutes(hours.last_scheduled_time);
+  const closingMinutes = timeToMinutes(hours.closing_time);
+
+  if (currentMinutes < preorderStartMinutes) {
+    return {
+      ...base,
+      status: "closed",
+      canOrder: false,
+      canOrderAsap: false,
+      canSchedule: false,
+      message: `${serviceLabel} åbner for bestilling kl. ${preorderStart}.`,
+    };
+  }
+
+  if (currentMinutes < openingMinutes) {
+    return {
+      ...base,
+      status: "preorder",
+      canOrder: true,
+      canOrderAsap: false,
+      canSchedule: true,
+      message: `Forudbestilling til ${serviceLabel.toLowerCase()} er åben. Første tidspunkt er kl. ${firstScheduledTime}.`,
+    };
+  }
+
+  if (currentMinutes < closingMinutes) {
+    const canSchedule = currentMinutes <= lastScheduledMinutes;
+
+    return {
+      ...base,
+      status: "open",
+      canOrder: true,
+      canOrderAsap: true,
+      canSchedule,
+      message: canSchedule
+        ? `${serviceLabel} er åben til kl. ${closingTime}.`
+        : `${serviceLabel} er åben til kl. ${closingTime}. Planlagte tider er lukket for i dag.`,
+    };
+  }
+
+  return {
+    ...base,
+    status: "closed",
+    canOrder: false,
+    canOrderAsap: false,
+    canSchedule: false,
+    message: `${serviceLabel} er lukket for i dag.`,
+  };
 }
 
 function getCopenhagenTime() {
@@ -211,5 +380,77 @@ export async function getStoreStatus(): Promise<StoreStatus> {
     canOrderAsap: false,
     canSchedule: false,
     message: "Online bestilling er lukket for i dag.",
+  };
+}
+
+export async function getStoreServiceStatuses(): Promise<StoreServiceStatuses> {
+  const supabaseAdmin = createAdminClient();
+
+  const { dayOfWeek, currentMinutes } = getCopenhagenTime();
+
+  const [
+    { data: settings, error: settingsError },
+    { data: serviceHours, error: serviceHoursError },
+  ] = await Promise.all([
+    supabaseAdmin
+      .from("store_settings")
+      .select(
+        `
+          ordering_mode,
+          override_until,
+          override_reason
+        `,
+      )
+      .eq("id", 1)
+      .single(),
+
+    supabaseAdmin
+      .from("store_service_hours")
+      .select(
+        `
+          service_type,
+          is_enabled,
+          preorder_start,
+          opening_time,
+          first_scheduled_time,
+          last_scheduled_time,
+          closing_time,
+          slot_interval_minutes
+        `,
+      )
+      .eq("day_of_week", dayOfWeek),
+  ]);
+
+  if (settingsError || !settings) {
+    throw new Error(
+      settingsError?.message ?? "Store settings could not be loaded.",
+    );
+  }
+
+  if (serviceHoursError || !serviceHours) {
+    throw new Error(
+      serviceHoursError?.message ?? "Store service hours could not be loaded.",
+    );
+  }
+
+  const typedSettings = settings as StoreSettingsRow;
+  const typedServiceHours = serviceHours as StoreServiceHoursRow[];
+
+  const pickupHours = typedServiceHours.find(
+    (hours) => hours.service_type === "pickup",
+  );
+
+  const deliveryHours = typedServiceHours.find(
+    (hours) => hours.service_type === "delivery",
+  );
+
+  if (!pickupHours || !deliveryHours) {
+    throw new Error("Store service hours are incomplete for today.");
+  }
+
+  return {
+    pickup: buildServiceStatus(pickupHours, typedSettings, currentMinutes),
+
+    delivery: buildServiceStatus(deliveryHours, typedSettings, currentMinutes),
   };
 }
