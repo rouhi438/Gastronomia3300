@@ -5,6 +5,11 @@ import { createClient } from "@/lib/supabase/server";
 import { DELIVERY_FEE } from "@/lib/delivery";
 import { extraGroups, menuData, type MenuItem } from "@/data/menu";
 import { sendOrderReceivedEmail } from "@/lib/email/orderEmails";
+import {
+  getStoreServiceStatuses,
+  type StoreServiceStatus,
+} from "@/lib/store/getStoreStatus";
+
 type OrderItemRequest = {
   id?: unknown;
   quantity?: unknown;
@@ -91,49 +96,55 @@ function isValidLongitude(value: number | null): value is number {
   return value !== null && value >= -180 && value <= 180;
 }
 
-function validateRequestedTime(value: unknown): string | null {
-  if (typeof value !== "string") {
-    return "Ugyldigt ønsket tidspunkt.";
-  }
+function timeToMinutes(value: string): number {
+  const [hours, minutes] = value.slice(0, 5).split(":").map(Number);
 
-  const nowParts = new Intl.DateTimeFormat("en-GB", {
+  return hours * 60 + minutes;
+}
+
+function getCopenhagenCurrentMinutes(): number {
+  const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Europe/Copenhagen",
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
   }).formatToParts(new Date());
 
-  const currentHour = Number(
-    nowParts.find((part) => part.type === "hour")?.value,
-  );
+  const hour = Number(parts.find((part) => part.type === "hour")?.value);
 
-  const currentMinute = Number(
-    nowParts.find((part) => part.type === "minute")?.value,
-  );
+  const minute = Number(parts.find((part) => part.type === "minute")?.value);
 
-  const currentMinutes = currentHour * 60 + currentMinute;
-
-  const orderingStartMinutes = 10 * 60;
-  const openingMinutes = 15 * 60;
-  const closingMinutes = 21 * 60;
-
-  const firstScheduledMinutes = 15 * 60 + 30;
-  const lastScheduledMinutes = 20 * 60 + 30;
-
-  if (currentMinutes < orderingStartMinutes) {
-    return "Online bestilling åbner kl. 10:00.";
+  if (!Number.isInteger(hour) || !Number.isInteger(minute)) {
+    throw new Error("Could not determine Copenhagen time.");
   }
 
-  if (currentMinutes >= closingMinutes) {
-    return "Online bestilling er lukket for i dag.";
+  return hour * 60 + minute;
+}
+
+function validateRequestedTime(
+  value: unknown,
+  serviceStatus: StoreServiceStatus,
+): string | null {
+  if (!serviceStatus.canOrder) {
+    return serviceStatus.message;
+  }
+
+  if (typeof value !== "string") {
+    return "Ugyldigt ønsket tidspunkt.";
   }
 
   if (value === "asap") {
-    if (currentMinutes < openingMinutes || currentMinutes >= closingMinutes) {
-      return "Hurtigst muligt er kun tilgængelig mellem kl. 15:00 og 21:00.";
+    if (!serviceStatus.canOrderAsap) {
+      return serviceStatus.serviceType === "pickup"
+        ? "Hurtigst muligt er ikke tilgængelig for afhentning lige nu."
+        : "Hurtigst muligt er ikke tilgængelig for levering lige nu.";
     }
 
     return null;
+  }
+
+  if (!serviceStatus.canSchedule) {
+    return "Der er ikke flere planlagte tider tilgængelige i dag.";
   }
 
   const match = value.match(/^(\d{2}):(\d{2})$/);
@@ -158,16 +169,24 @@ function validateRequestedTime(value: unknown): string | null {
 
   const requestedMinutes = hours * 60 + minutes;
 
-  if (minutes % 15 !== 0) {
-    return "Tidspunktet skal vælges i intervaller på 15 minutter.";
-  }
+  const firstScheduledMinutes = timeToMinutes(serviceStatus.firstScheduledTime);
+
+  const lastScheduledMinutes = timeToMinutes(serviceStatus.lastScheduledTime);
+
+  const slotInterval = serviceStatus.slotIntervalMinutes;
 
   if (
     requestedMinutes < firstScheduledMinutes ||
     requestedMinutes > lastScheduledMinutes
   ) {
-    return "Vælg et tidspunkt mellem kl. 15:30 og 20:30.";
+    return `Vælg et tidspunkt mellem kl. ${serviceStatus.firstScheduledTime} og ${serviceStatus.lastScheduledTime}.`;
   }
+
+  if ((requestedMinutes - firstScheduledMinutes) % slotInterval !== 0) {
+    return `Tidspunktet skal vælges i intervaller på ${slotInterval} minutter.`;
+  }
+
+  const currentMinutes = getCopenhagenCurrentMinutes();
 
   if (requestedMinutes <= currentMinutes) {
     return "Det valgte tidspunkt er ikke længere tilgængeligt.";
@@ -384,7 +403,14 @@ export async function POST(request: NextRequest) {
 
     // ===== Requested time =====
 
-    const requestedTimeError = validateRequestedTime(requestedTime);
+    const serviceStatuses = await getStoreServiceStatuses();
+
+    const serviceStatus = serviceStatuses[deliveryMethod];
+
+    const requestedTimeError = validateRequestedTime(
+      requestedTime,
+      serviceStatus,
+    );
 
     if (requestedTimeError) {
       return NextResponse.json(
