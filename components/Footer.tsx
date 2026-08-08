@@ -25,7 +25,7 @@ const STORE = {
   experience: "",
   facebookUrl: "",
   instagramUrl: "",
-  smileyReportUrl: "",
+  smileyReportUrl: "https://findsmiley.dk/931986",
 };
 
 const mapQuery = encodeURIComponent(STORE.address);

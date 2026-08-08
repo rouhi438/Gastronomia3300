@@ -91,19 +91,55 @@ function isValidLongitude(value: number | null): value is number {
   return value !== null && value >= -180 && value <= 180;
 }
 
-function isValidRequestedTime(value: unknown): value is string {
-  if (value === "asap") {
-    return true;
+function validateRequestedTime(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return "Ugyldigt ønsket tidspunkt.";
   }
 
-  if (typeof value !== "string") {
-    return false;
+  const nowParts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Copenhagen",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date());
+
+  const currentHour = Number(
+    nowParts.find((part) => part.type === "hour")?.value,
+  );
+
+  const currentMinute = Number(
+    nowParts.find((part) => part.type === "minute")?.value,
+  );
+
+  const currentMinutes = currentHour * 60 + currentMinute;
+
+  const orderingStartMinutes = 10 * 60;
+  const openingMinutes = 15 * 60;
+  const closingMinutes = 21 * 60;
+
+  const firstScheduledMinutes = 15 * 60 + 30;
+  const lastScheduledMinutes = 20 * 60 + 30;
+
+  if (currentMinutes < orderingStartMinutes) {
+    return "Online bestilling åbner kl. 10:00.";
+  }
+
+  if (currentMinutes >= closingMinutes) {
+    return "Online bestilling er lukket for i dag.";
+  }
+
+  if (value === "asap") {
+    if (currentMinutes < openingMinutes || currentMinutes >= closingMinutes) {
+      return "Hurtigst muligt er kun tilgængelig mellem kl. 15:00 og 21:00.";
+    }
+
+    return null;
   }
 
   const match = value.match(/^(\d{2}):(\d{2})$/);
 
   if (!match) {
-    return false;
+    return "Ugyldigt ønsket tidspunkt.";
   }
 
   const hours = Number(match[1]);
@@ -111,22 +147,33 @@ function isValidRequestedTime(value: unknown): value is string {
 
   if (
     !Number.isInteger(hours) ||
+    !Number.isInteger(minutes) ||
     hours < 0 ||
     hours > 23 ||
-    ![0, 15, 30, 45].includes(minutes)
+    minutes < 0 ||
+    minutes > 59
   ) {
-    return false;
+    return "Ugyldigt ønsket tidspunkt.";
   }
 
   const requestedMinutes = hours * 60 + minutes;
 
-  const openingMinutes = 15 * 60 + 30;
+  if (minutes % 15 !== 0) {
+    return "Tidspunktet skal vælges i intervaller på 15 minutter.";
+  }
 
-  const closingMinutes = 20 * 60 + 30;
+  if (
+    requestedMinutes < firstScheduledMinutes ||
+    requestedMinutes > lastScheduledMinutes
+  ) {
+    return "Vælg et tidspunkt mellem kl. 15:30 og 20:30.";
+  }
 
-  return (
-    requestedMinutes >= openingMinutes && requestedMinutes <= closingMinutes
-  );
+  if (requestedMinutes <= currentMinutes) {
+    return "Det valgte tidspunkt er ikke længere tilgængeligt.";
+  }
+
+  return null;
 }
 
 function normalizeRequestedSize(orderItem: OrderItemRequest): OrderSize | null {
@@ -337,15 +384,16 @@ export async function POST(request: NextRequest) {
 
     // ===== Requested time =====
 
-    if (!isValidRequestedTime(requestedTime)) {
+    const requestedTimeError = validateRequestedTime(requestedTime);
+
+    if (requestedTimeError) {
       return NextResponse.json(
         {
-          error: "Invalid requested time",
+          error: requestedTimeError,
         },
         { status: 400 },
       );
     }
-
     // ===== Order item limits =====
 
     if (items.length > MAX_ORDER_ITEMS) {

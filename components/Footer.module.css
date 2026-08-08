@@ -170,7 +170,7 @@
 }
 
 .linkList a:hover {
-    color: #ffffff;
+    color: #9c9c9c;
     transform: translateX(8px);
 }
 
@@ -476,8 +476,7 @@
 
     .bottomBar {
         flex-direction: column;
-        align-items: flex-start;
-
+        align-items: center;
         margin-top: 2.5rem;
     }
 }

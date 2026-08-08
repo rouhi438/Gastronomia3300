@@ -3,7 +3,14 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CreditCard, Home, Smartphone, Truck } from "lucide-react";
+import {
+  CreditCard,
+  Home,
+  Smartphone,
+  Truck,
+  CircleAlert,
+  X,
+} from "lucide-react";
 
 import { useCart } from "@/context/CartContext";
 
@@ -48,6 +55,7 @@ export default function CheckoutPage() {
 
   const [mounted, setMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const [orderNote, setOrderNote] = useState("");
   const [form, setForm] = useState<CheckoutForm>(initialForm);
@@ -265,7 +273,7 @@ export default function CheckoutPage() {
           ? error.message
           : "Ukendt fejl ved oprettelse af ordre";
 
-      alert(`Fejl ved oprettelse af ordre: ${message}`);
+      setSubmitError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -469,6 +477,41 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+      {submitError && (
+        <div className={styles.errorOverlay} role="presentation">
+          <div
+            className={styles.errorModal}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="checkout-error-title"
+          >
+            <button
+              type="button"
+              className={styles.errorClose}
+              onClick={() => setSubmitError("")}
+              aria-label="Luk"
+            >
+              <X size={20} />
+            </button>
+
+            <div className={styles.errorIcon}>
+              <CircleAlert size={34} />
+            </div>
+
+            <h2 id="checkout-error-title">Bestilling ikke mulig</h2>
+
+            <p>{submitError}</p>
+
+            <button
+              type="button"
+              className={styles.errorButton}
+              onClick={() => setSubmitError("")}
+            >
+              Luk
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

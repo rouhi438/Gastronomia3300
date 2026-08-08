@@ -16,6 +16,7 @@ import {
   SquareMenu,
 } from "lucide-react";
 
+import StoreStatusBadge from "./StoreStatusBadge";
 import { createClient } from "@/lib/supabase/client";
 import {
   getProfileCompletionStatus,
@@ -207,9 +208,14 @@ export default function Header() {
             style={{ width: "auto", height: "auto" }}
           />
 
-          <span className={styles.brandName}>Gastronomia Pizza</span>
-        </Link>
+          <div className={styles.brandContent}>
+            <span className={styles.brandName}>Gastronomia Pizza</span>
 
+            <div className={styles.storeStatusWrapper}>
+              <StoreStatusBadge />
+            </div>
+          </div>
+        </Link>
         <nav className={styles.navDesktop}>
           <Link href="/" className={styles.navLink}>
             <Home size={18} />

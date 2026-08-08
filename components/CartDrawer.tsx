@@ -103,14 +103,22 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     const now = new Date();
 
     const selectionActivationMinutes = 10 * 60;
+    const openingTimeMinutes = 15 * 60;
+    const closingTimeMinutes = 21 * 60;
+
     const firstOrderTimeMinutes = 15 * 60 + 30;
     const lastOrderTimeMinutes = 20 * 60 + 30;
 
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
+    const isAsapAvailable =
+      currentMinutes >= openingTimeMinutes &&
+      currentMinutes < closingTimeMinutes;
+
     if (currentMinutes < selectionActivationMinutes) {
       return {
         isScheduledSelectionOpen: false,
+        isAsapAvailable,
         times: [] as string[],
       };
     }
@@ -122,6 +130,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     if (firstAvailableTime > lastOrderTimeMinutes) {
       return {
         isScheduledSelectionOpen: true,
+        isAsapAvailable,
         times: [] as string[],
       };
     }
@@ -143,19 +152,41 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
     return {
       isScheduledSelectionOpen: true,
+      isAsapAvailable,
       times,
     };
   }, [isOpen]);
 
   const availableTimes = timeAvailability.times;
+  const isAsapAvailable = timeAvailability.isAsapAvailable;
 
   useEffect(() => {
     if (!isOpen) return;
 
-    if (requestedTime !== "asap" && !availableTimes.includes(requestedTime)) {
-      setRequestedTime("asap");
+    const firstAvailableTime = availableTimes[0];
+
+    if (!isAsapAvailable && requestedTime === "asap" && firstAvailableTime) {
+      setRequestedTime(firstAvailableTime);
+      return;
     }
-  }, [isOpen, requestedTime, availableTimes, setRequestedTime]);
+
+    if (requestedTime !== "asap" && !availableTimes.includes(requestedTime)) {
+      if (isAsapAvailable) {
+        setRequestedTime("asap");
+        return;
+      }
+
+      if (firstAvailableTime) {
+        setRequestedTime(firstAvailableTime);
+      }
+    }
+  }, [
+    isOpen,
+    requestedTime,
+    availableTimes,
+    isAsapAvailable,
+    setRequestedTime,
+  ]);
 
   useEffect(() => {
     const storedCustomer = localStorage.getItem(CUSTOMER_STORAGE_KEY);
@@ -519,6 +550,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     deliveryMethod={deliveryMethod}
                     requestedTime={requestedTime}
                     availableTimes={availableTimes}
+                    isAsapAvailable={isAsapAvailable}
                     isScheduledSelectionOpen={
                       timeAvailability.isScheduledSelectionOpen
                     }
@@ -939,7 +971,7 @@ interface DetailsStepProps {
   deliveryMethod: "pickup" | "delivery";
   requestedTime: ReturnType<typeof useCart>["requestedTime"];
   availableTimes: string[];
-
+  isAsapAvailable: boolean;
   isScheduledSelectionOpen: boolean;
   onRequestedTimeChange: ReturnType<typeof useCart>["setRequestedTime"];
 
@@ -968,6 +1000,7 @@ function DetailsStep({
   onRequestedTimeChange,
   customerDetails,
   deliveryAddress,
+  isAsapAvailable,
   isLoggedIn,
   loggedInLabel,
   formError,

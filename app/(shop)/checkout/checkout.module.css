@@ -271,3 +271,172 @@
         font-size: 1rem;
     }
 }
+
+/*===Error modal ==*/
+.errorOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(6px);
+
+    animation: errorOverlayIn 0.2s ease;
+}
+
+.errorModal {
+    position: relative;
+
+    width: min(100%, 430px);
+    padding: 32px 28px 26px;
+
+    text-align: center;
+
+    background: #ffffff;
+    border: 1px solid #fecaca;
+    border-radius: 20px;
+
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+
+    animation: errorModalIn 0.25s ease;
+}
+
+.errorIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 18px;
+
+    color: #b91c1c;
+    background: #fee2e2;
+    border-radius: 50%;
+}
+
+.errorModal h2 {
+    margin: 0 0 10px;
+
+    color: #991b1b;
+    font-size: 1.35rem;
+    font-weight: 900;
+}
+
+.errorModal p {
+    margin: 0 auto 24px;
+
+    max-width: 340px;
+
+    color: #475569;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.errorButton {
+    min-width: 130px;
+    padding: 12px 22px;
+
+    color: #ffffff;
+    background: #b91c1c;
+    border: 0;
+    border-radius: 10px;
+
+    font-size: 0.95rem;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.errorButton:hover {
+    background: #991b1b;
+    transform: translateY(-1px);
+}
+
+.errorClose {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+
+    color: #64748b;
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.errorClose:hover {
+    color: #111827;
+    background: #f1f5f9;
+}
+
+:global(.dark) .errorModal {
+    background: #111827;
+    border-color: rgba(248, 113, 113, 0.35);
+}
+
+:global(.dark) .errorModal h2 {
+    color: #fca5a5;
+}
+
+:global(.dark) .errorModal p {
+    color: #cbd5e1;
+}
+
+:global(.dark) .errorIcon {
+    color: #f87171;
+    background: rgba(127, 29, 29, 0.45);
+}
+
+:global(.dark) .errorClose {
+    color: #cbd5e1;
+}
+
+:global(.dark) .errorClose:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+@keyframes errorOverlayIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes errorModalIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
