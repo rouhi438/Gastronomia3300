@@ -237,12 +237,11 @@ export default function Header() {
 
           <div className={styles.brandContent}>
             <span className={styles.brandName}>Gastronomia Pizza</span>
-
-            <div className={styles.storeStatusWrapper}>
-              <StoreStatusBadge />
-            </div>
           </div>
         </Link>
+        <div className={styles.storeStatusWrapper}>
+          <StoreStatusBadge />
+        </div>
         <nav className={styles.navDesktop}>
           <Link href="/" className={styles.navLink}>
             <Home size={18} />
@@ -406,6 +405,7 @@ export default function Header() {
           onClick={(event) => event.stopPropagation()}
         >
           <nav className={styles.mobileNav}>
+            <StoreStatusBadge mobile />
             <Link href="/" className={styles.mobileNavLink} onClick={closeMenu}>
               <Home size={20} />
               <span>Hjem</span>
