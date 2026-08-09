@@ -1,0 +1,150 @@
+.container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.75rem 1rem 3rem;
+    color: var(--text-primary);
+}
+
+.pageHeader {
+    margin-bottom: 1.25rem;
+}
+
+.title {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: clamp(1.8rem, 5vw, 2.4rem);
+    font-weight: 800;
+}
+
+.subtitle {
+    margin: 0.3rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+    margin-bottom: 1.25rem;
+    padding: 0.3rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+.tab {
+    min-height: 44px;
+    padding: 0.65rem 1rem;
+    color: var(--text-secondary);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    border-radius: 9px;
+}
+
+.tab:hover {
+    color: var(--green);
+}
+
+.activeTab {
+    color: #fff;
+    background: var(--green);
+}
+
+.activeTab:hover {
+    color: #fff;
+    background: var(--green);
+}
+
+.week {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.dayCard {
+    padding: 1rem 1.1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 13px;
+    box-shadow: var(--shadow);
+}
+
+.dayTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.dayName {
+    font-size: 1rem;
+}
+
+.status {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+}
+
+.statusActive {
+    color: var(--green);
+    background: color-mix(in srgb,
+            var(--green) 9%,
+            transparent);
+}
+
+.statusClosed {
+    color: var(--red);
+}
+
+.mainHours {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.55rem;
+    color: var(--text-primary);
+    font-size: 1.15rem;
+    font-weight: 750;
+}
+
+.details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    margin-top: 0.45rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.message,
+.error {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.error {
+    color: var(--red);
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 1.25rem 0.8rem 2.5rem;
+    }
+
+    .dayCard {
+        padding: 0.9rem;
+    }
+
+    .details {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+}
