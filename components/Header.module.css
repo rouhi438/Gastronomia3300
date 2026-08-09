@@ -280,6 +280,88 @@
     margin: 0;
 }
 
+.adminMenu {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.adminChevron {
+    transition: transform 0.2s ease;
+}
+
+.adminChevronOpen {
+    transform: rotate(180deg);
+}
+
+.adminDropdown {
+    position: absolute;
+    top: calc(100% + 14px);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 190px;
+    padding: 0.45rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+    z-index: 1200;
+}
+
+.adminDropdownLink {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    padding: 0.7rem 0.8rem;
+    border-radius: 8px;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.adminDropdownLink:hover {
+    background-color: var(--bg);
+    color: var(--red);
+}
+
+.mobileAdminSection {
+    display: flex;
+    flex-direction: column;
+}
+
+.mobileAdminButton .adminChevron {
+    margin-left: auto;
+}
+
+.mobileAdminSubmenu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin: 0.35rem 0 0.2rem 1.4rem;
+    padding-left: 0.8rem;
+    border-left: 2px solid var(--border-color);
+}
+
+.mobileAdminLink {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.6rem 0.4rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.mobileAdminLink:hover {
+    color: var(--red);
+}
+
 @media (max-width: 900px) {
     .brand {
         display: flex;
