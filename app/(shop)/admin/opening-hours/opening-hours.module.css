@@ -134,6 +134,164 @@
     color: var(--red);
 }
 
+.contentGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 1rem;
+    align-items: start;
+}
+
+.contentGridSingle {
+    display: block;
+}
+
+.dayActions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.editButton {
+    padding: 0.4rem 0.7rem;
+    color: var(--green);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid var(--green);
+    border-radius: 8px;
+}
+
+.editButton:hover {
+    color: #fff;
+    background: var(--green);
+}
+
+.editor {
+    position: sticky;
+    top: 120px;
+    padding: 1.1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+}
+
+.editorHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+}
+
+.editorHeader h2 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.editorHeader p {
+    margin: 0.2rem 0 0;
+    color: var(--text-muted);
+}
+
+.closeButton {
+    padding: 0;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+}
+
+.switchRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.switchRow input {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--green);
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-top: 0.85rem;
+}
+
+.field>span {
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.field input,
+.field select {
+    width: 100%;
+    padding: 0.7rem;
+    color: var(--text-primary);
+    font: inherit;
+    background: var(--bg);
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+}
+
+.saveError {
+    margin: 1rem 0 0;
+    color: var(--red);
+    font-size: 0.85rem;
+}
+
+.editorActions {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 0.6rem;
+    margin-top: 1.25rem;
+}
+
+.cancelButton,
+.saveButton {
+    min-height: 42px;
+    padding: 0.6rem;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 9px;
+}
+
+.cancelButton {
+    color: var(--text-primary);
+    background: transparent;
+    border: 1px solid var(--border-color);
+}
+
+.saveButton {
+    color: #fff;
+    background: var(--green);
+    border: 1px solid var(--green);
+}
+
+.cancelButton:disabled,
+.saveButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+@media (max-width: 900px) {
+    .contentGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .editor {
+        position: static;
+    }
+}
+
 @media (max-width: 600px) {
     .container {
         padding: 1.25rem 0.8rem 2.5rem;
