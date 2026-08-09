@@ -40,6 +40,28 @@ interface CustomerDetails {
   phone: string;
 }
 
+type ServiceType = "pickup" | "delivery";
+
+type ServiceStatus = {
+  serviceType: ServiceType;
+  status: "open" | "preorder" | "paused" | "closed";
+
+  canOrder: boolean;
+  canOrderAsap: boolean;
+  canSchedule: boolean;
+
+  message: string;
+
+  preorderStart: string;
+  openingTime: string;
+  closingTime: string;
+  firstScheduledTime: string;
+  lastScheduledTime: string;
+  slotIntervalMinutes: number;
+};
+
+type ServiceStatuses = Record<ServiceType, ServiceStatus>;
+
 const EMPTY_CUSTOMER_DETAILS: CustomerDetails = {
   name: "",
   phone: "",
@@ -47,6 +69,88 @@ const EMPTY_CUSTOMER_DETAILS: CustomerDetails = {
 
 const CUSTOMER_STORAGE_KEY = "checkout-customer-details";
 const ORDER_NOTE_STORAGE_KEY = "checkout-order-note";
+
+function timeToMinutes(value: string): number {
+  const [hours, minutes] = value.slice(0, 5).split(":").map(Number);
+
+  return hours * 60 + minutes;
+}
+
+function getCopenhagenCurrentMinutes(): number {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Copenhagen",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date());
+
+  const hour = Number(parts.find((part) => part.type === "hour")?.value);
+
+  const minute = Number(parts.find((part) => part.type === "minute")?.value);
+
+  if (!Number.isInteger(hour) || !Number.isInteger(minute)) {
+    return 0;
+  }
+
+  return hour * 60 + minute;
+}
+
+function buildTimeAvailability(serviceStatus: ServiceStatus | null) {
+  if (!serviceStatus) {
+    return {
+      isScheduledSelectionOpen: false,
+      isAsapAvailable: false,
+      times: [] as string[],
+    };
+  }
+
+  const isAsapAvailable = serviceStatus.canOrderAsap;
+
+  if (!serviceStatus.canSchedule) {
+    return {
+      isScheduledSelectionOpen: false,
+      isAsapAvailable,
+      times: [] as string[],
+    };
+  }
+
+  const firstScheduledMinutes = timeToMinutes(serviceStatus.firstScheduledTime);
+
+  const lastScheduledMinutes = timeToMinutes(serviceStatus.lastScheduledTime);
+
+  const interval = serviceStatus.slotIntervalMinutes;
+
+  let firstAvailableMinutes = firstScheduledMinutes;
+
+  if (serviceStatus.status === "open") {
+    const currentMinutes = getCopenhagenCurrentMinutes();
+
+    while (firstAvailableMinutes <= currentMinutes) {
+      firstAvailableMinutes += interval;
+    }
+  }
+
+  const times: string[] = [];
+
+  for (
+    let minutes = firstAvailableMinutes;
+    minutes <= lastScheduledMinutes;
+    minutes += interval
+  ) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+
+    times.push(
+      `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`,
+    );
+  }
+
+  return {
+    isScheduledSelectionOpen: true,
+    isAsapAvailable,
+    times,
+  };
+}
 
 export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const {
@@ -88,6 +192,11 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
   const [formError, setFormError] = useState("");
 
+  const [serviceStatuses, setServiceStatuses] =
+    useState<ServiceStatuses | null>(null);
+
+  const selectedServiceStatus = serviceStatuses?.[deliveryMethod] ?? null;
+
   const [editingCartId, setEditingCartId] = useState<string | null>(null);
 
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -99,63 +208,11 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // add time to choosing from user
-  const timeAvailability = useMemo(() => {
-    const now = new Date();
 
-    const selectionActivationMinutes = 10 * 60;
-    const openingTimeMinutes = 15 * 60;
-    const closingTimeMinutes = 21 * 60;
-
-    const firstOrderTimeMinutes = 15 * 60 + 30;
-    const lastOrderTimeMinutes = 20 * 60 + 30;
-
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-    const isAsapAvailable =
-      currentMinutes >= openingTimeMinutes &&
-      currentMinutes < closingTimeMinutes;
-
-    if (currentMinutes < selectionActivationMinutes) {
-      return {
-        isScheduledSelectionOpen: false,
-        isAsapAvailable,
-        times: [] as string[],
-      };
-    }
-
-    const nextQuarter = Math.floor(currentMinutes / 15) * 15 + 15;
-
-    const firstAvailableTime = Math.max(firstOrderTimeMinutes, nextQuarter);
-
-    if (firstAvailableTime > lastOrderTimeMinutes) {
-      return {
-        isScheduledSelectionOpen: true,
-        isAsapAvailable,
-        times: [] as string[],
-      };
-    }
-
-    const times: string[] = [];
-
-    for (
-      let minutes = firstAvailableTime;
-      minutes <= lastOrderTimeMinutes;
-      minutes += 15
-    ) {
-      const hours = Math.floor(minutes / 60);
-      const mins = minutes % 60;
-
-      times.push(
-        `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`,
-      );
-    }
-
-    return {
-      isScheduledSelectionOpen: true,
-      isAsapAvailable,
-      times,
-    };
-  }, [isOpen]);
+  const timeAvailability = useMemo(
+    () => buildTimeAvailability(selectedServiceStatus),
+    [selectedServiceStatus],
+  );
 
   const availableTimes = timeAvailability.times;
   const isAsapAvailable = timeAvailability.isAsapAvailable;
@@ -327,6 +384,8 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   }, [isOpen]);
 
   const canSubmit = useMemo(() => {
+    if (!selectedServiceStatus?.canOrder) return false;
+
     if (!customerDetails.name.trim()) return false;
     if (!customerDetails.phone.trim()) return false;
 
@@ -342,7 +401,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     }
 
     return true;
-  }, [customerDetails, deliveryAddress, deliveryMethod]);
+  }, [
+    customerDetails,
+    deliveryAddress,
+    deliveryMethod,
+    selectedServiceStatus?.canOrder,
+  ]);
 
   if (!isOpen) return null;
 
@@ -380,10 +444,62 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     setInitialSize("normal");
   };
 
-  const selectDeliveryMethod = (method: "pickup" | "delivery") => {
-    setDeliveryMethod(method);
+  // const selectDeliveryMethod = async (method: "pickup" | "delivery") => {
+  //   setFormError("");
+
+  //   try {
+  //     const response = await fetch("/api/store/service-status", {
+  //       cache: "no-store",
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error("Could not load store service status.");
+  //     }
+
+  //     const statuses = (await response.json()) as ServiceStatuses;
+
+  //     setServiceStatuses(statuses);
+  //     setDeliveryMethod(method);
+  //     setStep("details");
+  //   } catch (error) {
+  //     console.error("Failed to load service status:", error);
+
+  //     setServiceStatuses(null);
+  //     setDeliveryMethod(method);
+  //     setFormError("Kunne ikke hente restaurantens åbningstider.");
+  //     setStep("details");
+  //   }
+  // };
+
+  const selectDeliveryMethod = async (method: "pickup" | "delivery") => {
     setFormError("");
-    setStep("details");
+
+    try {
+      const response = await fetch("/api/store/service-status", {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error("Could not load store service status.");
+      }
+
+      const statuses = (await response.json()) as ServiceStatuses;
+
+      const selectedStatus = statuses[method];
+
+      setRequestedTime(selectedStatus.canOrderAsap ? "asap" : "");
+
+      setServiceStatuses(statuses);
+      setDeliveryMethod(method);
+      setStep("details");
+    } catch (error) {
+      console.error("Failed to load service status:", error);
+
+      setServiceStatuses(null);
+      setDeliveryMethod(method);
+      setFormError("Kunne ikke hente restaurantens åbningstider.");
+      setStep("details");
+    }
   };
 
   const updateCustomerField = (field: keyof CustomerDetails, value: string) => {
@@ -551,6 +667,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     requestedTime={requestedTime}
                     availableTimes={availableTimes}
                     isAsapAvailable={isAsapAvailable}
+                    serviceStatusMessage={
+                      selectedServiceStatus?.message ?? null
+                    }
                     isScheduledSelectionOpen={
                       timeAvailability.isScheduledSelectionOpen
                     }
@@ -972,6 +1091,7 @@ interface DetailsStepProps {
   requestedTime: ReturnType<typeof useCart>["requestedTime"];
   availableTimes: string[];
   isAsapAvailable: boolean;
+  serviceStatusMessage: string | null;
   isScheduledSelectionOpen: boolean;
   onRequestedTimeChange: ReturnType<typeof useCart>["setRequestedTime"];
 
@@ -1001,6 +1121,7 @@ function DetailsStep({
   customerDetails,
   deliveryAddress,
   isAsapAvailable,
+  serviceStatusMessage,
   isLoggedIn,
   loggedInLabel,
   formError,
@@ -1061,7 +1182,9 @@ function DetailsStep({
         <div className={styles.timeOptions}>
           <label
             className={`${styles.timeOption} ${
-              requestedTime === "asap" ? styles.timeOptionActive : ""
+              requestedTime !== "asap" && requestedTime !== ""
+                ? styles.timeOptionActive
+                : ""
             }`}
           >
             <input
@@ -1069,6 +1192,7 @@ function DetailsStep({
               name="requested-time-mode"
               value="asap"
               checked={requestedTime === "asap"}
+              disabled={!isAsapAvailable}
               onChange={() => onRequestedTimeChange("asap")}
             />
 
@@ -1084,13 +1208,11 @@ function DetailsStep({
               type="radio"
               name="requested-time-mode"
               value="scheduled"
-              checked={requestedTime !== "asap"}
-              disabled={availableTimes.length === 0}
+              checked={requestedTime !== "asap" && requestedTime !== ""}
+              disabled={!isScheduledSelectionOpen}
               onChange={() => {
-                const firstTime = availableTimes[0];
-
-                if (firstTime) {
-                  onRequestedTimeChange(firstTime);
+                if (availableTimes.length > 0) {
+                  onRequestedTimeChange(availableTimes[0]);
                 }
               }}
             />
@@ -1115,11 +1237,12 @@ function DetailsStep({
         )}
 
         {availableTimes.length === 0 && (
-          <p className={styles.noTimesMessage}>
-            {isScheduledSelectionOpen
-              ? "Der er ingen flere valgbare tider i dag. Vælg hurtigst muligt."
-              : "Valg af tidspunkt åbner hver dag kl. 10:00."}
-          </p>
+          <div className={styles.timeStatusBox}>
+            {serviceStatusMessage ??
+              (isScheduledSelectionOpen
+                ? "Der er ingen flere valgbare tider i dag."
+                : "Åbningstider kunne ikke hentes.")}
+          </div>
         )}
       </section>
       {isLoggedIn ? (
