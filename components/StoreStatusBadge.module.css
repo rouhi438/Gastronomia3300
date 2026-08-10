@@ -1,226 +1,136 @@
-.badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-
-    max-width: 245px;
-    padding: 8px 11px;
-
-    border: 1px solid transparent;
-    border-radius: 12px;
-
-    transition:
-        background-color 0.25s ease,
-        border-color 0.25s ease,
-        transform 0.25s ease;
-}
-
-.icon {
+.loading {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 0.4rem;
 
-    flex: 0 0 auto;
-
-    width: 32px;
-    height: 32px;
-
-    border-radius: 50%;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
 }
 
-.content {
+.desktopStatuses {
     display: flex;
-    flex-direction: column;
-
-    min-width: 0;
+    align-items: center;
+    gap: 0.45rem;
 }
 
-.content strong {
-    font-size: 0.82rem;
-    font-weight: 900;
-    line-height: 1.15;
-}
+.pill {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
 
-.content small {
-    overflow: hidden;
+    min-height: 34px;
+    padding: 0.35rem 0.65rem;
 
-    margin-top: 2px;
+    color: var(--text-primary);
+    background: var(--bg-card);
 
-    font-size: 0.68rem;
-    font-weight: 600;
-    line-height: 1.25;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
 
-    text-overflow: ellipsis;
+    font-size: 0.74rem;
     white-space: nowrap;
 }
 
-.open {
-    color: #166534;
-    background: #f0fdf4;
-    border-color: #86efac;
+.separator {
+    color: var(--text-secondary);
 }
 
-.open .icon {
-    background: #dcfce7;
-}
-
-.open .icon::after {
-    content: "";
-
-    position: absolute;
-
+.dot {
     width: 7px;
     height: 7px;
+    flex-shrink: 0;
 
-    background: #22c55e;
     border-radius: 50%;
+    background: #94a3b8;
+}
 
-    animation: storePulse 1.8s ease-in-out infinite;
+/* Status colors */
+
+.open {
+    color: #16a34a;
+}
+
+.dot.open {
+    background: #22c55e;
 }
 
 .preorder {
-    color: #92400e;
-    background: #fffbeb;
-    border-color: #fcd34d;
+    color: #d97706;
 }
 
-.preorder .icon {
-    background: #fef3c7;
+.dot.preorder {
+    background: #f59e0b;
 }
 
 .paused {
-    color: #9a3412;
-    background: #fff7ed;
-    border-color: #fdba74;
+    color: #ea580c;
 }
 
-.paused .icon {
-    background: #ffedd5;
+.dot.paused {
+    background: #f97316;
 }
 
 .closed {
-    color: #991b1b;
-    background: #fef2f2;
-    border-color: #fca5a5;
+    color: #dc2626;
 }
 
-.closed .icon {
-    background: #fee2e2;
-}
-
-.loading {
-    color: #64748b;
-    background: #f8fafc;
-    border-color: #e2e8f0;
-}
-
-.spinner {
-    animation: storeSpin 0.8s linear infinite;
-}
-
-:global(.dark) .open {
-    color: #86efac;
-    background: rgba(22, 101, 52, 0.25);
-    border-color: rgba(74, 222, 128, 0.35);
-}
-
-:global(.dark) .preorder {
-    color: #fcd34d;
-    background: rgba(146, 64, 14, 0.25);
-    border-color: rgba(251, 191, 36, 0.35);
-}
-
-:global(.dark) .paused {
-    color: #fdba74;
-    background: rgba(154, 52, 18, 0.25);
-    border-color: rgba(251, 146, 60, 0.35);
-}
-
-:global(.dark) .closed {
-    color: #fca5a5;
-    background: rgba(153, 27, 27, 0.25);
-    border-color: rgba(248, 113, 113, 0.35);
-}
-
-@keyframes storePulse {
-
-    0%,
-    100% {
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
-    }
-
-    50% {
-        box-shadow: 0 0 0 5px rgba(34, 197, 94, 0);
-    }
-}
-
-@keyframes storeSpin {
-    to {
-        transform: rotate(360deg);
-    }
+.dot.closed {
+    background: #ef4444;
 }
 
 @media (max-width: 900px) {
-    .badge {
-        display: inline-flex;
-        align-items: center;
 
-        padding: 0;
-
-        background: transparent !important;
-        border: 0 !important;
-        box-shadow: none !important;
-    }
-
-    .icon {
+    .desktopStatuses {
         display: none;
     }
 
-    .content small {
+    .loading {
         display: none;
     }
 
-    .content strong {
-        position: relative;
 
-        padding-left: 12px;
-
-        font-size: 0.62rem;
-        font-weight: 800;
-        line-height: 1;
-
-        white-space: nowrap;
-    }
-
-    .content strong::before {
-        content: "";
-
-        position: absolute;
-        top: 50%;
-        left: 0;
-
-        width: 8px;
-        height: 8px;
-
-        background: currentColor;
-        border-radius: 50%;
-
-        transform: translateY(-50%);
-    }
-
-    .open .content strong::before {
-        animation: mobileStorePulse 1.8s ease-in-out infinite;
+    .dot {
+        width: 6px;
+        height: 6px;
     }
 }
 
-@keyframes mobileStorePulse {
+.mobileMenuStatuses {
+    display: none;
+}
 
-    0%,
-    100% {
-        box-shadow: 0 0 0 0 currentColor;
+@media (max-width: 768px) {
+    .desktopStatuses {
+        display: none;
     }
 
-    50% {
-        box-shadow: 0 0 0 4px transparent;
+    .mobileMenuStatuses {
+        display: grid;
+        gap: 0.5rem;
+
+        margin-bottom: 0.5rem;
+        padding-bottom: 1rem;
+
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .mobileMenuStatus {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        padding: 0.65rem 0.75rem;
+
+        color: var(--text-primary);
+        background: var(--bg-card);
+
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+
+        font-size: 0.8rem;
+    }
+
+    .mobileMenuStatus strong {
+        margin-left: auto;
     }
 }

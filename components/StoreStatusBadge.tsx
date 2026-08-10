@@ -1,120 +1,178 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Clock3, LoaderCircle, Store } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bike, LoaderCircle, ShoppingBag } from "lucide-react";
 
 import styles from "./StoreStatusBadge.module.css";
 
 type StoreOrderingStatus = "open" | "preorder" | "paused" | "closed";
 
-type StoreStatusResponse = {
+type ServiceType = "pickup" | "delivery";
+
+type ServiceStatus = {
+  serviceType: ServiceType;
   status: StoreOrderingStatus;
   canOrder: boolean;
   canOrderAsap: boolean;
   canSchedule: boolean;
   message: string;
-  openingTime: string | null;
-  closingTime: string | null;
-  firstScheduledTime: string | null;
-  lastScheduledTime: string | null;
+  preorderStart: string;
+  openingTime: string;
+  closingTime: string;
+  firstScheduledTime: string;
+  lastScheduledTime: string;
+  slotIntervalMinutes: number;
   overrideUntil: string | null;
   overrideReason: string | null;
 };
 
-export default function StoreStatusBadge() {
-  const [storeStatus, setStoreStatus] = useState<StoreStatusResponse | null>(
-    null,
-  );
+type ServiceStatuses = {
+  pickup: ServiceStatus;
+  delivery: ServiceStatus;
+};
+
+type StoreStatusBadgeProps = {
+  mobile?: boolean;
+};
+
+async function fetchServiceStatuses(): Promise<ServiceStatuses> {
+  const response = await fetch("/api/store/service-status", {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Store service status request failed.");
+  }
+
+  return response.json();
+}
+
+function getStatusLabel(status: StoreOrderingStatus) {
+  switch (status) {
+    case "open":
+      return "Åben";
+
+    case "preorder":
+      return "Forudbestilling";
+
+    case "paused":
+      return "Pauset";
+
+    case "closed":
+      return "Lukket";
+  }
+}
+
+export default function StoreStatusBadge({
+  mobile = false,
+}: StoreStatusBadgeProps) {
+  const [statuses, setStatuses] = useState<ServiceStatuses | null>(null);
 
   const [hasError, setHasError] = useState(false);
 
-  const loadStatus = useCallback(async () => {
-    try {
-      const response = await fetch("/api/store/status", {
-        cache: "no-store",
-      });
-
-      if (!response.ok) {
-        throw new Error("Store status request failed.");
-      }
-
-      const data = (await response.json()) as StoreStatusResponse;
-
-      setStoreStatus(data);
-      setHasError(false);
-    } catch (error) {
-      console.error("Store status badge error:", error);
-      setHasError(true);
-    }
-  }, []);
-
   useEffect(() => {
-    void loadStatus();
+    let cancelled = false;
 
-    const interval = window.setInterval(() => {
-      void loadStatus();
-    }, 30_000);
+    const requestStatus = () => {
+      fetchServiceStatuses()
+        .then((data) => {
+          if (cancelled) return;
+
+          setStatuses(data);
+          setHasError(false);
+        })
+        .catch((error) => {
+          if (cancelled) return;
+
+          console.error("Store service status badge error:", error);
+
+          setHasError(true);
+        });
+    };
+
+    queueMicrotask(requestStatus);
+
+    const interval = window.setInterval(requestStatus, 30_000);
 
     const handleFocus = () => {
-      void loadStatus();
+      requestStatus();
     };
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        void loadStatus();
+        requestStatus();
       }
     };
 
     window.addEventListener("focus", handleFocus);
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
+      cancelled = true;
+
       window.clearInterval(interval);
+
       window.removeEventListener("focus", handleFocus);
+
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [loadStatus]);
+  }, []);
 
-  if (!storeStatus && !hasError) {
+  if (!statuses && !hasError) {
     return (
-      <div className={`${styles.badge} ${styles.loading}`}>
-        <LoaderCircle className={styles.spinner} size={17} />
+      <div className={styles.loading}>
+        <LoaderCircle size={15} />
         <span>Henter status</span>
       </div>
     );
   }
 
-  if (!storeStatus || hasError) {
+  if (!statuses || hasError) {
     return null;
   }
 
-  const label =
-    storeStatus.status === "open"
-      ? "Åben"
-      : storeStatus.status === "preorder"
-        ? "Forudbestilling"
-        : storeStatus.status === "paused"
-          ? "Midlertidigt lukket"
-          : "Lukket";
-
-  const Icon =
-    storeStatus.status === "preorder" || storeStatus.status === "paused"
-      ? Clock3
-      : Store;
+  const pickup = statuses.pickup;
+  const delivery = statuses.delivery;
 
   return (
     <div
-      className={`${styles.badge} ${styles[storeStatus.status]}`}
-      title={storeStatus.message}
+      className={mobile ? styles.mobileMenuStatuses : styles.desktopStatuses}
+      aria-label="Bestillingsstatus"
     >
-      <span className={styles.icon}>
-        <Icon size={17} />
-      </span>
+      <div
+        className={mobile ? styles.mobileMenuStatus : styles.pill}
+        title={pickup.message}
+      >
+        <span className={`${styles.dot} ${styles[pickup.status]}`} />
 
-      <span className={styles.content}>
-        <strong>{label}</strong>
-        <small>{storeStatus.message}</small>
-      </span>
+        <ShoppingBag size={15} />
+
+        <span>Afhentning</span>
+
+        {!mobile && <span className={styles.separator}>·</span>}
+
+        <strong className={styles[pickup.status]}>
+          {getStatusLabel(pickup.status)}
+        </strong>
+      </div>
+
+      <div
+        className={mobile ? styles.mobileMenuStatus : styles.pill}
+        title={delivery.message}
+      >
+        <span className={`${styles.dot} ${styles[delivery.status]}`} />
+
+        <Bike size={16} />
+
+        <span>Levering</span>
+
+        {!mobile && <span className={styles.separator}>·</span>}
+
+        <strong className={styles[delivery.status]}>
+          {getStatusLabel(delivery.status)}
+        </strong>
+      </div>
     </div>
   );
 }
