@@ -8,9 +8,9 @@
 }
 
 .desktopStatuses {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
 }
 
 .pill {
@@ -18,8 +18,8 @@
     align-items: center;
     gap: 0.35rem;
 
-    min-height: 34px;
-    padding: 0.35rem 0.65rem;
+    min-height: 30px;
+    padding: 0.25rem 0.55rem;
 
     color: var(--text-primary);
     background: var(--bg-card);
@@ -27,7 +27,7 @@
     border: 1px solid var(--border-color);
     border-radius: 999px;
 
-    font-size: 0.74rem;
+    font-size: 0.7rem;
     white-space: nowrap;
 }
 
