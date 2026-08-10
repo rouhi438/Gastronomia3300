@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { DELIVERY_FEE } from "@/lib/delivery";
 import { extraGroups, menuData, type MenuItem } from "@/data/menu";
 import { sendOrderReceivedEmail } from "@/lib/email/orderEmails";
+import { getMenuAvailability } from "@/lib/menu/getMenuAvailability";
 import {
   getStoreServiceStatuses,
   type StoreServiceStatus,
@@ -430,7 +431,7 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
-
+    const menuAvailability = await getMenuAvailability();
     // ===== Validate and price items =====
 
     const normalizedItems = items.map((item: unknown) => {
@@ -461,6 +462,9 @@ export async function POST(request: NextRequest) {
         return null;
       }
 
+      if (!menuAvailability.isItemAvailable(menuItem.id)) {
+        return null;
+      }
       const isDisabled = (
         menuItem as MenuItem & {
           disabled?: boolean;
@@ -524,6 +528,13 @@ export async function POST(request: NextRequest) {
         );
 
         if (!matchingExtra) {
+          return null;
+        }
+
+        if (
+          extraGroupId === "drinkSizes" &&
+          !menuAvailability.isOptionAvailable(menuItem.id, matchingExtra.name)
+        ) {
           return null;
         }
 

@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+
 import { Minus, Pizza, Plus, X } from "lucide-react";
 
 import type { Extra, MenuItem } from "@/data/menu";
+
 import { extraGroups } from "@/data/menu";
+
 import { useCart } from "@/context/CartContext";
 
 import styles from "./ItemModal.module.css";
@@ -13,6 +16,16 @@ export type SizeOption = "normal" | "family" | "children" | "deepPan";
 
 type ExtraGroupId = keyof typeof extraGroups;
 
+type AvailabilityStatus = "active" | "until_next_opening" | "manual_off";
+
+export type MenuOptionStatusRecord = {
+  menu_item_id: number;
+  option_key: string;
+  status: AvailabilityStatus;
+  available_again_at: string | null;
+  updated_at?: string;
+};
+
 interface ItemModalProps {
   item: MenuItem | null;
   isOpen: boolean;
@@ -20,6 +33,7 @@ interface ItemModalProps {
   initialExtras?: Extra[];
   initialSize?: SizeOption;
   editingCartId?: string | null;
+  optionStatuses?: MenuOptionStatusRecord[];
 }
 
 const RADIO_GROUP_IDS: ExtraGroupId[] = [
@@ -30,8 +44,45 @@ const RADIO_GROUP_IDS: ExtraGroupId[] = [
 ];
 
 const EMPTY_EXTRAS: Extra[] = [];
+
+const EMPTY_OPTION_STATUSES: MenuOptionStatusRecord[] = [];
+
 const getExtraKey = (extra: Extra, groupId: ExtraGroupId) =>
   `${groupId}:${extra.name}`;
+
+const optionNameToKey = (name: string) =>
+  name.toLowerCase().replace(/\s+/g, "");
+
+function formatAvailableAgain(value: string | null) {
+  if (!value) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("da-DK", {
+    timeZone: "Europe/Copenhagen",
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function isAvailabilityUnavailable(status: MenuOptionStatusRecord | undefined) {
+  if (!status) {
+    return false;
+  }
+
+  if (status.status === "manual_off") {
+    return true;
+  }
+
+  if (status.status === "until_next_opening" && status.available_again_at) {
+    return new Date(status.available_again_at).getTime() > Date.now();
+  }
+
+  return false;
+}
 
 export default function ItemModal({
   item,
@@ -40,6 +91,7 @@ export default function ItemModal({
   initialExtras = EMPTY_EXTRAS,
   initialSize = "normal",
   editingCartId = null,
+  optionStatuses = EMPTY_OPTION_STATUSES,
 }: ItemModalProps) {
   const { addItem, updateItem } = useCart();
 
@@ -50,6 +102,7 @@ export default function ItemModal({
   const [quantity, setQuantity] = useState(1);
 
   const previousExtrasRef = useRef<Extra[]>(initialExtras);
+
   const previousSizeRef = useRef<SizeOption>(initialSize);
 
   const extraGroupIds = useMemo<ExtraGroupId[]>(() => {
@@ -106,6 +159,7 @@ export default function ItemModal({
 
     if (sizeChanged) {
       setSelectedSize(initialSize);
+
       previousSizeRef.current = initialSize;
     }
 
@@ -116,6 +170,7 @@ export default function ItemModal({
       );
 
       setSelectedExtras(normalizedExtras);
+
       previousExtrasRef.current = initialExtras;
     }
 
@@ -132,6 +187,7 @@ export default function ItemModal({
     setQuantity(1);
 
     previousSizeRef.current = "normal";
+
     previousExtrasRef.current = [];
   }, [isOpen]);
 
@@ -139,13 +195,13 @@ export default function ItemModal({
     return null;
   }
 
-  const basePrice =
-    item.prices.normal ?? item.prices.fixed ?? item.prices.children ?? 0;
-
   const sizePriceMap: Record<SizeOption, number> = {
     normal: item.prices.normal ?? item.prices.fixed ?? 0,
+
     family: item.prices.family ?? 0,
+
     children: item.prices.children ?? 0,
+
     deepPan: (item.prices.normal ?? 0) + (item.deepPanExtra ?? 0),
   };
 
@@ -176,7 +232,8 @@ export default function ItemModal({
     switch (groupId) {
       case "proteinChoice":
       case "nachosProtein":
-        return "Protein Choice";
+      case "pizzaSaladProteinChoice":
+        return "Vælg protein";
 
       case "pizza":
         return "Pizza tilbehør";
@@ -192,6 +249,25 @@ export default function ItemModal({
     }
   };
 
+  const getOptionAvailability = (extra: Extra, groupId: ExtraGroupId) => {
+    if (groupId !== "drinkSizes") {
+      return undefined;
+    }
+
+    const optionKey = optionNameToKey(extra.name);
+
+    return optionStatuses.find(
+      (status) =>
+        status.menu_item_id === item.id && status.option_key === optionKey,
+    );
+  };
+
+  const isExtraUnavailable = (extra: Extra, groupId: ExtraGroupId) => {
+    const availability = getOptionAvailability(extra, groupId);
+
+    return isAvailabilityUnavailable(availability);
+  };
+
   const isExtraSelected = (extra: Extra, groupId: ExtraGroupId) => {
     const targetKey = getExtraKey(extra, groupId);
 
@@ -203,6 +279,10 @@ export default function ItemModal({
   };
 
   const toggleExtra = (extra: Extra, groupId: ExtraGroupId) => {
+    if (isExtraUnavailable(extra, groupId)) {
+      return;
+    }
+
     const selectedExtra: Extra = {
       ...extra,
       groupId,
@@ -218,13 +298,13 @@ export default function ItemModal({
       });
 
       if (isRadioExtraGroup(groupId)) {
+        if (alreadySelected) {
+          return previousExtras;
+        }
+
         const extrasOutsideCurrentGroup = previousExtras.filter(
           (previousExtra) => previousExtra.groupId !== groupId,
         );
-
-        if (alreadySelected) {
-          return extrasOutsideCurrentGroup;
-        }
 
         return [...extrasOutsideCurrentGroup, selectedExtra];
       }
@@ -258,34 +338,6 @@ export default function ItemModal({
 
   const totalPrice = (sizePrice + extrasTotal) * quantity;
 
-  const handleAddToCart = () => {
-    const finalExtrasPrice = selectedExtras.reduce(
-      (total, extra) => total + getExtraPrice(extra),
-      0,
-    );
-
-    const finalPrice = sizePrice + finalExtrasPrice;
-
-    const payload = {
-      id: item.id,
-      name: item.name,
-      price: finalPrice,
-      quantity,
-      size: selectedSize,
-      deepPan: selectedSize === "deepPan",
-      image: item.image || "",
-      extras: selectedExtras,
-    };
-
-    if (editingCartId) {
-      updateItem(editingCartId, payload);
-    } else {
-      addItem(payload);
-    }
-
-    onClose();
-  };
-
   const hasSizeOptions =
     item.prices.normal !== undefined || hasExtraGroup("drinkSizes");
 
@@ -306,6 +358,89 @@ export default function ItemModal({
       availableSizes.push("deepPan");
     }
   }
+
+  const requiredRadioGroupIds = extraGroupIds.filter((groupId) => {
+    const groupExtras = extraGroups[groupId];
+
+    return (
+      isRadioExtraGroup(groupId) &&
+      Array.isArray(groupExtras) &&
+      groupExtras.length > 0
+    );
+  });
+
+  const missingRequiredGroupIds = requiredRadioGroupIds.filter((groupId) => {
+    return !selectedExtras.some((selectedExtra) => {
+      if (selectedExtra.groupId !== groupId) {
+        return false;
+      }
+
+      return !isExtraUnavailable(selectedExtra, groupId);
+    });
+  });
+
+  const allDrinkSizesUnavailable =
+    hasExtraGroup("drinkSizes") &&
+    extraGroups.drinkSizes.every((extra) =>
+      isExtraUnavailable(extra, "drinkSizes"),
+    );
+
+  const canAddToCart =
+    missingRequiredGroupIds.length === 0 && !allDrinkSizesUnavailable;
+
+  const firstMissingGroup = missingRequiredGroupIds[0];
+
+  let addButtonLabel = editingCartId ? "Opdater ordre" : "Tilføj til ordre";
+
+  if (allDrinkSizesUnavailable) {
+    addButtonLabel = "Udsolgt";
+  } else if (firstMissingGroup === "drinkSizes") {
+    addButtonLabel = "Vælg størrelse";
+  } else if (
+    firstMissingGroup === "proteinChoice" ||
+    firstMissingGroup === "nachosProtein" ||
+    firstMissingGroup === "pizzaSaladProteinChoice"
+  ) {
+    addButtonLabel = "Vælg protein";
+  } else if (firstMissingGroup) {
+    addButtonLabel = "Foretag påkrævet valg";
+  }
+
+  const handleAddToCart = () => {
+    if (!canAddToCart) {
+      return;
+    }
+
+    const finalExtrasPrice = selectedExtras.reduce(
+      (total, extra) => total + getExtraPrice(extra),
+      0,
+    );
+
+    const finalPrice = sizePrice + finalExtrasPrice;
+
+    if (finalPrice <= 0) {
+      return;
+    }
+
+    const payload = {
+      id: item.id,
+      name: item.name,
+      price: finalPrice,
+      quantity,
+      size: selectedSize,
+      deepPan: selectedSize === "deepPan",
+      image: item.image || "",
+      extras: selectedExtras,
+    };
+
+    if (editingCartId) {
+      updateItem(editingCartId, payload);
+    } else {
+      addItem(payload);
+    }
+
+    onClose();
+  };
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -343,8 +478,6 @@ export default function ItemModal({
 
           <div className={styles.section}>
             <p className={styles.description}>{item.description}</p>
-
-            {/*<p className={styles.basePrice}>Fra {basePrice} kr.</p>*/}
           </div>
 
           {hasSizeOptions && availableSizes.length > 0 && (
@@ -380,6 +513,7 @@ export default function ItemModal({
 
           {extraGroupIds.map((groupId) => {
             const groupExtras = extraGroups[groupId];
+
             const isRadio = isRadioExtraGroup(groupId);
 
             if (!groupExtras || groupExtras.length === 0) {
@@ -398,25 +532,57 @@ export default function ItemModal({
 
                     const selected = isExtraSelected(extra, groupId);
 
+                    const availability = getOptionAvailability(extra, groupId);
+
+                    const unavailable = isAvailabilityUnavailable(availability);
+
                     return (
                       <label
                         key={`${groupId}-${extra.name}`}
                         className={styles.extraItem}
+                        style={
+                          unavailable
+                            ? {
+                                opacity: 0.5,
+                                cursor: "not-allowed",
+                              }
+                            : undefined
+                        }
                       >
                         <input
                           type={isRadio ? "radio" : "checkbox"}
                           name={isRadio ? `extra-${groupId}` : undefined}
                           checked={selected}
+                          disabled={unavailable}
                           onChange={() => toggleExtra(extra, groupId)}
                         />
 
                         <span>{extra.name}</span>
 
-                        <span className={styles.extraPrice}>
-                          {displayPrice > 0
-                            ? `+${displayPrice} kr.`
-                            : "Inkluderet"}
-                        </span>
+                        {unavailable ? (
+                          <span
+                            style={{
+                              marginLeft: "auto",
+                              color: "var(--red)",
+                              fontSize: "0.72rem",
+                              fontWeight: 700,
+                              textAlign: "right",
+                            }}
+                          >
+                            {availability?.status === "until_next_opening" &&
+                            availability.available_again_at
+                              ? `Udsolgt indtil ${formatAvailableAgain(
+                                  availability.available_again_at,
+                                )}`
+                              : "Udsolgt"}
+                          </span>
+                        ) : (
+                          <span className={styles.extraPrice}>
+                            {displayPrice > 0
+                              ? `+${displayPrice} kr.`
+                              : "Inkluderet"}
+                          </span>
+                        )}
                       </label>
                     );
                   })}
@@ -454,9 +620,23 @@ export default function ItemModal({
               type="button"
               className={styles.addBtn}
               onClick={handleAddToCart}
+              disabled={!canAddToCart}
+              style={
+                !canAddToCart
+                  ? {
+                      opacity: 0.55,
+                      cursor: "not-allowed",
+                    }
+                  : undefined
+              }
             >
-              {editingCartId ? "Opdater ordre" : "Tilføj til ordre"} ·{" "}
-              {totalPrice} kr.
+              {canAddToCart ? (
+                <>
+                  {addButtonLabel} · {totalPrice} kr.
+                </>
+              ) : (
+                addButtonLabel
+              )}
             </button>
           </div>
         </div>
