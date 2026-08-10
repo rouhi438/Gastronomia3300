@@ -1,150 +1,3 @@
-// "use client";
-
-// import { useState, useMemo } from "react";
-// import { menuData, type MenuItem } from "@/data/menu";
-// import {
-//   Pizza,
-//   UtensilsCrossed,
-//   Salad,
-//   CupSoda,
-//   Sandwich,
-//   Hamburger,
-//   Soup,
-//   Cherry,
-//   Plus,
-//   Baby,
-//   ChefHat,
-// } from "lucide-react";
-// import ItemModal from "@/components/ItemModal";
-// import styles from "./menu.module.css";
-
-// const categories = [
-//   { id: "alle", label: "Alle", icon: <Pizza size={18} /> },
-//   { id: "pizza", label: "Pizza", icon: <Pizza size={18} /> },
-//   { id: "indbagt", label: "Indbagt Pizza", icon: <Pizza size={18} /> },
-//   { id: "ala-carte", label: "Ala Carte", icon: <Sandwich size={18} /> },
-//   {
-//     id: "hovedretter",
-//     label: "Hovedretter",
-//     icon: <ChefHat size={18} />,
-//   },
-//   { id: "pasta", label: "Pasta", icon: <Soup size={18} /> },
-//   { id: "salad", label: "Salat", icon: <Salad size={18} /> },
-//   { id: "fries", label: "Pommes Frites", icon: <Cherry size={18} /> },
-//   { id: "børn", label: "Børn menu", icon: <Baby size={18} /> },
-//   { id: "burger", label: "Burger", icon: <Hamburger size={18} /> },
-//   { id: "menuer", label: "Menuer", icon: <UtensilsCrossed size={18} /> },
-//   { id: "drikke", label: "Drikkevarer", icon: <CupSoda size={18} /> },
-//   { id: "dyppelse", label: "Ekstra dyppelse", icon: <Plus size={18} /> },
-// ];
-
-// export default function MenuPage() {
-//   const [activeCategory, setActiveCategory] = useState("alle");
-//   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
-//   const [isModalOpen, setIsModalOpen] = useState(false);
-
-//   const filteredItems = useMemo(() => {
-//     if (activeCategory === "alle") return menuData;
-
-//     if (activeCategory === "pizza") {
-//       return menuData.filter(
-//         (item) => item.mainCategory === "pizza" || item.category === "pizza",
-//       );
-//     }
-
-//     if (activeCategory === "vegetar" || activeCategory === "indbagt") {
-//       return menuData.filter((item) => item.subCategory === activeCategory);
-//     }
-
-//     return menuData.filter((item) => item.category === activeCategory);
-//   }, [activeCategory, menuData]);
-
-//   const handleCardClick = (item: MenuItem) => {
-//     setSelectedItem(item);
-//     setIsModalOpen(true);
-//   };
-
-//   const closeModal = () => {
-//     setIsModalOpen(false);
-//     setSelectedItem(null);
-//   };
-
-//   return (
-//     <>
-//       <div className={styles.menuPage}>
-//         {/* ===== SIDEBAR ===== */}
-//         <aside className={styles.sidebar}>
-//           <nav className={styles.categoryNav}>
-//             {categories.map((cat) => (
-//               <button
-//                 key={cat.id}
-//                 className={`${styles.categoryBtn} ${
-//                   activeCategory === cat.id ? styles.active : ""
-//                 }`}
-//                 onClick={() => setActiveCategory(cat.id)}
-//               >
-//                 {cat.icon}
-//                 <span>{cat.label}</span>
-//               </button>
-//             ))}
-//           </nav>
-//         </aside>
-
-//         {/* ===== CARDS GRID ===== */}
-//         <section className={styles.cardsSection}>
-//           <div className={styles.cardsGrid}>
-//             {filteredItems.map((item) => {
-//               const price = item.prices.normal ?? item.prices.fixed ?? 0;
-//               const hidePrice = [60, 61, 62].includes(item.id);
-//               return (
-//                 <div
-//                   key={item.id}
-//                   className={styles.card}
-//                   onClick={() => handleCardClick(item)}
-//                 >
-//                   <div className={styles.cardContent}>
-//                     <h3 className={styles.itemName}>
-//                       {item.menuNumber ? `${item.menuNumber}. ` : ""}
-//                       {item.name}
-//                     </h3>
-//                     <p className={styles.itemDesc}>{item.description}</p>
-//                     {!hidePrice && (
-//                       <p className={styles.itemPrice}>{price} kr,-</p>
-//                     )}
-//                   </div>
-//                   <div className={styles.imageWrapper}>
-//                     {item.image ? (
-//                       <img
-//                         src={item.image}
-//                         alt={item.name}
-//                         className={styles.image}
-//                       />
-//                     ) : (
-//                       <div className={styles.placeholder}>
-//                         <Pizza size={40} className={styles.placeholderIcon} />
-//                       </div>
-//                     )}
-//                     <div className={styles.plusIcon}>
-//                       <Plus size={20} strokeWidth={3} />
-//                     </div>
-//                   </div>
-//                 </div>
-//               );
-//             })}
-//           </div>
-//         </section>
-//       </div>
-
-//       {/* ===== ITEM MODAL ===== */}
-//       <ItemModal
-//         item={selectedItem}
-//         isOpen={isModalOpen}
-//         onClose={closeModal}
-//       />
-//     </>
-//   );
-// }
-
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -178,8 +31,17 @@ type MenuStatusRecord = {
   updated_at?: string;
 };
 
+type MenuOptionStatusRecord = {
+  menu_item_id: number;
+  option_key: string;
+  status: AvailabilityStatus;
+  available_again_at: string | null;
+  updated_at?: string;
+};
+
 type AvailabilityResponse = {
   statuses?: MenuStatusRecord[];
+  optionStatuses?: MenuOptionStatusRecord[];
 };
 
 const categories = [
@@ -270,6 +132,10 @@ export default function MenuPage() {
 
   const [statuses, setStatuses] = useState<MenuStatusRecord[]>([]);
 
+  const [optionStatuses, setOptionStatuses] = useState<
+    MenuOptionStatusRecord[]
+  >([]);
+
   const [availabilityReady, setAvailabilityReady] = useState(false);
 
   useEffect(() => {
@@ -296,6 +162,10 @@ export default function MenuPage() {
         }
 
         setStatuses(Array.isArray(payload?.statuses) ? payload.statuses : []);
+
+        setOptionStatuses(
+          Array.isArray(payload?.optionStatuses) ? payload.optionStatuses : [],
+        );
       })
       .catch((error) => {
         if (controller.signal.aborted) {
@@ -359,23 +229,26 @@ export default function MenuPage() {
 
   return (
     <>
-      <div className={styles.menuLayout}>
+      <div className={styles.menuPage}>
         {/* ===== SIDEBAR ===== */}
 
         <aside className={styles.sidebar}>
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              className={`${styles.categoryBtn} ${
-                activeCategory === cat.id ? styles.active : ""
-              }`}
-              onClick={() => setActiveCategory(cat.id)}
-            >
-              {cat.icon}
-              {cat.label}
-            </button>
-          ))}
+          <nav className={styles.categoryNav}>
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                className={`${styles.categoryBtn} ${
+                  activeCategory === cat.id ? styles.active : ""
+                }`}
+                onClick={() => setActiveCategory(cat.id)}
+              >
+                {cat.icon}
+
+                <span>{cat.label}</span>
+              </button>
+            ))}
+          </nav>
         </aside>
 
         {/* ===== CARDS GRID ===== */}
@@ -425,14 +298,14 @@ export default function MenuPage() {
                       <div
                         style={{
                           display: "grid",
-                          gap: "0.2rem",
-                          marginTop: "0.45rem",
+                          gap: "0.15rem",
+                          marginTop: "0.25rem",
                         }}
                       >
                         <strong
                           style={{
                             color: "var(--red)",
-                            fontSize: "0.82rem",
+                            fontSize: "0.8rem",
                           }}
                         >
                           Udsolgt
@@ -442,7 +315,7 @@ export default function MenuPage() {
                           <span
                             style={{
                               color: "var(--text-muted)",
-                              fontSize: "0.72rem",
+                              fontSize: "0.68rem",
                             }}
                           >
                             Tilgængelig igen{" "}
@@ -454,7 +327,7 @@ export default function MenuPage() {
                       </div>
                     )}
 
-                    {!hidePrice && (
+                    {!hidePrice && !unavailable && (
                       <p className={styles.itemPrice}>{price} kr,-</p>
                     )}
                   </div>
@@ -472,19 +345,11 @@ export default function MenuPage() {
                       </div>
                     )}
 
-                    <div
-                      className={styles.plusIcon}
-                      style={
-                        unavailable
-                          ? {
-                              opacity: 0.35,
-                              pointerEvents: "none",
-                            }
-                          : undefined
-                      }
-                    >
-                      <Plus size={20} strokeWidth={3} />
-                    </div>
+                    {!unavailable && (
+                      <div className={styles.plusIcon}>
+                        <Plus size={20} strokeWidth={3} />
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -499,6 +364,7 @@ export default function MenuPage() {
         item={selectedItem}
         isOpen={isModalOpen}
         onClose={closeModal}
+        optionStatuses={optionStatuses}
       />
     </>
   );
