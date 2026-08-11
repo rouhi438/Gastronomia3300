@@ -61,6 +61,161 @@
     background: var(--green);
 }
 
+.overrideCard {
+    margin-bottom: 1rem;
+    padding: 1rem 1.1rem;
+
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+}
+
+.overrideTop {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.overrideTitle {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.overrideSubtitle {
+    margin: 0.2rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.overrideStatus {
+    flex-shrink: 0;
+    padding: 0.25rem 0.65rem;
+
+    font-size: 0.72rem;
+    font-weight: 750;
+
+    border: 1px solid currentColor;
+    border-radius: 999px;
+}
+
+.overrideNormal {
+    color: var(--green);
+    background: color-mix(in srgb,
+            var(--green) 9%,
+            transparent);
+}
+
+.overridePaused {
+    color: #c77a00;
+}
+
+.overrideClosed {
+    color: var(--red);
+}
+
+.overrideDescription {
+    margin: 0.8rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+.overrideCurrent {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    margin-top: 0.8rem;
+    padding: 0.75rem;
+
+    background: var(--bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.overrideCurrent strong {
+    font-size: 0.82rem;
+}
+
+.overrideCurrent span {
+    font-size: 0.76rem;
+}
+
+.overrideUntil {
+    color: var(--red);
+    font-weight: 700;
+}
+
+.overrideActions {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+
+    margin-top: 0.9rem;
+}
+
+.overrideButton,
+.closeServiceButton,
+.reopenButton {
+    min-height: 42px;
+    padding: 0.6rem 0.75rem;
+
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+
+    cursor: pointer;
+    border-radius: 9px;
+}
+
+.overrideButton {
+    color: var(--text-primary);
+    background: transparent;
+    border: 1px solid var(--border-color);
+}
+
+.overrideButton:hover {
+    color: var(--green);
+    border-color: var(--green);
+}
+
+.closeServiceButton {
+    color: var(--red);
+    background: transparent;
+    border: 1px solid var(--red);
+}
+
+.reopenButton {
+    color: #fff;
+    background: var(--green);
+    border: 1px solid var(--green);
+}
+
+.overrideButton:disabled,
+.closeServiceButton:disabled,
+.reopenButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.overrideSaving,
+.overrideError {
+    margin: 0.7rem 0 0;
+    font-size: 0.8rem;
+}
+
+.overrideSaving {
+    color: var(--text-muted);
+}
+
+.overrideError {
+    color: var(--red);
+}
+
+
 .week {
     display: flex;
     flex-direction: column;
@@ -168,6 +323,14 @@
     background: var(--green);
 }
 
+/*
+ * Desktop wrapper.
+ * On desktop this remains a normal grid item.
+ */
+.editorLayer {
+    min-width: 0;
+}
+
 .editor {
     position: sticky;
     top: 120px;
@@ -182,6 +345,7 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
+    gap: 1rem;
     margin-bottom: 1.2rem;
 }
 
@@ -196,12 +360,28 @@
 }
 
 .closeButton {
+    display: grid;
+    width: 36px;
+    height: 36px;
     padding: 0;
+    flex: 0 0 auto;
+    place-items: center;
     color: var(--text-primary);
     font-size: 1.5rem;
+    line-height: 1;
     cursor: pointer;
     background: transparent;
     border: 0;
+    border-radius: 8px;
+}
+
+.closeButton:hover {
+    background: var(--bg);
+}
+
+.closeButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .switchRow {
@@ -292,6 +472,10 @@
     }
 }
 
+/*
+ * Mobile only:
+ * editor becomes a real modal.
+ */
 @media (max-width: 600px) {
     .container {
         padding: 1.25rem 0.8rem 2.5rem;
@@ -304,5 +488,50 @@
     .details {
         flex-direction: column;
         gap: 0.25rem;
+    }
+
+    .editorLayer {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 0.8rem;
+
+        background: rgba(0, 0, 0, 0.58);
+        backdrop-filter: blur(2px);
+    }
+
+    .editor {
+        position: relative;
+        top: auto;
+
+        width: 100%;
+        max-width: 480px;
+        max-height: calc(100dvh - 1.6rem);
+
+        padding: 1rem;
+
+        overflow-y: auto;
+        overscroll-behavior: contain;
+
+        border-radius: 16px;
+    }
+
+    .editorHeader {
+        margin-bottom: 1rem;
+    }
+
+    .editorActions {
+        position: sticky;
+        bottom: 0;
+
+        margin: 1.25rem -0.25rem -0.25rem;
+        padding: 0.8rem 0.25rem 0.25rem;
+
+        background: var(--bg-card);
     }
 }
