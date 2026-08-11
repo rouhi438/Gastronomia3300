@@ -162,6 +162,10 @@
     background: var(--green);
 }
 
+.editorLayer {
+    min-width: 0;
+}
+
 .editor {
     position: sticky;
     top: 120px;
@@ -192,12 +196,28 @@
 }
 
 .closeButton {
+    display: grid;
+    width: 36px;
+    height: 36px;
     padding: 0;
+    flex: 0 0 auto;
+    place-items: center;
     color: var(--text-primary);
     font-size: 1.5rem;
+    line-height: 1;
     cursor: pointer;
     background: transparent;
     border: 0;
+    border-radius: 8px;
+}
+
+.closeButton:hover {
+    background: var(--bg);
+}
+
+.closeButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .statusOptions {
@@ -311,6 +331,47 @@
 }
 
 @media (max-width: 600px) {
+    .editorLayer {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 0.8rem;
+
+        background: rgba(0, 0, 0, 0.58);
+        backdrop-filter: blur(2px);
+    }
+
+    .editor {
+        position: relative;
+        top: auto;
+
+        width: 100%;
+        max-width: 480px;
+        max-height: calc(100dvh - 1.6rem);
+
+        padding: 1rem;
+
+        overflow-y: auto;
+        overscroll-behavior: contain;
+
+        border-radius: 16px;
+    }
+
+    .editorActions {
+        position: sticky;
+        bottom: 0;
+
+        margin: 1.25rem -0.25rem -0.25rem;
+        padding: 0.8rem 0.25rem 0.25rem;
+
+        background: var(--bg-card);
+    }
+
     .container {
         padding: 1.25rem 0.8rem 2.5rem;
     }

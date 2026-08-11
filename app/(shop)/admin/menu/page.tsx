@@ -241,6 +241,41 @@ export default function AdminMenuPage() {
     };
   }, [router]);
 
+  useEffect(() => {
+    if (!editingItem && !editingOption) {
+      return;
+    }
+
+    const mobileQuery = window.matchMedia("(max-width: 600px)");
+
+    if (!mobileQuery.matches) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape" || saving) {
+        return;
+      }
+
+      setEditingItem(null);
+      setEditingOption(null);
+      setEditingStatus("active");
+      setSaveError("");
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [editingItem, editingOption, saving]);
+
   const statusMap = useMemo(() => {
     return new Map(statuses.map((status) => [status.menu_item_id, status]));
   }, [statuses]);
@@ -646,194 +681,224 @@ export default function AdminMenuPage() {
         </section>
 
         {editingItem && (
-          <aside className={styles.editor}>
-            <div className={styles.editorHeader}>
-              <div>
-                <h2>Skift status</h2>
+          <div
+            className={styles.editorLayer}
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) {
+                closeEditor();
+              }
+            }}
+          >
+            <aside
+              className={styles.editor}
+              aria-labelledby="product-status-editor-title"
+            >
+              <div className={styles.editorHeader}>
+                <div>
+                  <h2 id="product-status-editor-title">Skift status</h2>
 
-                <p>
-                  {editingItem.menuNumber ? `${editingItem.menuNumber}. ` : ""}
+                  <p>
+                    {editingItem.menuNumber
+                      ? `${editingItem.menuNumber}. `
+                      : ""}
 
-                  {editingItem.name}
-                </p>
+                    {editingItem.name}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.closeButton}
+                  onClick={closeEditor}
+                  disabled={saving}
+                  aria-label="Luk"
+                >
+                  ×
+                </button>
               </div>
 
-              <button
-                type="button"
-                className={styles.closeButton}
-                onClick={closeEditor}
-                aria-label="Luk"
-              >
-                ×
-              </button>
-            </div>
+              <div className={styles.statusOptions}>
+                <label className={styles.statusOption}>
+                  <input
+                    type="radio"
+                    name="product-status"
+                    checked={editingStatus === "active"}
+                    onChange={() => setEditingStatus("active")}
+                  />
 
-            <div className={styles.statusOptions}>
-              <label className={styles.statusOption}>
-                <input
-                  type="radio"
-                  name="product-status"
-                  checked={editingStatus === "active"}
-                  onChange={() => setEditingStatus("active")}
-                />
+                  <span>
+                    <strong>Aktiv</strong>
 
-                <span>
-                  <strong>Aktiv</strong>
+                    <small>Produktet kan bestilles normalt.</small>
+                  </span>
+                </label>
 
-                  <small>Produktet kan bestilles normalt.</small>
-                </span>
-              </label>
+                <label className={styles.statusOption}>
+                  <input
+                    type="radio"
+                    name="product-status"
+                    checked={editingStatus === "until_next_opening"}
+                    onChange={() => setEditingStatus("until_next_opening")}
+                  />
 
-              <label className={styles.statusOption}>
-                <input
-                  type="radio"
-                  name="product-status"
-                  checked={editingStatus === "until_next_opening"}
-                  onChange={() => setEditingStatus("until_next_opening")}
-                />
+                  <span>
+                    <strong>Udsolgt indtil næste åbning</strong>
 
-                <span>
-                  <strong>Udsolgt indtil næste åbning</strong>
+                    <small>
+                      Produktet bliver automatisk tilgængeligt igen ved næste
+                      åbningstid.
+                    </small>
+                  </span>
+                </label>
 
-                  <small>
-                    Produktet bliver automatisk tilgængeligt igen ved næste
-                    åbningstid.
-                  </small>
-                </span>
-              </label>
+                <label className={styles.statusOption}>
+                  <input
+                    type="radio"
+                    name="product-status"
+                    checked={editingStatus === "manual_off"}
+                    onChange={() => setEditingStatus("manual_off")}
+                  />
 
-              <label className={styles.statusOption}>
-                <input
-                  type="radio"
-                  name="product-status"
-                  checked={editingStatus === "manual_off"}
-                  onChange={() => setEditingStatus("manual_off")}
-                />
+                  <span>
+                    <strong>Deaktiveret indtil videre</strong>
 
-                <span>
-                  <strong>Deaktiveret indtil videre</strong>
+                    <small>Produktet skal aktiveres manuelt igen.</small>
+                  </span>
+                </label>
+              </div>
 
-                  <small>Produktet skal aktiveres manuelt igen.</small>
-                </span>
-              </label>
-            </div>
+              {saveError && <p className={styles.saveError}>{saveError}</p>}
 
-            {saveError && <p className={styles.saveError}>{saveError}</p>}
+              <div className={styles.editorActions}>
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  disabled={saving}
+                  onClick={closeEditor}
+                >
+                  Annuller
+                </button>
 
-            <div className={styles.editorActions}>
-              <button
-                type="button"
-                className={styles.cancelButton}
-                disabled={saving}
-                onClick={closeEditor}
-              >
-                Annuller
-              </button>
-
-              <button
-                type="button"
-                className={styles.saveButton}
-                disabled={saving}
-                onClick={handleProductSave}
-              >
-                {saving ? "Gemmer..." : "Gem ændringer"}
-              </button>
-            </div>
-          </aside>
+                <button
+                  type="button"
+                  className={styles.saveButton}
+                  disabled={saving}
+                  onClick={handleProductSave}
+                >
+                  {saving ? "Gemmer..." : "Gem ændringer"}
+                </button>
+              </div>
+            </aside>
+          </div>
         )}
 
         {editingOption && (
-          <aside className={styles.editor}>
-            <div className={styles.editorHeader}>
-              <div>
-                <h2>Skift størrelsesstatus</h2>
+          <div
+            className={styles.editorLayer}
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) {
+                closeEditor();
+              }
+            }}
+          >
+            <aside
+              className={styles.editor}
+              aria-labelledby="option-status-editor-title"
+            >
+              <div className={styles.editorHeader}>
+                <div>
+                  <h2 id="option-status-editor-title">
+                    Skift størrelsesstatus
+                  </h2>
 
-                <p>
-                  {editingOption.item.name}
-                  {" · "}
-                  {editingOption.optionName}
-                </p>
+                  <p>
+                    {editingOption.item.name}
+                    {" · "}
+                    {editingOption.optionName}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.closeButton}
+                  onClick={closeEditor}
+                  disabled={saving}
+                  aria-label="Luk"
+                >
+                  ×
+                </button>
               </div>
 
-              <button
-                type="button"
-                className={styles.closeButton}
-                onClick={closeEditor}
-                aria-label="Luk"
-              >
-                ×
-              </button>
-            </div>
+              <div className={styles.statusOptions}>
+                <label className={styles.statusOption}>
+                  <input
+                    type="radio"
+                    name="option-status"
+                    checked={editingStatus === "active"}
+                    onChange={() => setEditingStatus("active")}
+                  />
 
-            <div className={styles.statusOptions}>
-              <label className={styles.statusOption}>
-                <input
-                  type="radio"
-                  name="option-status"
-                  checked={editingStatus === "active"}
-                  onChange={() => setEditingStatus("active")}
-                />
+                  <span>
+                    <strong>Aktiv</strong>
 
-                <span>
-                  <strong>Aktiv</strong>
+                    <small>Størrelsen kan bestilles.</small>
+                  </span>
+                </label>
 
-                  <small>Størrelsen kan bestilles.</small>
-                </span>
-              </label>
+                <label className={styles.statusOption}>
+                  <input
+                    type="radio"
+                    name="option-status"
+                    checked={editingStatus === "until_next_opening"}
+                    onChange={() => setEditingStatus("until_next_opening")}
+                  />
 
-              <label className={styles.statusOption}>
-                <input
-                  type="radio"
-                  name="option-status"
-                  checked={editingStatus === "until_next_opening"}
-                  onChange={() => setEditingStatus("until_next_opening")}
-                />
+                  <span>
+                    <strong>Udsolgt indtil næste åbning</strong>
 
-                <span>
-                  <strong>Udsolgt indtil næste åbning</strong>
+                    <small>Aktiveres automatisk ved næste åbning.</small>
+                  </span>
+                </label>
 
-                  <small>Aktiveres automatisk ved næste åbning.</small>
-                </span>
-              </label>
+                <label className={styles.statusOption}>
+                  <input
+                    type="radio"
+                    name="option-status"
+                    checked={editingStatus === "manual_off"}
+                    onChange={() => setEditingStatus("manual_off")}
+                  />
 
-              <label className={styles.statusOption}>
-                <input
-                  type="radio"
-                  name="option-status"
-                  checked={editingStatus === "manual_off"}
-                  onChange={() => setEditingStatus("manual_off")}
-                />
+                  <span>
+                    <strong>Deaktiveret indtil videre</strong>
 
-                <span>
-                  <strong>Deaktiveret indtil videre</strong>
+                    <small>Skal aktiveres manuelt af administrator.</small>
+                  </span>
+                </label>
+              </div>
 
-                  <small>Skal aktiveres manuelt af administrator.</small>
-                </span>
-              </label>
-            </div>
+              {saveError && <p className={styles.saveError}>{saveError}</p>}
 
-            {saveError && <p className={styles.saveError}>{saveError}</p>}
+              <div className={styles.editorActions}>
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  disabled={saving}
+                  onClick={closeEditor}
+                >
+                  Annuller
+                </button>
 
-            <div className={styles.editorActions}>
-              <button
-                type="button"
-                className={styles.cancelButton}
-                disabled={saving}
-                onClick={closeEditor}
-              >
-                Annuller
-              </button>
-
-              <button
-                type="button"
-                className={styles.saveButton}
-                disabled={saving}
-                onClick={handleOptionSave}
-              >
-                {saving ? "Gemmer..." : "Gem ændringer"}
-              </button>
-            </div>
-          </aside>
+                <button
+                  type="button"
+                  className={styles.saveButton}
+                  disabled={saving}
+                  onClick={handleOptionSave}
+                >
+                  {saving ? "Gemmer..." : "Gem ændringer"}
+                </button>
+              </div>
+            </aside>
+          </div>
         )}
       </div>
     </main>
