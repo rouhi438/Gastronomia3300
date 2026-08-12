@@ -55,6 +55,12 @@ const categoryLabels: Record<string, string> = {
   dyppelse: "Ekstra dyppelse",
 };
 
+const drinkOptionGroupIds: Array<keyof typeof extraGroups> = [
+  "drinkSizes",
+  "cocaColaSizes",
+  "faxeKondiSizes",
+];
+
 function optionNameToKey(name: string) {
   return name.toLowerCase().replace(/\s+/g, "");
 }
@@ -243,12 +249,6 @@ export default function AdminMenuPage() {
 
   useEffect(() => {
     if (!editingItem && !editingOption) {
-      return;
-    }
-
-    const mobileQuery = window.matchMedia("(max-width: 600px)");
-
-    if (!mobileQuery.matches) {
       return;
     }
 
@@ -527,8 +527,6 @@ export default function AdminMenuPage() {
     );
   }
 
-  const hasEditor = editingItem !== null || editingOption !== null;
-
   return (
     <main className={styles.container}>
       <header className={styles.pageHeader}>
@@ -563,9 +561,7 @@ export default function AdminMenuPage() {
         </select>
       </div>
 
-      <div
-        className={hasEditor ? styles.contentGrid : styles.contentGridSingle}
-      >
+      <div className={styles.contentGridSingle}>
         <section className={styles.productList}>
           {visibleItems.map((item) => {
             const record = statusMap.get(item.id);
@@ -615,9 +611,9 @@ export default function AdminMenuPage() {
                       </p>
                     )}
 
-                  {item.extraGroupId === "drinkSizes" && (
+                  {drinkOptionGroupIds.includes(item.extraGroupId) && (
                     <div className={styles.optionList}>
-                      {extraGroups.drinkSizes.map((option) => {
+                      {extraGroups[item.extraGroupId].map((option) => {
                         const optionKey = optionNameToKey(option.name);
 
                         const optionRecord = optionStatusMap.get(
@@ -691,6 +687,8 @@ export default function AdminMenuPage() {
           >
             <aside
               className={styles.editor}
+              role="dialog"
+              aria-modal="true"
               aria-labelledby="product-status-editor-title"
             >
               <div className={styles.editorHeader}>
@@ -803,6 +801,8 @@ export default function AdminMenuPage() {
           >
             <aside
               className={styles.editor}
+              role="dialog"
+              aria-modal="true"
               aria-labelledby="option-status-editor-title"
             >
               <div className={styles.editorHeader}>
