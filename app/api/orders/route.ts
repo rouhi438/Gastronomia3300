@@ -63,6 +63,8 @@ const REQUIRED_RADIO_GROUPS = [
   "proteinChoice",
   "nachosProtein",
   "drinkSizes",
+  "cocaColaSizes",
+  "faxeKondiSizes",
   "pizzaSaladProteinChoice",
 ] as const;
 
@@ -532,7 +534,9 @@ export async function POST(request: NextRequest) {
         }
 
         if (
-          extraGroupId === "drinkSizes" &&
+          (extraGroupId === "drinkSizes" ||
+            extraGroupId === "cocaColaSizes" ||
+            extraGroupId === "faxeKondiSizes") &&
           !menuAvailability.isOptionAvailable(menuItem.id, matchingExtra.name)
         ) {
           return null;

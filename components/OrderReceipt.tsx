@@ -65,6 +65,8 @@ const primaryChoiceGroupIds = [
   "proteinChoice",
   "nachosProtein",
   "drinkSizes",
+  "cocaColaSizes",
+  "faxeKondiSizes",
   "pizzaSaladProteinChoice",
 ] as const;
 

@@ -782,6 +782,8 @@ function CartStep({
     "nachosProtein",
     "pizzaSaladProteinChoice",
     "drinkSizes",
+    "cocaColaSizes",
+    "faxeKondiSizes",
   ] as const;
 
   return (

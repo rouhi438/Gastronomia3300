@@ -67,7 +67,24 @@ export const extraGroups = {
     { name: "Dressing (Pommes)", price: 10 },
   ],
 
-  // Drink sizes (radio selection)
+  // Coca-Cola variants
+  cocaColaSizes: [
+    { name: "0.33 L Original", price: 16 },
+    { name: "0.33 L Zero", price: 16 },
+    { name: "0.5 L Original", price: 25 },
+    { name: "1.5 L Original", price: 38 },
+    { name: "1.5 L Zero", price: 38 },
+  ],
+
+  // Faxe Kondi variants
+  faxeKondiSizes: [
+    { name: "0.33 L Original", price: 16 },
+    { name: "0.33 L Sukkerfri", price: 16 },
+    { name: "0.5 L", price: 25 },
+    { name: "1.5 L", price: 38 },
+  ],
+
+  // Other drink sizes
   drinkSizes: [
     { name: "0.33 L", price: 16 },
     { name: "0.5 L", price: 25 },
@@ -112,7 +129,7 @@ export const menuData: MenuItem[] = [
     subCategory: "vegetar",
     prices: { normal: 65, family: 130, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-1.webp",
     extraGroupId: "pizza",
   },
   {
@@ -124,7 +141,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-2.webp",
     extraGroupId: "pizza",
   },
   {
@@ -136,7 +153,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 80, family: 160, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-3.webp",
     extraGroupId: "pizza",
   },
   {
@@ -148,7 +165,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 80, family: 160, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-4.webp",
     extraGroupId: "pizza",
   },
   {
@@ -160,7 +177,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-5.webp",
     extraGroupId: "pizza",
   },
   {
@@ -172,7 +189,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-6.webp",
     extraGroupId: "pizza",
   },
   {
@@ -184,7 +201,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-7.webp",
     extraGroupId: "pizza",
   },
   {
@@ -196,7 +213,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-8.webp",
     extraGroupId: "pizza",
   },
   {
@@ -208,7 +225,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-9.webp",
     extraGroupId: "pizza",
   },
   {
@@ -220,7 +237,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 90, family: 180, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-10.webp",
     extraGroupId: "pizza",
   },
   {
@@ -232,7 +249,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 80, family: 160, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-11.webp",
     extraGroupId: "pizza",
   },
   {
@@ -244,7 +261,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-12.webp",
     extraGroupId: "pizza",
   },
   {
@@ -256,7 +273,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 80, family: 160, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-13.webp",
     extraGroupId: "pizza",
   },
   {
@@ -269,7 +286,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 105, family: 210, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-14.webp",
     extraGroupId: "pizza",
   },
   {
@@ -281,7 +298,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-15.webp",
     extraGroupId: "pizza",
   },
   {
@@ -293,7 +310,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-16.webp",
     extraGroupId: "pizza",
   },
   {
@@ -305,7 +322,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 95, family: 190, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-17.webp",
     extraGroupId: "pizza",
   },
   {
@@ -318,7 +335,7 @@ export const menuData: MenuItem[] = [
     subCategory: "vegetar",
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-18.webp",
     extraGroupId: "pizza",
   },
   {
@@ -330,7 +347,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-19.webp",
     extraGroupId: "pizza",
   },
   {
@@ -342,7 +359,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-20.webp",
     extraGroupId: "pizzaSaladProteinChoice",
     extraGroupIds: ["pizzaSaladProteinChoice", "pizza"],
   },
@@ -357,7 +374,7 @@ export const menuData: MenuItem[] = [
     subCategory: "vegetar",
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-21.webp",
     extraGroupId: "pizza",
   },
   {
@@ -369,7 +386,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-22.webp",
     extraGroupId: "pizza",
   },
   {
@@ -383,7 +400,7 @@ export const menuData: MenuItem[] = [
     subCategory: "vegetar",
     prices: { normal: 85, family: 170, children: 65 },
     deepPanExtra: 25,
-    image: "",
+    image: "/images/pizza-23.webp",
     extraGroupId: "pizza",
   },
   {
@@ -395,7 +412,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     subCategory: "indbagt",
     prices: { fixed: 85 },
-    image: "",
+    image: "/images/pizza-24.webp",
     extraGroupId: "pizza",
   },
   {
@@ -407,7 +424,7 @@ export const menuData: MenuItem[] = [
     mainCategory: "pizza",
     subCategory: "indbagt",
     prices: { fixed: 85 },
-    image: "",
+    image: "/images/pizza-25.webp",
     extraGroupId: "pizza",
   },
   // 27-29: ALA CARTE (with protein choice)
@@ -418,7 +435,7 @@ export const menuData: MenuItem[] = [
     description: "Med fyld af valgfri protein, salat og dressing",
     category: "ala-carte",
     prices: { fixed: 75 },
-    image: "",
+    image: "/images/pizza-26.webp",
     extraGroupId: "proteinChoice",
     extraGroupIds: ["proteinChoice", "pizza"],
   },
@@ -430,7 +447,7 @@ export const menuData: MenuItem[] = [
     description: "Med valgfri protein, salat og dressing",
     category: "ala-carte",
     prices: { fixed: 50 },
-    image: "",
+    image: "/images/pizza-27.webp",
     extraGroupId: "proteinChoice",
     extraGroupIds: ["proteinChoice", "pizza"],
   },
@@ -441,7 +458,7 @@ export const menuData: MenuItem[] = [
     description: "Med valgfri protein, salat og dressing",
     category: "ala-carte",
     prices: { fixed: 60 },
-    image: "",
+    image: "/images/pizza-28.webp",
     extraGroupId: "proteinChoice",
     extraGroupIds: ["proteinChoice", "pizza"],
   },
@@ -452,7 +469,7 @@ export const menuData: MenuItem[] = [
     description: "Med valgfri protein, salat og dressing",
     category: "ala-carte",
     prices: { fixed: 60 },
-    image: "",
+    image: "/images/pizza-29.webp",
     extraGroupId: "proteinChoice",
     extraGroupIds: ["proteinChoice", "pizza"],
   },
@@ -465,7 +482,7 @@ export const menuData: MenuItem[] = [
     description: "Med pommes frites, salat og mayonnaise",
     category: "hovedretter",
     prices: { fixed: 85 },
-    image: "",
+    image: "/images/pizza-30.webp",
     extraGroupId: "none",
   },
   {
@@ -475,7 +492,7 @@ export const menuData: MenuItem[] = [
     description: "Med pommes frites, remoulade, salat og dressing",
     category: "hovedretter",
     prices: { fixed: 90 },
-    image: "",
+    image: "/images/pizza-31.webp",
     extraGroupId: "none",
   },
   {
@@ -485,7 +502,7 @@ export const menuData: MenuItem[] = [
     description: "Med pommes frites, remoulade, salat og dressing",
     category: "hovedretter",
     prices: { fixed: 85 },
-    image: "",
+    image: "/images/pizza-32.webp",
     extraGroupId: "none",
   },
   {
@@ -495,7 +512,7 @@ export const menuData: MenuItem[] = [
     description: "Med pommes frites, remoulade, salat & dressing",
     category: "hovedretter",
     prices: { fixed: 85 },
-    image: "",
+    image: "/images/pizza-33.webp",
     extraGroupId: "none",
   },
 
@@ -506,7 +523,7 @@ export const menuData: MenuItem[] = [
     description: "Med ost & hvidløg",
     category: "hovedretter",
     prices: { fixed: 85 },
-    image: "",
+    image: "/images/pizza-34.webp",
     extraGroupId: "none",
   },
   {
@@ -517,7 +534,7 @@ export const menuData: MenuItem[] = [
       "Vælg mellem kebab/kylling med ost, oliven, jalapenos og guacamole",
     category: "hovedretter",
     prices: { fixed: 85 },
-    image: "",
+    image: "/images/pizza-35.webp",
     extraGroupId: "nachosProtein",
   },
   // 36-39: PASTA
@@ -528,7 +545,7 @@ export const menuData: MenuItem[] = [
     description: "Med kødsauce og ost",
     category: "pasta",
     prices: { fixed: 85 },
-    image: "",
+    image: "/images/pizza-36.webp",
     extraGroupId: "none",
   },
 
@@ -539,7 +556,7 @@ export const menuData: MenuItem[] = [
     description: "Spaghetti med kødsauce, parmesanost",
     category: "pasta",
     prices: { fixed: 80 },
-    image: "",
+    image: "/images/pizza-37.webp",
     extraGroupId: "none",
   },
   {
@@ -549,7 +566,7 @@ export const menuData: MenuItem[] = [
     description: "Med pastaskruer, kylling, bacon & tomatflødesauce",
     category: "pasta",
     prices: { fixed: 80 },
-    image: "",
+    image: "/images/pizza-38.webp",
     extraGroupId: "none",
   },
   {
@@ -559,7 +576,7 @@ export const menuData: MenuItem[] = [
     description: "Med spaghetti, bacon, æggeblomme og flødesauce",
     category: "pasta",
     prices: { fixed: 80 },
-    image: "",
+    image: "/images/pizza-39.webp",
     extraGroupId: "none",
   },
 
@@ -571,7 +588,7 @@ export const menuData: MenuItem[] = [
     description: "Med iceberg, tomat, agurk og dressing",
     category: "salad",
     prices: { fixed: 55 },
-    image: "",
+    image: "/images/pizza-40.webp",
     extraGroupId: "proteinChoice",
   },
   {
@@ -581,7 +598,7 @@ export const menuData: MenuItem[] = [
     description: "Med pasta, kebab, skinke, kylling / flafel og dressing",
     category: "salad",
     prices: { fixed: 55 },
-    image: "",
+    image: "/images/pizza-41.webp",
     extraGroupId: "proteinChoice",
   },
   {
@@ -591,7 +608,7 @@ export const menuData: MenuItem[] = [
     description: "Med tomat, agurk, iceberg, fetaost, oliven",
     category: "salad",
     prices: { fixed: 55 },
-    image: "",
+    image: "/images/pizza-42.webp",
     extraGroupId: "none",
   },
   // ========================
@@ -604,7 +621,7 @@ export const menuData: MenuItem[] = [
     description: "Serveres med lille pommes frites, mayonnaise og dåsecola.",
     category: "menuer",
     prices: { fixed: 124 },
-    image: "",
+    image: "/images/pizza-43.webp",
     extraGroupId: "proteinChoice",
   },
   {
@@ -614,7 +631,7 @@ export const menuData: MenuItem[] = [
     description: "Serveres med lille pommes frites, mayonnaise og dåsecola.",
     category: "menuer",
     prices: { fixed: 129 },
-    image: "",
+    image: "/images/pizza-44.webp",
     extraGroupId: "proteinChoice",
   },
   {
@@ -624,7 +641,7 @@ export const menuData: MenuItem[] = [
     description: "Serveres med lille pommes frites, mayonnaise og dåsecola.",
     category: "menuer",
     prices: { fixed: 134 },
-    image: "",
+    image: "/images/pizza-45.webp",
     extraGroupId: "none",
   },
 
@@ -638,7 +655,7 @@ export const menuData: MenuItem[] = [
     description: "",
     category: "fries",
     prices: { fixed: 30 },
-    image: "",
+    image: "/images/pizza-46.webp",
     extraGroupId: "fries",
   },
   {
@@ -648,7 +665,7 @@ export const menuData: MenuItem[] = [
     description: "",
     category: "fries",
     prices: { fixed: 35 },
-    image: "",
+    image: "/images/pizza-47.webp",
     extraGroupId: "fries",
   },
   // ============================================================
@@ -661,7 +678,7 @@ export const menuData: MenuItem[] = [
     description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
     category: "burger",
     prices: { fixed: 65 },
-    image: "",
+    image: "/images/pizza-48.webp",
     extraGroupId: "none",
   },
   {
@@ -671,7 +688,7 @@ export const menuData: MenuItem[] = [
     description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
     category: "burger",
     prices: { fixed: 70 },
-    image: "",
+    image: "/images/pizza-49.webp",
     extraGroupId: "none",
   },
   {
@@ -681,7 +698,7 @@ export const menuData: MenuItem[] = [
     description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
     category: "burger",
     prices: { fixed: 70 },
-    image: "",
+    image: "/images/pizza-50.webp",
     extraGroupId: "none",
   },
   {
@@ -691,7 +708,7 @@ export const menuData: MenuItem[] = [
     description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
     category: "burger",
     prices: { fixed: 75 },
-    image: "",
+    image: "/images/pizza-51.webp",
     extraGroupId: "none",
   },
   {
@@ -701,7 +718,7 @@ export const menuData: MenuItem[] = [
     description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
     category: "burger",
     prices: { fixed: 90 },
-    image: "",
+    image: "/images/pizza-52.webp",
     extraGroupId: "none",
   },
   {
@@ -711,7 +728,7 @@ export const menuData: MenuItem[] = [
     description: "Med mayonnaise, ketchup, salat, tomat, agurk og løg",
     category: "burger",
     prices: { fixed: 55 },
-    image: "",
+    image: "/images/pizza-53.webp",
     extraGroupId: "none",
   },
 
@@ -724,7 +741,7 @@ export const menuData: MenuItem[] = [
     description: "Serveret med pommes frites og remoulade",
     category: "børn",
     prices: { fixed: 65 },
-    image: "",
+    image: "/images/pizza-54.webp",
     extraGroupId: "none",
   },
   {
@@ -733,7 +750,7 @@ export const menuData: MenuItem[] = [
     description: "Serveret med pommes frites og remoulade",
     category: "børn",
     prices: { fixed: 65 },
-    image: "",
+    image: "/images/pizza-55.webp",
     extraGroupId: "none",
   },
   // ============================================================
@@ -745,8 +762,8 @@ export const menuData: MenuItem[] = [
     description: "Vælg din størrelse",
     category: "drikke",
     prices: { fixed: 0 },
-    image: "",
-    extraGroupId: "drinkSizes",
+    image: "/images/drink-1.webp",
+    extraGroupId: "cocaColaSizes",
   },
   {
     id: 61,
@@ -754,8 +771,8 @@ export const menuData: MenuItem[] = [
     description: "Vælg din størrelse",
     category: "drikke",
     prices: { fixed: 0 },
-    image: "",
-    extraGroupId: "drinkSizes",
+    image: "/images/drink-2.webp",
+    extraGroupId: "faxeKondiSizes",
   },
   {
     id: 62,
@@ -763,7 +780,7 @@ export const menuData: MenuItem[] = [
     description: "Vælg din størrelse",
     category: "drikke",
     prices: { fixed: 0 },
-    image: "",
+    image: "/images/drink-3.webp",
     extraGroupId: "drinkSizes",
   },
   {
@@ -772,7 +789,7 @@ export const menuData: MenuItem[] = [
     description: "0.5 L",
     category: "drikke",
     prices: { fixed: 25 },
-    image: "",
+    image: "/images/drink-4.webp",
     extraGroupId: "drinkFixed",
   },
   {
@@ -781,7 +798,7 @@ export const menuData: MenuItem[] = [
     description: "0.5 L",
     category: "drikke",
     prices: { fixed: 25 },
-    image: "",
+    image: "/images/drink-5.webp",
     extraGroupId: "drinkFixed",
   },
   {
@@ -790,7 +807,7 @@ export const menuData: MenuItem[] = [
     description: "0.5 L",
     category: "drikke",
     prices: { fixed: 25 },
-    image: "",
+    image: "/images/drink-6.webp",
     extraGroupId: "drinkFixed",
   },
   {
@@ -799,7 +816,7 @@ export const menuData: MenuItem[] = [
     description: "0.33 L",
     category: "drikke",
     prices: { fixed: 25 },
-    image: "",
+    image: "/images/drink-7.webp",
     extraGroupId: "drinkFixed",
   },
   {
@@ -808,7 +825,7 @@ export const menuData: MenuItem[] = [
     description: "0.5 L",
     category: "drikke",
     prices: { fixed: 25 },
-    image: "",
+    image: "/images/drink-8.webp",
     extraGroupId: "drinkFixed",
   },
   {
@@ -817,7 +834,7 @@ export const menuData: MenuItem[] = [
     description: "Øl",
     category: "drikke",
     prices: { fixed: 16 },
-    image: "",
+    image: "/images/drink-9.webp",
     extraGroupId: "drinkFixed",
   },
   {
@@ -826,7 +843,7 @@ export const menuData: MenuItem[] = [
     description: "Øl",
     category: "drikke",
     prices: { fixed: 16 },
-    image: "",
+    image: "/images/drink-10.webp",
     extraGroupId: "drinkFixed",
   },
   {
@@ -835,7 +852,7 @@ export const menuData: MenuItem[] = [
     description: "Øl",
     category: "drikke",
     prices: { fixed: 16 },
-    image: "",
+    image: "/images/drink-11.webp",
     extraGroupId: "drinkFixed",
   },
   {
@@ -844,7 +861,7 @@ export const menuData: MenuItem[] = [
     description: "Øl",
     category: "drikke",
     prices: { fixed: 16 },
-    image: "",
+    image: "/images/drink-12.webp",
     extraGroupId: "drinkFixed",
   },
 

@@ -40,7 +40,14 @@ const RADIO_GROUP_IDS: ExtraGroupId[] = [
   "proteinChoice",
   "nachosProtein",
   "drinkSizes",
+  "cocaColaSizes",
+  "faxeKondiSizes",
   "pizzaSaladProteinChoice",
+];
+const DRINK_OPTION_GROUP_IDS: ExtraGroupId[] = [
+  "drinkSizes",
+  "cocaColaSizes",
+  "faxeKondiSizes",
 ];
 
 const EMPTY_EXTRAS: Extra[] = [];
@@ -244,13 +251,17 @@ export default function ItemModal({
       case "drinkSizes":
         return "Vælg størrelse";
 
+      case "cocaColaSizes":
+      case "faxeKondiSizes":
+        return "Vælg variant og størrelse";
+
       default:
         return "Tilbehør";
     }
   };
 
   const getOptionAvailability = (extra: Extra, groupId: ExtraGroupId) => {
-    if (groupId !== "drinkSizes") {
+    if (!DRINK_OPTION_GROUP_IDS.includes(groupId)) {
       return undefined;
     }
 
@@ -379,23 +390,32 @@ export default function ItemModal({
     });
   });
 
-  const allDrinkSizesUnavailable =
-    hasExtraGroup("drinkSizes") &&
-    extraGroups.drinkSizes.every((extra) =>
-      isExtraUnavailable(extra, "drinkSizes"),
+  const activeDrinkOptionGroupId = extraGroupIds.find((groupId) =>
+    DRINK_OPTION_GROUP_IDS.includes(groupId),
+  );
+
+  const allDrinkOptionsUnavailable =
+    activeDrinkOptionGroupId !== undefined &&
+    extraGroups[activeDrinkOptionGroupId].every((extra) =>
+      isExtraUnavailable(extra, activeDrinkOptionGroupId),
     );
 
   const canAddToCart =
-    missingRequiredGroupIds.length === 0 && !allDrinkSizesUnavailable;
+    missingRequiredGroupIds.length === 0 && !allDrinkOptionsUnavailable;
 
   const firstMissingGroup = missingRequiredGroupIds[0];
 
   let addButtonLabel = editingCartId ? "Opdater ordre" : "Tilføj til ordre";
 
-  if (allDrinkSizesUnavailable) {
+  if (allDrinkOptionsUnavailable) {
     addButtonLabel = "Udsolgt";
   } else if (firstMissingGroup === "drinkSizes") {
     addButtonLabel = "Vælg størrelse";
+  } else if (
+    firstMissingGroup === "cocaColaSizes" ||
+    firstMissingGroup === "faxeKondiSizes"
+  ) {
+    addButtonLabel = "Vælg variant og størrelse";
   } else if (
     firstMissingGroup === "proteinChoice" ||
     firstMissingGroup === "nachosProtein" ||

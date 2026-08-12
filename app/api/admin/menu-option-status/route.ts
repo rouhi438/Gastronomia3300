@@ -19,13 +19,15 @@ const validStatuses: AvailabilityStatus[] = [
   "manual_off",
 ];
 
+const drinkOptionGroupIds = new Set<keyof typeof extraGroups>([
+  "drinkSizes",
+  "cocaColaSizes",
+  "faxeKondiSizes",
+]);
+
 function optionNameToKey(name: string) {
   return name.toLowerCase().replace(/\s+/g, "");
 }
-
-const validDrinkOptionKeys = new Set(
-  extraGroups.drinkSizes.map((option) => optionNameToKey(option.name)),
-);
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -118,7 +120,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    if (menuItem.extraGroupId !== "drinkSizes") {
+    if (!drinkOptionGroupIds.has(menuItem.extraGroupId)) {
       return NextResponse.json(
         {
           error:
@@ -128,9 +130,15 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    const validOptionKeys = new Set(
+      extraGroups[menuItem.extraGroupId].map((option) =>
+        optionNameToKey(option.name),
+      ),
+    );
+
     if (
       typeof body.option_key !== "string" ||
-      !validDrinkOptionKeys.has(body.option_key)
+      !validOptionKeys.has(body.option_key)
     ) {
       return NextResponse.json(
         { error: "Ugyldig størrelse." },
