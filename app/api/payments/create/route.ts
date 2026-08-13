@@ -4,6 +4,7 @@ import { createNetsPayment } from "@/lib/nets/createPayment";
 import { prepareCheckout } from "@/lib/orders/prepareCheckout";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { netsEasyConfig } from "@/lib/nets/config";
 
 const VAT_RATE = 2500;
 
@@ -267,6 +268,16 @@ export async function POST(request: NextRequest) {
       },
 
       paymentMethodsConfiguration,
+
+      notifications: {
+        webHooks: [
+          {
+            eventName: "payment.charge.created.v2",
+            url: `${origin}/api/payments/nets/webhook`,
+            authorization: netsEasyConfig.webhookAuthorization,
+          },
+        ],
+      },
 
       myReference: checkoutSession.id,
     });
