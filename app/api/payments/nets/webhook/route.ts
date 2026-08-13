@@ -458,20 +458,44 @@ export async function POST(request: NextRequest) {
      * may have won the unique-index race.
      */
     if (orderError?.code === "23505") {
-      const { data: concurrentOrder } = await supabaseAdmin
-        .from("orders")
-        .select("id")
-        .eq("checkout_session_id", checkoutSession.id)
-        .maybeSingle();
+      const { data: concurrentOrder, error: concurrentOrderError } =
+        await supabaseAdmin
+          .from("orders")
+          .select("id")
+          .eq("checkout_session_id", checkoutSession.id)
+          .maybeSingle();
 
-      if (concurrentOrder) {
+      if (concurrentOrderError) {
+        console.error("Concurrent order lookup failed:", concurrentOrderError);
+
         return NextResponse.json(
           {
-            ok: true,
-            duplicate: true,
-            order_id: concurrentOrder.id,
+            error: "Concurrent order lookup failed",
           },
-          { status: 200 },
+          { status: 500 },
+        );
+      }
+
+      if (concurrentOrder) {
+        /*
+         * Another webhook may still be creating
+         * order_items and finalizing the checkout.
+         *
+         * Do NOT acknowledge with 200 yet.
+         * Returning non-200 makes Nets retry later,
+         * when the normal duplicate branch can verify
+         * the already-created order safely.
+         */
+        console.warn(
+          "Concurrent paid order creation still in progress:",
+          concurrentOrder.id,
+        );
+
+        return NextResponse.json(
+          {
+            error: "Paid order creation still in progress",
+          },
+          { status: 500 },
         );
       }
     }
