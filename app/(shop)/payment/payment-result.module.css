@@ -1,0 +1,80 @@
+.page {
+    min-height: calc(100dvh - 80px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 2rem 1rem;
+
+    background: var(--bg);
+    color: var(--text-primary);
+}
+
+.card {
+    width: 100%;
+    max-width: 520px;
+
+    padding: 2rem;
+
+    text-align: center;
+
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+}
+
+.icon {
+    width: 56px;
+    height: 56px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto 1rem;
+
+    border: 2px solid var(--green);
+    border-radius: 50%;
+
+    color: var(--green);
+
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.card h1 {
+    margin: 0 0 1rem;
+
+    font-size: 1.6rem;
+}
+
+.card p {
+    margin: 0.6rem 0;
+
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.muted {
+    font-size: 0.92rem;
+    color: var(--text-muted) !important;
+}
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-top: 1.5rem;
+    padding: 0.8rem 1.2rem;
+
+    border-radius: 10px;
+
+    background: var(--green);
+    color: white;
+
+    font-weight: 700;
+    text-decoration: none;
+}
