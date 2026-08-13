@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { netsEasyConfig } from "@/lib/nets/config";
 import type { PreparedCheckout } from "@/lib/orders/prepareCheckout";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendOrderReceivedEmail } from "@/lib/email/orderEmails";
 
 type NetsChargeWebhook = {
   id?: unknown;
@@ -442,6 +443,44 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  let confirmationEmailSent = false;
+
+  try {
+    const origin = (process.env.SITE_URL ?? request.nextUrl.origin).replace(
+      /\/+$/,
+      "",
+    );
+
+    const receiptUrl = `${origin}/order/${encodeURIComponent(
+      String(order.public_token),
+    )}`;
+
+    await sendOrderReceivedEmail({
+      to: checkout.customerEmail,
+      customerName: checkout.customerName,
+      orderId: order.id,
+      receiptUrl,
+    });
+
+    confirmationEmailSent = true;
+
+    const { error: emailTimestampError } = await supabaseAdmin
+      .from("orders")
+      .update({
+        confirmation_email_sent_at: new Date().toISOString(),
+      })
+      .eq("id", order.id);
+
+    if (emailTimestampError) {
+      console.error(
+        "Confirmation email timestamp update failed:",
+        emailTimestampError,
+      );
+    }
+  } catch (emailError: unknown) {
+    console.error("Paid order confirmation email failed:", emailError);
+  }
+
   const now = new Date().toISOString();
 
   const { error: sessionUpdateError } = await supabaseAdmin
@@ -481,6 +520,7 @@ export async function POST(request: NextRequest) {
     {
       ok: true,
       order_id: order.id,
+      email_sent: confirmationEmailSent,
     },
     { status: 200 },
   );
