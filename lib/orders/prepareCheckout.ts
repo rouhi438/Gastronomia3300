@@ -311,20 +311,25 @@ export async function prepareCheckout(
   }
 
   const paymentMethod: CheckoutPaymentMethod = paymentMethodRaw;
+  const previewBypassEnabled =
+    process.env.VERCEL_ENV === "preview" &&
+    process.env.PREVIEW_BYPASS_SERVICE_HOURS === "true";
 
-  const serviceStatuses = await getStoreServiceStatuses();
-  const serviceStatus = serviceStatuses[deliveryMethod];
+  if (!previewBypassEnabled) {
+    const serviceStatuses = await getStoreServiceStatuses();
+    const serviceStatus = serviceStatuses[deliveryMethod];
 
-  const requestedTimeError = validateRequestedTime(
-    requestedTime,
-    serviceStatus,
-  );
+    const requestedTimeError = validateRequestedTime(
+      requestedTime,
+      serviceStatus,
+    );
 
-  if (requestedTimeError) {
-    return {
-      ok: false,
-      error: requestedTimeError,
-    };
+    if (requestedTimeError) {
+      return {
+        ok: false,
+        error: requestedTimeError,
+      };
+    }
   }
 
   const pricingResult = await prepareOrderPricing(
