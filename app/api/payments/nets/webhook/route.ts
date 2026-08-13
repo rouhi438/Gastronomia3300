@@ -251,7 +251,9 @@ export async function POST(request: NextRequest) {
 
   const { data: existingOrder, error: existingOrderError } = await supabaseAdmin
     .from("orders")
-    .select("id")
+    .select(
+      "id, public_token, customer_email, customer_name, confirmation_email_sent_at",
+    )
     .eq("checkout_session_id", checkoutSession.id)
     .maybeSingle();
 
@@ -267,23 +269,97 @@ export async function POST(request: NextRequest) {
   }
 
   if (existingOrder) {
-    await supabaseAdmin
+    let confirmationEmailSent =
+      existingOrder.confirmation_email_sent_at !== null;
+
+    if (!confirmationEmailSent) {
+      try {
+        if (
+          typeof existingOrder.public_token !== "string" ||
+          existingOrder.public_token.trim() === "" ||
+          typeof existingOrder.customer_email !== "string" ||
+          existingOrder.customer_email.trim() === "" ||
+          typeof existingOrder.customer_name !== "string" ||
+          existingOrder.customer_name.trim() === ""
+        ) {
+          throw new Error(
+            "Existing paid order is missing confirmation email data.",
+          );
+        }
+
+        const origin = (process.env.SITE_URL ?? request.nextUrl.origin).replace(
+          /\/+$/,
+          "",
+        );
+
+        const receiptUrl = `${origin}/order/${encodeURIComponent(
+          existingOrder.public_token,
+        )}`;
+
+        await sendOrderReceivedEmail({
+          to: existingOrder.customer_email,
+          customerName: existingOrder.customer_name,
+          orderId: existingOrder.id,
+          receiptUrl,
+        });
+
+        confirmationEmailSent = true;
+
+        const { error: emailTimestampError } = await supabaseAdmin
+          .from("orders")
+          .update({
+            confirmation_email_sent_at: new Date().toISOString(),
+          })
+          .eq("id", existingOrder.id);
+
+        if (emailTimestampError) {
+          console.error(
+            "Duplicate confirmation email timestamp update failed:",
+            emailTimestampError,
+          );
+        }
+      } catch (emailError: unknown) {
+        console.error(
+          "Duplicate paid order confirmation email failed:",
+          emailError,
+        );
+      }
+    }
+
+    const now = new Date().toISOString();
+
+    const { error: duplicateSessionUpdateError } = await supabaseAdmin
       .from("checkout_sessions")
       .update({
         status: "completed",
         nets_charge_id: chargeId,
         nets_payment_method: paymentMethod,
-        paid_at: new Date().toISOString(),
-        completed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        paid_at: now,
+        completed_at: now,
+        updated_at: now,
       })
       .eq("id", checkoutSession.id);
+
+    if (duplicateSessionUpdateError) {
+      console.error(
+        "Duplicate checkout session update failed:",
+        duplicateSessionUpdateError,
+      );
+
+      return NextResponse.json(
+        {
+          error: "Failed to finalize checkout session",
+        },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json(
       {
         ok: true,
         duplicate: true,
         order_id: existingOrder.id,
+        email_sent: confirmationEmailSent,
       },
       { status: 200 },
     );
