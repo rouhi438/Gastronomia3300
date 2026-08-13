@@ -204,10 +204,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const origin = (process.env.SITE_URL ?? request.nextUrl.origin).replace(
-      /\/+$/,
-      "",
-    );
+    const isVercelPreview = process.env.VERCEL_ENV === "preview";
+
+    const origin = (
+      isVercelPreview
+        ? request.nextUrl.origin
+        : (process.env.SITE_URL ?? request.nextUrl.origin)
+    ).replace(/\/+$/, "");
+
+    const webhookUrl = new URL("/api/payments/nets/webhook", origin);
+
+    const vercelBypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+
+    if (isVercelPreview && vercelBypassSecret) {
+      webhookUrl.searchParams.set(
+        "x-vercel-protection-bypass",
+        vercelBypassSecret,
+      );
+    }
 
     const paymentMethodsConfiguration =
       checkout.paymentMethod === "mobilepay"
@@ -273,7 +287,7 @@ export async function POST(request: NextRequest) {
         webHooks: [
           {
             eventName: "payment.charge.created.v2",
-            url: `${origin}/api/payments/nets/webhook`,
+            url: webhookUrl.toString(),
             authorization: netsEasyConfig.webhookAuthorization,
           },
         ],
