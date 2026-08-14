@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { CheckCircle2, Clock3, RefreshCw, XCircle } from "lucide-react";
 
@@ -265,7 +266,16 @@ export default function CustomerOrderPage() {
       </section>
 
       <OrderReceipt order={order} />
-
+      {order.status === "accepted" && (
+        <div className={styles.orderActions}>
+          <Link
+            href="/menu"
+            className={`btn-primary ${styles.backToMenuButton}`}
+          >
+            Tilbage til menuen
+          </Link>
+        </div>
+      )}
       {order.status === "pending" && (
         <p className={styles.autoUpdate}>
           Ordrestatus opdateres automatisk hvert 5. sekund.
