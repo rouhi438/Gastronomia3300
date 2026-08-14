@@ -857,7 +857,7 @@ export const menuData: MenuItem[] = [
     description: "Sauce til pommes frites",
     category: "dyppelse",
     prices: { fixed: 10 },
-    image: "",
+    image: "/images/deep-1.webp",
     extraGroupId: "none",
   },
   {
@@ -866,7 +866,7 @@ export const menuData: MenuItem[] = [
     description: "Sauce til pommes frites",
     category: "dyppelse",
     prices: { fixed: 10 },
-    image: "",
+    image: "/images/deep-2.webp",
     extraGroupId: "none",
   },
   {
@@ -875,7 +875,7 @@ export const menuData: MenuItem[] = [
     description: "Sauce til pommes frites",
     category: "dyppelse",
     prices: { fixed: 10 },
-    image: "",
+    image: "/images/deep-3.webp",
     extraGroupId: "none",
   },
   {
@@ -884,7 +884,7 @@ export const menuData: MenuItem[] = [
     description: "Sauce til pommes frites",
     category: "dyppelse",
     prices: { fixed: 10 },
-    image: "",
+    image: "/images/deep-4.webp",
     extraGroupId: "none",
   },
   {
@@ -893,7 +893,7 @@ export const menuData: MenuItem[] = [
     description: "Sauce til pommes frites",
     category: "dyppelse",
     prices: { fixed: 12 },
-    image: "",
+    image: "/images/deep-5.webp",
     extraGroupId: "none",
   },
   {
@@ -902,7 +902,7 @@ export const menuData: MenuItem[] = [
     description: "Sauce til pommes frites",
     category: "dyppelse",
     prices: { fixed: 12 },
-    image: "",
+    image: "/images/deep-6.webp",
     extraGroupId: "none",
   },
 
