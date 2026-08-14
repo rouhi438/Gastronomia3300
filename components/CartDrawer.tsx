@@ -24,7 +24,7 @@ import { createClient } from "@/lib/supabase/client";
 
 import AddressAutocomplete from "./AddressAutocomplete";
 import ItemModal, { type SizeOption } from "./ItemModal";
-
+import { MIN_DELIVERY_TOTAL } from "@/lib/orders/constants";
 import styles from "./CartDrawer.module.css";
 
 const supabase = createClient();
@@ -38,6 +38,7 @@ type DrawerStep = "cart" | "details";
 interface CustomerDetails {
   name: string;
   phone: string;
+  email: string;
 }
 
 type ServiceType = "pickup" | "delivery";
@@ -65,6 +66,7 @@ type ServiceStatuses = Record<ServiceType, ServiceStatus>;
 const EMPTY_CUSTOMER_DETAILS: CustomerDetails = {
   name: "",
   phone: "",
+  email: "",
 };
 
 const CUSTOMER_STORAGE_KEY = "checkout-customer-details";
@@ -191,6 +193,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const [hasLoadedCustomer, setHasLoadedCustomer] = useState(false);
 
   const [formError, setFormError] = useState("");
+  const [minimumOrderError, setMinimumOrderError] = useState("");
 
   const [serviceStatuses, setServiceStatuses] =
     useState<ServiceStatuses | null>(null);
@@ -257,6 +260,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         setCustomerDetails({
           name: typeof parsed.name === "string" ? parsed.name : "",
           phone: typeof parsed.phone === "string" ? parsed.phone : "",
+          email: typeof parsed.email === "string" ? parsed.email : "",
         });
       } catch {
         localStorage.removeItem(CUSTOMER_STORAGE_KEY);
@@ -331,6 +335,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       setCustomerDetails((current) => ({
         name: resolvedName || current.name,
         phone: resolvedPhone || current.phone,
+        email: user.email || current.email,
       }));
     };
 
@@ -444,33 +449,6 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     setInitialSize("normal");
   };
 
-  // const selectDeliveryMethod = async (method: "pickup" | "delivery") => {
-  //   setFormError("");
-
-  //   try {
-  //     const response = await fetch("/api/store/service-status", {
-  //       cache: "no-store",
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error("Could not load store service status.");
-  //     }
-
-  //     const statuses = (await response.json()) as ServiceStatuses;
-
-  //     setServiceStatuses(statuses);
-  //     setDeliveryMethod(method);
-  //     setStep("details");
-  //   } catch (error) {
-  //     console.error("Failed to load service status:", error);
-
-  //     setServiceStatuses(null);
-  //     setDeliveryMethod(method);
-  //     setFormError("Kunne ikke hente restaurantens åbningstider.");
-  //     setStep("details");
-  //   }
-  // };
-
   const selectDeliveryMethod = async (method: "pickup" | "delivery") => {
     setFormError("");
 
@@ -515,6 +493,15 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     event.preventDefault();
     setFormError("");
 
+    if (deliveryMethod === "delivery" && totalPrice < MIN_DELIVERY_TOTAL) {
+      setMinimumOrderError(
+        `Minimumsbestilling for levering er ${MIN_DELIVERY_TOTAL} kr. Du mangler ${
+          MIN_DELIVERY_TOTAL - totalPrice
+        } kr.`,
+      );
+
+      return;
+    }
     if (!customerDetails.name.trim()) {
       setFormError("Indtast dit navn.");
       return;
@@ -546,6 +533,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       JSON.stringify({
         name: customerDetails.name.trim(),
         phone: customerDetails.phone.trim(),
+        email: customerDetails.email.trim(),
         orderNote: orderNote.trim(),
       }),
     );
@@ -705,6 +693,33 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         initialSize={initialSize}
         editingCartId={editingCartId}
       />
+      {minimumOrderError && (
+        <div
+          className={styles.minimumOrderOverlay}
+          role="presentation"
+          onClick={() => setMinimumOrderError("")}
+        >
+          <div
+            className={styles.minimumOrderModal}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="minimum-order-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2 id="minimum-order-title">Minimumsbestilling</h2>
+
+            <p>{minimumOrderError}</p>
+
+            <button
+              type="button"
+              className={styles.minimumOrderButton}
+              onClick={() => setMinimumOrderError("")}
+            >
+              Fortsæt med at bestille
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

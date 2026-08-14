@@ -8,6 +8,8 @@ import {
   type StoreServiceStatus,
 } from "@/lib/store/getStoreStatus";
 
+import { MIN_DELIVERY_TOTAL } from "@/lib/orders/constants";
+
 type CreateCheckoutRequest = {
   delivery_method?: unknown;
   payment_method?: unknown;
@@ -344,7 +346,15 @@ export async function prepareCheckout(
       error: pricingResult.error,
     };
   }
-
+  if (
+    deliveryMethod === "delivery" &&
+    pricingResult.data.totalPrice < MIN_DELIVERY_TOTAL
+  ) {
+    return {
+      ok: false,
+      error: `Minimumsbestilling for levering er ${MIN_DELIVERY_TOTAL} kr.`,
+    };
+  }
   return {
     ok: true,
     data: {
