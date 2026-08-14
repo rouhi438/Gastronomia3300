@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 
 import { useCart } from "@/context/CartContext";
-
 import styles from "./checkout.module.css";
 
 type PaymentMethod = "mobilepay" | "card";
@@ -43,7 +42,6 @@ export default function CheckoutPage() {
     bagIncluded,
 
     deliveryMethod,
-    setDeliveryMethod,
     deliveryAddress,
 
     requestedTime,
@@ -348,37 +346,40 @@ export default function CheckoutPage() {
                 />
               </div>
             </div>
-
             <div className={styles.section}>
-              <h3>Levering</h3>
+              <div className={styles.deliverySummaryHeader}>
+                <h3>Leveringsmetode</h3>
 
-              <div className={styles.options}>
-                <button
-                  type="button"
-                  className={`${styles.optionBtn} ${
-                    deliveryMethod === "pickup" ? styles.active : ""
-                  }`}
-                  onClick={() => setDeliveryMethod("pickup")}
-                  aria-pressed={deliveryMethod === "pickup"}
+                <Link
+                  href="/menu?cart=open"
+                  className={styles.changeDeliveryLink}
                 >
-                  <Home size={20} />
-                  <span>Afhentning</span>
-                </button>
+                  Skift
+                </Link>
+              </div>
 
-                <button
-                  type="button"
-                  className={`${styles.optionBtn} ${
-                    deliveryMethod === "delivery" ? styles.active : ""
-                  }`}
-                  onClick={() => setDeliveryMethod("delivery")}
-                  aria-pressed={deliveryMethod === "delivery"}
-                >
-                  <Truck size={20} />
-                  <span>Levering</span>
-                </button>
+              <div className={styles.deliverySummaryCard}>
+                <div className={styles.deliverySummaryIcon}>
+                  {deliveryMethod === "pickup" ? (
+                    <Home size={21} />
+                  ) : (
+                    <Truck size={21} />
+                  )}
+                </div>
+
+                <div className={styles.deliverySummaryText}>
+                  <strong>
+                    {deliveryMethod === "pickup" ? "Afhentning" : "Levering"}
+                  </strong>
+
+                  <span>
+                    {deliveryMethod === "pickup"
+                      ? "Du henter selv ordren hos Gastronomia 3300."
+                      : "Ordren leveres til adressen valgt i kurven."}
+                  </span>
+                </div>
               </div>
             </div>
-
             <div className={styles.section}>
               <h3>Betaling</h3>
 
