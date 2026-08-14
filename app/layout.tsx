@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Providers } from "./providers";
 import { CartProvider } from "@/context/CartContext";
 import { CartUIProvider } from "@/context/CartUIContext";
@@ -6,7 +6,16 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Gastronomia 3300",
-  description: " Authentic Italian Pizza ",
+  description: "Bestil pizza online hos Gastronomia 3300.",
+  appleWebApp: {
+    capable: true,
+    title: "Gastronomia 3300",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({
