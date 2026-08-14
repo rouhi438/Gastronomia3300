@@ -143,6 +143,22 @@
     color: #c7352b;
 }
 
+.orderActions {
+    display: flex;
+    justify-content: center;
+
+    width: 100%;
+    max-width: 760px;
+    margin: 1.25rem auto 0;
+}
+
+.backToMenuButton {
+    min-width: 220px;
+
+    text-align: center;
+    text-decoration: none;
+}
+
 @keyframes spin {
     to {
         transform: rotate(360deg);
@@ -170,12 +186,22 @@
         top: 0.8rem;
         right: 0.8rem;
     }
+
+    .orderActions {
+        margin-top: 1rem;
+    }
+
+    .backToMenuButton {
+        width: 100%;
+        min-width: 0;
+    }
 }
 
 @media print {
 
     .statusCard,
-    .autoUpdate {
+    .autoUpdate,
+    .orderActions {
         display: none !important;
     }
 }

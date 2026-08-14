@@ -2,7 +2,6 @@
 
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   CreditCard,
   Home,
@@ -24,10 +23,10 @@ interface CheckoutForm {
   email: string;
 }
 
-interface CreateOrderResponse {
-  order_id?: number;
-  public_token?: string;
-  email_sent?: boolean;
+interface CreatePaymentResponse {
+  checkout_session_id?: string;
+  payment_id?: string;
+  payment_url?: string;
   error?: string;
 }
 
@@ -38,13 +37,10 @@ const initialForm: CheckoutForm = {
 };
 
 export default function CheckoutPage() {
-  const router = useRouter();
-
   const {
     items,
     totalPrice,
     bagIncluded,
-    clearCart,
 
     deliveryMethod,
     setDeliveryMethod,
@@ -224,7 +220,7 @@ export default function CheckoutPage() {
         items: orderItems,
       };
 
-      const response = await fetch("/api/orders", {
+      const response = await fetch("/api/payments/create", {
         method: "POST",
 
         headers: {
@@ -234,44 +230,27 @@ export default function CheckoutPage() {
         body: JSON.stringify(orderData),
       });
 
-      const result = (await response.json()) as CreateOrderResponse;
+      const result = (await response.json()) as CreatePaymentResponse;
 
       if (!response.ok) {
-        throw new Error(result.error || "Failed to create order");
+        throw new Error(result.error || "Betalingen kunne ikke startes.");
       }
 
-      if (typeof result.order_id !== "number") {
-        throw new Error("Ordren blev oprettet uden et gyldigt ordre-id.");
-      }
       if (
-        typeof result.public_token !== "string" ||
-        result.public_token.trim() === ""
+        typeof result.payment_url !== "string" ||
+        result.payment_url.trim() === ""
       ) {
         throw new Error(
-          "Ordren blev oprettet uden et gyldigt link til kvitteringen.",
+          "Betalingen blev oprettet uden et gyldigt betalingslink.",
         );
       }
-      const receiptToken = result.public_token.trim();
 
-      clearCart();
-
-      localStorage.removeItem("checkout-customer");
-      localStorage.removeItem("checkout-customer-details");
-      localStorage.removeItem("checkout-order-note");
-
-      setOrderNote("");
-      setForm(initialForm);
-
-      const emailStatus = result.email_sent === true ? "sent" : "failed";
-
-      router.replace(
-        `/order/${encodeURIComponent(receiptToken)}?email=${emailStatus}`,
-      );
+      window.location.assign(result.payment_url);
     } catch (error: unknown) {
       const message =
         error instanceof Error
           ? error.message
-          : "Ukendt fejl ved oprettelse af ordre";
+          : "Ukendt fejl ved opstart af betaling";
 
       setSubmitError(message);
     } finally {
