@@ -2009,6 +2009,55 @@
     cursor: pointer;
 }
 
+.deliveryAreaError {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+
+    margin-top: 0.75rem;
+    padding: 0.95rem 1rem;
+
+    color: var(--red);
+    background: color-mix(in srgb, var(--red) 7%, var(--bg-card));
+
+    border: 1px solid color-mix(in srgb, var(--red) 28%, transparent);
+    border-radius: 16px;
+
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.deliveryAreaError>svg {
+    flex: 0 0 auto;
+
+    margin-top: 0.1rem;
+
+    color: var(--red);
+}
+
+.deliveryAreaError>div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    min-width: 0;
+}
+
+.deliveryAreaError strong {
+    color: var(--red);
+
+    font-size: 0.9rem;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.deliveryAreaError span {
+    color: var(--text-secondary);
+
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
 :global(.dark) .timeStatusBox {
     color: #fbbf24;
     background: rgba(245, 158, 11, 0.08);

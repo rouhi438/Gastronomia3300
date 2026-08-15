@@ -25,6 +25,10 @@ import { createClient } from "@/lib/supabase/client";
 import AddressAutocomplete from "./AddressAutocomplete";
 import ItemModal, { type SizeOption } from "./ItemModal";
 import { MIN_DELIVERY_TOTAL } from "@/lib/orders/constants";
+import {
+  MAX_DELIVERY_DISTANCE_KM,
+  validateDeliveryDistance,
+} from "@/lib/delivery";
 import styles from "./CartDrawer.module.css";
 
 const supabase = createClient();
@@ -388,6 +392,21 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     }
   }, [isOpen]);
 
+  const deliveryDistance = useMemo(() => {
+    if (
+      deliveryMethod !== "delivery" ||
+      deliveryAddress.latitude === null ||
+      deliveryAddress.longitude === null
+    ) {
+      return null;
+    }
+
+    return validateDeliveryDistance({
+      latitude: deliveryAddress.latitude,
+      longitude: deliveryAddress.longitude,
+    });
+  }, [deliveryAddress.latitude, deliveryAddress.longitude, deliveryMethod]);
+
   const canSubmit = useMemo(() => {
     if (!selectedServiceStatus?.canOrder) return false;
 
@@ -401,7 +420,8 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         deliveryAddress.city &&
         deliveryAddress.placeId &&
         deliveryAddress.latitude !== null &&
-        deliveryAddress.longitude !== null,
+        deliveryAddress.longitude !== null &&
+        deliveryDistance?.isWithinDeliveryArea,
       );
     }
 
@@ -410,6 +430,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     customerDetails,
     deliveryAddress,
     deliveryMethod,
+    deliveryDistance,
     selectedServiceStatus?.canOrder,
   ]);
 
@@ -525,6 +546,18 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         deliveryAddress.longitude === null)
     ) {
       setFormError("Adressen mangler nødvendige oplysninger. Vælg den igen.");
+      return;
+    }
+
+    if (
+      deliveryMethod === "delivery" &&
+      deliveryDistance &&
+      !deliveryDistance.isWithinDeliveryArea
+    ) {
+      setFormError(
+        `Leveringsadressen ligger uden for vores leveringsområde på ${MAX_DELIVERY_DISTANCE_KM} km.`,
+      );
+
       return;
     }
 
@@ -655,6 +688,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     requestedTime={requestedTime}
                     availableTimes={availableTimes}
                     isAsapAvailable={isAsapAvailable}
+                    deliveryDistance={deliveryDistance}
                     serviceStatusMessage={
                       selectedServiceStatus?.message ?? null
                     }
@@ -1114,6 +1148,7 @@ interface DetailsStepProps {
 
   customerDetails: CustomerDetails;
   deliveryAddress: ReturnType<typeof useCart>["deliveryAddress"];
+  deliveryDistance: ReturnType<typeof validateDeliveryDistance> | null;
   isLoggedIn: boolean;
   loggedInLabel: string;
   formError: string;
@@ -1137,6 +1172,7 @@ function DetailsStep({
   onRequestedTimeChange,
   customerDetails,
   deliveryAddress,
+  deliveryDistance,
   isAsapAvailable,
   serviceStatusMessage,
   isLoggedIn,
@@ -1370,6 +1406,22 @@ function DetailsStep({
 
                   <span>
                     {deliveryAddress.postalCode} {deliveryAddress.city}
+                  </span>
+                </div>
+              </div>
+            )}
+            {deliveryDistance && !deliveryDistance.isWithinDeliveryArea && (
+              <div className={styles.deliveryAreaError} role="alert">
+                <Truck size={20} />
+
+                <div>
+                  <strong>Adressen er uden for leveringsområdet</strong>
+
+                  <span>
+                    Vi leverer inden for {MAX_DELIVERY_DISTANCE_KM} km fra
+                    restauranten. Den valgte adresse ligger ca.{" "}
+                    {deliveryDistance.distanceKm.toFixed(1).replace(".", ",")}{" "}
+                    km væk.
                   </span>
                 </div>
               </div>
