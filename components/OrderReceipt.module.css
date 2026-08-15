@@ -376,6 +376,10 @@
     font-size: 9px;
 }
 
+.previousOrders {
+    display: none;
+}
+
 /* ===== TABLET ===== */
 
 @media (max-width: 700px) {
@@ -640,5 +644,9 @@
 
     .noPrint {
         display: none !important;
+    }
+
+    .previousOrders {
+        display: block;
     }
 }

@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 import { FcGoogle } from "react-icons/fc";
-import { FaApple, FaFacebookF } from "react-icons/fa";
+import { FaFacebookF } from "react-icons/fa";
+// import { FaApple } from "react-icons/fa";
 import { Eye, EyeOff, LockKeyhole, Mail, Phone, User } from "lucide-react";
 import styles from "./auth.module.css";
 
@@ -206,7 +207,7 @@ export default function AuthPage() {
           </button>
 
           <div className={styles.oauthGrid}>
-            <button
+            {/* <button
               type="button"
               className={styles.oauthButton}
               onClick={() => handleOAuthLogin("apple")}
@@ -214,7 +215,7 @@ export default function AuthPage() {
             >
               <FaApple size={20} aria-hidden="true" />
               <span>Apple</span>
-            </button>
+            </button> */}
 
             <button
               type="button"
