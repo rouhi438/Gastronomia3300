@@ -74,9 +74,32 @@ export async function GET() {
       return NextResponse.json({ error: ordersError.message }, { status: 500 });
     }
 
+    const previousOrderCounts = new Map<string, number>();
+
+    const ordersWithHistory = [...(orders ?? [])]
+      .reverse()
+      .map((order) => {
+        if (!order.user_id) {
+          return {
+            ...order,
+            previous_orders_count: null,
+          };
+        }
+
+        const previousOrdersCount = previousOrderCounts.get(order.user_id) ?? 0;
+
+        previousOrderCounts.set(order.user_id, previousOrdersCount + 1);
+
+        return {
+          ...order,
+          previous_orders_count: previousOrdersCount,
+        };
+      })
+      .reverse();
+
     return NextResponse.json(
       {
-        orders: orders ?? [],
+        orders: ordersWithHistory,
       },
       { status: 200 },
     );

@@ -49,6 +49,7 @@ interface Order {
 
   status: string;
   order_items: OrderItem[];
+  previous_orders_count: number | null;
 }
 
 interface OrdersResponse {
@@ -244,7 +245,10 @@ export default function OrderAcceptedPage() {
         </button>
       </div>
 
-      <OrderReceipt order={receiptOrder} />
+      <OrderReceipt
+        order={receiptOrder}
+        previousOrdersCount={order.previous_orders_count}
+      />
     </div>
   );
 }

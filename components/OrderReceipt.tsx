@@ -47,6 +47,7 @@ interface OrderReceiptProps {
     status: string;
     order_items: OrderItem[];
   };
+  previousOrdersCount?: number | null;
 }
 
 interface ReceiptExtra {
@@ -285,7 +286,10 @@ function getPaymentLabel(paymentMethod?: string | null) {
   }
 }
 
-export default function OrderReceipt({ order }: OrderReceiptProps) {
+export default function OrderReceipt({
+  order,
+  previousOrdersCount,
+}: OrderReceiptProps) {
   const orderDate = new Date(order.created_at).toLocaleString("da-DK", {
     timeZone: "Europe/Copenhagen",
     day: "2-digit",
@@ -517,6 +521,11 @@ export default function OrderReceipt({ order }: OrderReceiptProps) {
           <strong>Tlf:</strong> {order.customer_phone}
         </p>
 
+        {typeof previousOrdersCount === "number" && (
+          <p className={styles.previousOrders}>
+            <strong>Tidligere ordrer:</strong> {previousOrdersCount}
+          </p>
+        )}
         {order.customer_email && (
           <p>
             <strong>E-mail:</strong> {order.customer_email}
