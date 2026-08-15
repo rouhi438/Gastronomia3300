@@ -7,8 +7,8 @@ export interface Coordinates {
 }
 
 export const RESTAURANT_COORDINATES: Coordinates = {
-  latitude: 0,
-  longitude: 0,
+  latitude: 55.966204,
+  longitude: 12.02907,
 };
 
 const EARTH_RADIUS_KM = 6371;

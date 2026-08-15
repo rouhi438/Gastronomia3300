@@ -9,6 +9,10 @@ import {
 } from "@/lib/store/getStoreStatus";
 
 import { MIN_DELIVERY_TOTAL } from "@/lib/orders/constants";
+import {
+  MAX_DELIVERY_DISTANCE_KM,
+  validateDeliveryDistance,
+} from "@/lib/delivery";
 
 type CreateCheckoutRequest = {
   delivery_method?: unknown;
@@ -277,6 +281,8 @@ export async function prepareCheckout(
       !customerPostalCode ||
       !customerCity ||
       !customerPlaceId ||
+      typeof customerLatitude !== "number" ||
+      typeof customerLongitude !== "number" ||
       !isValidLatitude(customerLatitude) ||
       !isValidLongitude(customerLongitude)
     ) {
@@ -290,6 +296,17 @@ export async function prepareCheckout(
       return {
         ok: false,
         error: "Invalid postal code",
+      };
+    }
+    const deliveryDistance = validateDeliveryDistance({
+      latitude: customerLatitude,
+      longitude: customerLongitude,
+    });
+
+    if (!deliveryDistance.isWithinDeliveryArea) {
+      return {
+        ok: false,
+        error: `Leveringsadressen ligger uden for vores leveringsområde på ${MAX_DELIVERY_DISTANCE_KM} km.`,
       };
     }
   }
