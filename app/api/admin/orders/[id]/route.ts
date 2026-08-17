@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { refundNetsCharge } from "@/lib/nets/refundCharge";
+import { sendOrderRejectedEmail } from "@/lib/email/orderEmails";
 
 const VALID_STATUSES = [
   "pending",
@@ -16,6 +17,7 @@ type OrderStatus = (typeof VALID_STATUSES)[number];
 type UpdateOrderBody = {
   status?: string;
   estimated_time?: number | string | null;
+  cancel_reason?: string;
 };
 
 async function requireAdmin() {
@@ -64,6 +66,9 @@ export async function PATCH(
     const body = (await request.json()) as UpdateOrderBody;
     const status = body.status?.trim().toLowerCase();
 
+    const cancelReason =
+      typeof body.cancel_reason === "string" ? body.cancel_reason.trim() : "";
+
     const estimatedTime =
       body.estimated_time === null ||
       body.estimated_time === undefined ||
@@ -80,6 +85,13 @@ export async function PATCH(
 
     if (!VALID_STATUSES.includes(status as OrderStatus)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    }
+
+    if (status === "cancelled" && !cancelReason) {
+      return NextResponse.json(
+        { error: "Cancellation reason is required" },
+        { status: 400 },
+      );
     }
 
     if (status === "accepted") {
@@ -161,14 +173,20 @@ export async function PATCH(
     const updateData: {
       status: OrderStatus;
       estimated_time?: number | null;
+      cancel_reason?: string | null;
     } = {
       status: status as OrderStatus,
     };
 
     if (status === "accepted") {
       updateData.estimated_time = estimatedTime;
+      updateData.cancel_reason = null;
     } else {
       updateData.estimated_time = null;
+    }
+
+    if (status === "cancelled") {
+      updateData.cancel_reason = cancelReason;
     }
 
     /*
@@ -760,6 +778,44 @@ export async function PATCH(
         },
         { status: 409 },
       );
+    }
+
+    if (status === "cancelled" && !updatedOrder.rejected_email_sent_at) {
+      try {
+        const origin = (process.env.SITE_URL ?? request.nextUrl.origin).replace(
+          /\/+$/,
+          "",
+        );
+
+        const receiptUrl = `${origin}/order/${encodeURIComponent(
+          String(updatedOrder.public_token),
+        )}`;
+
+        await sendOrderRejectedEmail({
+          to: updatedOrder.customer_email,
+          customerName: updatedOrder.customer_name,
+          orderId: updatedOrder.id,
+          receiptUrl,
+          cancelReason: updatedOrder.cancel_reason,
+        });
+
+        const { error: emailTimestampError } = await supabaseAdmin
+          .from("orders")
+          .update({
+            rejected_email_sent_at: new Date().toISOString(),
+          })
+          .eq("id", updatedOrder.id)
+          .is("rejected_email_sent_at", null);
+
+        if (emailTimestampError) {
+          console.error(
+            "Rejected email timestamp update failed:",
+            emailTimestampError,
+          );
+        }
+      } catch (emailError: unknown) {
+        console.error("Rejected order email failed:", emailError);
+      }
     }
 
     return NextResponse.json({ order: updatedOrder }, { status: 200 });
