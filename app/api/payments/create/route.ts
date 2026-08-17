@@ -290,6 +290,21 @@ export async function POST(request: NextRequest) {
             url: webhookUrl.toString(),
             authorization: netsEasyConfig.webhookAuthorization,
           },
+          {
+            eventName: "payment.refund.initiated",
+            url: webhookUrl.toString(),
+            authorization: netsEasyConfig.webhookAuthorization,
+          },
+          {
+            eventName: "payment.refund.completed",
+            url: webhookUrl.toString(),
+            authorization: netsEasyConfig.webhookAuthorization,
+          },
+          {
+            eventName: "payment.refund.failed",
+            url: webhookUrl.toString(),
+            authorization: netsEasyConfig.webhookAuthorization,
+          },
         ],
       },
 
