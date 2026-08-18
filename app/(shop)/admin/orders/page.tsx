@@ -6,6 +6,8 @@ import styles from "./admin.module.css";
 
 type OrderStatus = "pending" | "accepted" | "ready" | "completed" | "cancelled";
 
+type RefundStatus = "pending" | "completed" | "failed";
+
 type DateFilter = "today" | "yesterday" | "lastWeek" | "lastMonth";
 
 interface OrderItem {
@@ -26,6 +28,8 @@ interface Order {
   requested_time: string;
   total_price: number;
   status: OrderStatus;
+  refund_status: RefundStatus | null;
+  refund_amount_minor: number | null;
   estimated_time: number | null;
   created_at: string;
   delivery_method: "pickup" | "delivery";
@@ -48,6 +52,12 @@ const statusLabels: Record<OrderStatus, string> = {
   ready: "Klar",
   completed: "Leveret",
   cancelled: "Annulleret",
+};
+
+const refundStatusLabels: Record<RefundStatus, string> = {
+  pending: "Refund afventer",
+  completed: "Refund gennemført",
+  failed: "Refund mislykkedes",
 };
 
 function formatRequestedTime(requestedTime: string | null | undefined) {
@@ -110,22 +120,6 @@ function isOrderInFilter(createdAt: string, filter: DateFilter) {
   );
 }
 
-function formatOrderItems(orderItems: OrderItem[]) {
-  const visibleItems = orderItems.slice(0, 2);
-
-  const formattedItems = visibleItems
-    .map((item) => `${item.quantity}× ${item.item_name}`)
-    .join(", ");
-
-  const remainingItems = orderItems.length - visibleItems.length;
-
-  if (remainingItems > 0) {
-    return `${formattedItems} +${remainingItems}`;
-  }
-
-  return formattedItems;
-}
-
 export default function AdminOrdersPage() {
   const router = useRouter();
 
@@ -164,11 +158,16 @@ export default function AdminOrdersPage() {
   }, [router]);
 
   useEffect(() => {
-    fetchOrders();
+    const initialFetch = window.setTimeout(() => {
+      void fetchOrders();
+    }, 0);
 
-    const interval = window.setInterval(fetchOrders, 15_000);
+    const interval = window.setInterval(() => {
+      void fetchOrders();
+    }, 15_000);
 
     return () => {
+      window.clearTimeout(initialFetch);
       window.clearInterval(interval);
     };
   }, [fetchOrders]);
@@ -238,10 +237,6 @@ export default function AdminOrdersPage() {
       ) : (
         <section className={styles.orderList}>
           {filteredOrders.map((order) => {
-            const itemSummary = formatOrderItems(order.order_items);
-
-            const extraItemsCount = Math.max(order.order_items.length - 2, 0);
-
             return (
               <button
                 key={order.id}
@@ -288,6 +283,28 @@ export default function AdminOrdersPage() {
                     >
                       {statusLabels[order.status]}
                     </span>
+                    {order.refund_status && (
+                      <span
+                        className={`${styles.statusBadge} ${
+                          order.refund_status === "completed"
+                            ? styles.statusBadge_accepted
+                            : order.refund_status === "failed"
+                              ? styles.statusBadge_cancelled
+                              : styles.statusBadge_pending
+                        }`}
+                      >
+                        {refundStatusLabels[order.refund_status]}
+
+                        {typeof order.refund_amount_minor === "number"
+                          ? ` · ${(
+                              order.refund_amount_minor / 100
+                            ).toLocaleString("da-DK", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })} kr.`
+                          : ""}
+                      </span>
+                    )}
                   </span>
 
                   <span className={styles.customerName}>
@@ -298,13 +315,6 @@ export default function AdminOrdersPage() {
                     {formatRequestedTime(order.requested_time)}
                   </span>
 
-                  {itemSummary && (
-                    <span className={styles.itemsSummary}>
-                      {itemSummary}
-
-                      {extraItemsCount > 0 && ` +${extraItemsCount}`}
-                    </span>
-                  )}
                   {order.order_note && (
                     <span className={styles.orderNote}>
                       Kommentar: {order.order_note}
