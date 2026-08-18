@@ -9,6 +9,8 @@ import styles from "./order-accepted.module.css";
 
 type MoneyValue = number | string | null | undefined;
 
+type RefundStatus = "pending" | "completed" | "failed";
+
 interface OrderItem {
   id: number;
   item_name: string;
@@ -48,6 +50,10 @@ interface Order {
   total_price: MoneyValue;
 
   status: string;
+  refund_status: RefundStatus | null;
+  refund_amount_minor: number | null;
+  refund_error: string | null;
+  nets_charge_id: string | null;
   order_items: OrderItem[];
   previous_orders_count: number | null;
 }
@@ -56,6 +62,12 @@ interface OrdersResponse {
   orders?: Order[];
   error?: string;
 }
+
+const refundStatusLabels: Record<RefundStatus, string> = {
+  pending: "Refund afventer",
+  completed: "Refund gennemført",
+  failed: "Refund mislykkedes",
+};
 
 export default function OrderAcceptedPage() {
   const router = useRouter();
@@ -161,7 +173,7 @@ export default function OrderAcceptedPage() {
   };
 
   const handleGoBack = () => {
-    router.push("/admin/new-order");
+    router.push(isViewMode ? "/admin/orders" : "/admin/new-order");
   };
 
   if (loading) {
@@ -244,6 +256,73 @@ export default function OrderAcceptedPage() {
           Tilbage til oversigt
         </button>
       </div>
+
+      {order.refund_status && (
+        <section
+          className={`${styles.refundPanel} ${
+            order.refund_status === "completed"
+              ? styles.refundCompleted
+              : order.refund_status === "failed"
+                ? styles.refundFailed
+                : styles.refundPending
+          } noPrint`}
+          role={order.refund_status === "failed" ? "alert" : "status"}
+        >
+          <div className={styles.refundHeader}>
+            <div>
+              <span className={styles.refundLabel}>Tilbagebetaling</span>
+
+              <strong className={styles.refundTitle}>
+                {refundStatusLabels[order.refund_status]}
+              </strong>
+            </div>
+
+            {typeof order.refund_amount_minor === "number" && (
+              <strong className={styles.refundAmount}>
+                {(order.refund_amount_minor / 100).toLocaleString("da-DK", {
+                  style: "currency",
+                  currency: "DKK",
+                })}
+              </strong>
+            )}
+          </div>
+
+          <p className={styles.refundMessage}>
+            {order.refund_status === "completed"
+              ? "Refunderingen er gennemført hos Nexi."
+              : order.refund_status === "failed"
+                ? "Refunderingen mislykkedes. Kontrollér betalingen manuelt i Nexi."
+                : "Refunderingen er startet hos Nexi, men er endnu ikke gennemført."}
+          </p>
+
+          {order.refund_status === "failed" && order.refund_error && (
+            <p className={styles.refundError}>
+              Teknisk besked: {order.refund_error}
+            </p>
+          )}
+        </section>
+      )}
+
+      {order.status === "cancelled" &&
+        order.nets_charge_id &&
+        !order.refund_status && (
+          <section
+            className={`${styles.refundPanel} ${styles.refundFailed} noPrint`}
+            role="alert"
+          >
+            <div className={styles.refundHeader}>
+              <div>
+                <span className={styles.refundLabel}>Tilbagebetaling</span>
+                <strong className={styles.refundTitle}>Refund mangler</strong>
+              </div>
+            </div>
+
+            <p className={styles.refundMessage}>
+              Ordren er annulleret, men der er ikke registreret en refundering.
+              Kontrollér betalingen manuelt i Nexi.
+            </p>
+          </section>
+        )}
 
       <OrderReceipt
         order={receiptOrder}

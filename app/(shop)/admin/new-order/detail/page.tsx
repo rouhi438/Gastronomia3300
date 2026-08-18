@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./detail.module.css";
 
@@ -125,6 +125,25 @@ export default function OrderDetailPage() {
     fetchLatestPendingOrder();
   }, [router]);
 
+  const closeAcceptSheet = useCallback(() => {
+    if (submittingAction) return;
+
+    setIsAcceptSheetOpen(false);
+    setSelectedEstimatedTime(null);
+    setUseCustomEstimatedTime(false);
+    setCustomEstimatedTime("");
+    setActionError("");
+  }, [submittingAction]);
+
+  const closeCancelSheet = useCallback(() => {
+    if (submittingAction) return;
+
+    setIsCancelSheetOpen(false);
+    setSelectedCancelReason("");
+    setCustomCancelReason("");
+    setActionError("");
+  }, [submittingAction]);
+
   useEffect(() => {
     const isAnySheetOpen = isAcceptSheetOpen || isCancelSheetOpen;
 
@@ -149,7 +168,13 @@ export default function OrderDetailPage() {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", handleEscape);
     };
-  }, [isAcceptSheetOpen, isCancelSheetOpen, submittingAction]);
+  }, [
+    closeAcceptSheet,
+    closeCancelSheet,
+    isAcceptSheetOpen,
+    isCancelSheetOpen,
+    submittingAction,
+  ]);
 
   const updateOrderStatus = async ({
     status,
@@ -168,19 +193,32 @@ export default function OrderDetailPage() {
     setSubmittingAction(status);
 
     try {
-      const res = await fetch("/api/admin/orders", {
+      const isCancellation = status === "cancelled";
+
+      const endpoint = isCancellation
+        ? `/api/admin/orders/${order.id}`
+        : "/api/admin/orders";
+
+      const payload = isCancellation
+        ? {
+            status: "cancelled",
+            cancel_reason: cancelReason,
+          }
+        : {
+            orderId: order.id,
+            status,
+            cancelReason: null,
+            estimatedTime,
+            useRequestedTime: useRequestedTime === true,
+          };
+
+      const res = await fetch(endpoint, {
         method: "PATCH",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          orderId: order.id,
-          status,
-          cancelReason: status === "cancelled" ? cancelReason : null,
-          estimatedTime: status === "accepted" ? estimatedTime : null,
-          useRequestedTime: status === "accepted" && useRequestedTime === true,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (res.status === 401) {
@@ -224,16 +262,6 @@ export default function OrderDetailPage() {
     setIsAcceptSheetOpen(true);
   };
 
-  const closeAcceptSheet = () => {
-    if (submittingAction) return;
-
-    setIsAcceptSheetOpen(false);
-    setSelectedEstimatedTime(null);
-    setUseCustomEstimatedTime(false);
-    setCustomEstimatedTime("");
-    setActionError("");
-  };
-
   const handleConfirmAccept = async () => {
     const parsedCustomTime = Number(customEstimatedTime);
 
@@ -275,15 +303,6 @@ export default function OrderDetailPage() {
     setSelectedCancelReason("");
     setCustomCancelReason("");
     setIsCancelSheetOpen(true);
-  };
-
-  const closeCancelSheet = () => {
-    if (submittingAction) return;
-
-    setIsCancelSheetOpen(false);
-    setSelectedCancelReason("");
-    setCustomCancelReason("");
-    setActionError("");
   };
 
   const handleConfirmCancel = async () => {

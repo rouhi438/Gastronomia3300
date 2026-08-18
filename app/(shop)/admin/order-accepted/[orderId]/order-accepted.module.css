@@ -20,6 +20,78 @@
     text-align: center;
 }
 
+.refundPanel {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto 1.5rem;
+    padding: 1rem 1.15rem;
+    box-sizing: border-box;
+    border: 1px solid;
+    border-radius: 16px;
+}
+
+.refundPending {
+    border-color: rgb(217 119 6 / 35%);
+    background: rgb(217 119 6 / 9%);
+    color: #b45309;
+}
+
+.refundCompleted {
+    border-color: color-mix(in srgb, var(--green) 35%, transparent);
+    background: color-mix(in srgb, var(--green) 9%, transparent);
+    color: var(--green);
+}
+
+.refundFailed {
+    border-color: rgb(211 47 47 / 35%);
+    background: rgb(211 47 47 / 9%);
+    color: #c62828;
+}
+
+.refundHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.refundLabel {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.refundTitle {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 1rem;
+}
+
+.refundAmount {
+    font-size: 1rem;
+    white-space: nowrap;
+}
+
+.refundMessage,
+.refundError {
+    margin: 0.65rem 0 0;
+    line-height: 1.5;
+}
+
+.refundMessage {
+    color: var(--text-secondary);
+}
+
+.refundError {
+    color: #c62828;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
 .printBtn,
 .doneBtn {
     width: 210px;

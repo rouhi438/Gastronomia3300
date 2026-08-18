@@ -261,8 +261,9 @@
 
 .itemsSummary {
     overflow: hidden;
-    color: var(--text-muted);
+    color: var(--green);
     font-size: 0.78rem;
+    font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
 }

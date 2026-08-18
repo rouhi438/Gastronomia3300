@@ -128,6 +128,19 @@ export async function PATCH(request: NextRequest) {
     const estimatedTime = Number(body.estimatedTime);
     const useRequestedTime = body.useRequestedTime === true;
 
+    /*
+     * All cancellations must use the order-specific route, where
+     * paid orders receive refund processing and concurrency guards.
+     */
+    if (status === "cancelled") {
+      return NextResponse.json(
+        {
+          error: "Cancellation must use the order-specific endpoint.",
+        },
+        { status: 409 },
+      );
+    }
+
     const cancelReason =
       typeof body.cancelReason === "string" ? body.cancelReason.trim() : "";
 
