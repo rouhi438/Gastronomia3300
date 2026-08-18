@@ -190,21 +190,23 @@ export default function MenuPage() {
   }, [statuses]);
 
   const filteredItems = useMemo(() => {
+    const catalogItems = menuData.filter((item) => item.category !== "ekstra");
+
     if (activeCategory === "alle") {
-      return menuData;
+      return catalogItems;
     }
 
     if (activeCategory === "pizza") {
-      return menuData.filter(
+      return catalogItems.filter(
         (item) => item.mainCategory === "pizza" || item.category === "pizza",
       );
     }
 
     if (activeCategory === "vegetar" || activeCategory === "indbagt") {
-      return menuData.filter((item) => item.subCategory === activeCategory);
+      return catalogItems.filter((item) => item.subCategory === activeCategory);
     }
 
-    return menuData.filter((item) => item.category === activeCategory);
+    return catalogItems.filter((item) => item.category === activeCategory);
   }, [activeCategory]);
 
   function handleCardClick(item: MenuItem) {
