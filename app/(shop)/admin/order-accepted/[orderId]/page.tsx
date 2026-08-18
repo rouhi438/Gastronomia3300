@@ -53,6 +53,7 @@ interface Order {
   refund_status: RefundStatus | null;
   refund_amount_minor: number | null;
   refund_error: string | null;
+  nets_charge_id: string | null;
   order_items: OrderItem[];
   previous_orders_count: number | null;
 }
@@ -301,6 +302,27 @@ export default function OrderAcceptedPage() {
           )}
         </section>
       )}
+
+      {order.status === "cancelled" &&
+        order.nets_charge_id &&
+        !order.refund_status && (
+          <section
+            className={`${styles.refundPanel} ${styles.refundFailed} noPrint`}
+            role="alert"
+          >
+            <div className={styles.refundHeader}>
+              <div>
+                <span className={styles.refundLabel}>Tilbagebetaling</span>
+                <strong className={styles.refundTitle}>Refund mangler</strong>
+              </div>
+            </div>
+
+            <p className={styles.refundMessage}>
+              Ordren er annulleret, men der er ikke registreret en refundering.
+              Kontrollér betalingen manuelt i Nexi.
+            </p>
+          </section>
+        )}
 
       <OrderReceipt
         order={receiptOrder}

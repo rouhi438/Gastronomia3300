@@ -30,6 +30,7 @@ interface Order {
   status: OrderStatus;
   refund_status: RefundStatus | null;
   refund_amount_minor: number | null;
+  nets_charge_id: string | null;
   estimated_time: number | null;
   created_at: string;
   delivery_method: "pickup" | "delivery";
@@ -305,6 +306,15 @@ export default function AdminOrdersPage() {
                           : ""}
                       </span>
                     )}
+                    {order.status === "cancelled" &&
+                      order.nets_charge_id &&
+                      !order.refund_status && (
+                        <span
+                          className={`${styles.statusBadge} ${styles.statusBadge_cancelled}`}
+                        >
+                          Refund mangler
+                        </span>
+                      )}
                   </span>
 
                   <span className={styles.customerName}>
