@@ -426,7 +426,14 @@ export default function Header() {
                 closeMenu();
               }}
             >
-              <ShoppingCart size={20} />
+              <div className={styles.cartIconWrapper}>
+                <ShoppingCart size={20} />
+
+                {totalItems > 0 && (
+                  <span className={styles.cartBadge}>{totalItems}</span>
+                )}
+              </div>
+
               <span>Kurv</span>
             </button>
 
