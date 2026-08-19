@@ -362,7 +362,11 @@ export default function AdminOrdersPage() {
                           styles[`statusBadge_${order.status}`]
                         }`}
                       >
-                        {statusLabels[order.status]}
+                        {order.status === "completed"
+                          ? order.delivery_method === "delivery"
+                            ? "Leveret"
+                            : "Afhentet"
+                          : statusLabels[order.status]}{" "}
                       </span>
 
                       {order.refund_status && (
