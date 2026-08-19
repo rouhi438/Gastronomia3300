@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -31,6 +31,8 @@ import { useCartUI } from "@/context/CartUIContext";
 import CartDrawer from "./CartDrawer";
 import styles from "./Header.module.css";
 
+const subscribeToHydration = () => () => {};
+
 export default function Header() {
   const router = useRouter();
   const supabase = createClient();
@@ -38,7 +40,11 @@ export default function Header() {
   const { isCartOpen, openCart, closeCart } = useCartUI();
   const { totalItems } = useCart();
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    subscribeToHydration,
+    () => true,
+    () => false,
+  );
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -49,7 +55,6 @@ export default function Header() {
   const adminMenuRef = useRef<HTMLDivElement>(null);
   const mobileAdminMenuRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    setMounted(true);
     const loadUser = async () => {
       const {
         data: { user },
