@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import OrderCountdown from "@/components/OrderCountdown";
 import styles from "./admin.module.css";
 
 type OrderStatus = "pending" | "accepted" | "ready" | "completed" | "cancelled";
@@ -35,6 +36,9 @@ interface Order {
   created_at: string;
   delivery_method: "pickup" | "delivery";
   order_items: OrderItem[];
+  accepted_at: string | null;
+  fulfillment_due_at: string | null;
+  completed_at: string | null;
 }
 
 const filters: Array<{
@@ -130,6 +134,11 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [completingOrderId, setCompletingOrderId] = useState<number | null>(
+    null,
+  );
+  const [actionError, setActionError] = useState("");
+
   const fetchOrders = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/orders", {
@@ -186,6 +195,68 @@ export default function AdminOrdersPage() {
     return filteredOrders.reduce((sum, order) => sum + order.total_price, 0);
   }, [filteredOrders]);
 
+  const handleCompleteOrder = async (order: Order) => {
+    if (
+      completingOrderId !== null ||
+      (order.status !== "accepted" && order.status !== "ready")
+    ) {
+      return;
+    }
+
+    const completionLabel =
+      order.delivery_method === "delivery" ? "leveret" : "afhentet";
+
+    if (!window.confirm(`Bekræft, at ordren er ${completionLabel}.`)) {
+      return;
+    }
+
+    setCompletingOrderId(order.id);
+    setActionError("");
+
+    try {
+      const response = await fetch(`/api/admin/orders/${order.id}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: "completed",
+        }),
+      });
+
+      if (response.status === 401) {
+        router.replace(`/auth?redirect=${encodeURIComponent("/admin/orders")}`);
+        return;
+      }
+
+      const data = (await response.json().catch(() => null)) as {
+        order?: Order;
+        error?: string;
+      } | null;
+
+      if (!response.ok || !data?.order) {
+        throw new Error(data?.error || "Ordren kunne ikke afsluttes.");
+      }
+
+      const updatedOrder = data.order;
+
+      setOrders((currentOrders) =>
+        currentOrders.map((currentOrder) =>
+          currentOrder.id === updatedOrder.id ? updatedOrder : currentOrder,
+        ),
+      );
+    } catch (completeError: unknown) {
+      setActionError(
+        completeError instanceof Error
+          ? completeError.message
+          : "Ordren kunne ikke afsluttes.",
+      );
+    } finally {
+      setCompletingOrderId(null);
+    }
+  };
+
   const openOrder = (orderId: number) => {
     router.push(`/admin/order-accepted/${orderId}?view=1`);
   };
@@ -229,6 +300,12 @@ export default function AdminOrdersPage() {
         ))}
       </nav>
 
+      {actionError && (
+        <div className={styles.actionError} role="alert">
+          {actionError}
+        </div>
+      )}
+
       {filteredOrders.length === 0 ? (
         <div className={styles.empty}>
           <span className={styles.emptyIcon}>✓</span>
@@ -239,103 +316,134 @@ export default function AdminOrdersPage() {
         <section className={styles.orderList}>
           {filteredOrders.map((order) => {
             return (
-              <button
-                key={order.id}
-                type="button"
-                className={styles.orderCard}
-                onClick={() => openOrder(order.id)}
-              >
-                <span
-                  className={`${styles.statusIcon} ${
-                    styles[`status_${order.status}`]
-                  }`}
-                  aria-hidden="true"
+              <article key={order.id} className={styles.orderCard}>
+                <button
+                  type="button"
+                  className={styles.orderCardMain}
+                  onClick={() => openOrder(order.id)}
                 >
-                  {order.status === "cancelled" ? "×" : "✓"}
-                </span>
-
-                <span className={styles.orderContent}>
-                  <span className={styles.orderTopRow}>
-                    <strong className={styles.orderNumber}>
-                      Ordre #{order.id}
-                    </strong>
-
-                    <strong className={styles.orderPrice}>
-                      {order.total_price} kr.
-                    </strong>
+                  <span
+                    className={`${styles.statusIcon} ${
+                      styles[`status_${order.status}`]
+                    }`}
+                    aria-hidden="true"
+                  >
+                    {order.status === "cancelled" ? "×" : "✓"}
                   </span>
 
-                  <span className={styles.orderMeta}>
-                    <span>
-                      {new Date(order.created_at).toLocaleTimeString("da-DK", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                  <span className={styles.orderContent}>
+                    <span className={styles.orderTopRow}>
+                      <strong className={styles.orderNumber}>
+                        Ordre #{order.id}
+                      </strong>
+
+                      <strong className={styles.orderPrice}>
+                        {order.total_price} kr.
+                      </strong>
                     </span>
 
-                    <span>
-                      {new Date(order.created_at).toLocaleDateString("da-DK")}
-                    </span>
+                    <span className={styles.orderMeta}>
+                      <span>
+                        {new Date(order.created_at).toLocaleTimeString(
+                          "da-DK",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
+                      </span>
 
-                    <span
-                      className={`${styles.statusBadge} ${
-                        styles[`statusBadge_${order.status}`]
-                      }`}
-                    >
-                      {statusLabels[order.status]}
-                    </span>
-                    {order.refund_status && (
+                      <span>
+                        {new Date(order.created_at).toLocaleDateString("da-DK")}
+                      </span>
+
                       <span
                         className={`${styles.statusBadge} ${
-                          order.refund_status === "completed"
-                            ? styles.statusBadge_accepted
-                            : order.refund_status === "failed"
-                              ? styles.statusBadge_cancelled
-                              : styles.statusBadge_pending
+                          styles[`statusBadge_${order.status}`]
                         }`}
                       >
-                        {refundStatusLabels[order.refund_status]}
-
-                        {typeof order.refund_amount_minor === "number"
-                          ? ` · ${(
-                              order.refund_amount_minor / 100
-                            ).toLocaleString("da-DK", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })} kr.`
-                          : ""}
+                        {statusLabels[order.status]}
                       </span>
-                    )}
-                    {order.status === "cancelled" &&
-                      order.nets_charge_id &&
-                      !order.refund_status && (
+
+                      {order.refund_status && (
                         <span
-                          className={`${styles.statusBadge} ${styles.statusBadge_cancelled}`}
+                          className={`${styles.statusBadge} ${
+                            order.refund_status === "completed"
+                              ? styles.statusBadge_accepted
+                              : order.refund_status === "failed"
+                                ? styles.statusBadge_cancelled
+                                : styles.statusBadge_pending
+                          }`}
                         >
-                          Refund mangler
+                          {refundStatusLabels[order.refund_status]}
+
+                          {typeof order.refund_amount_minor === "number"
+                            ? ` · ${(
+                                order.refund_amount_minor / 100
+                              ).toLocaleString("da-DK", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })} kr.`
+                            : ""}
                         </span>
                       )}
-                  </span>
 
-                  <span className={styles.customerName}>
-                    {order.customer_name}
-                  </span>
-                  <span className={styles.itemsSummary}>
-                    Ønsket tidspunkt:{" "}
-                    {formatRequestedTime(order.requested_time)}
-                  </span>
-
-                  {order.order_note && (
-                    <span className={styles.orderNote}>
-                      Kommentar: {order.order_note}
+                      {order.status === "cancelled" &&
+                        order.nets_charge_id &&
+                        !order.refund_status && (
+                          <span
+                            className={`${styles.statusBadge} ${styles.statusBadge_cancelled}`}
+                          >
+                            Refund mangler
+                          </span>
+                        )}
                     </span>
-                  )}
-                </span>
 
-                <span className={styles.arrow} aria-hidden="true">
-                  ›
-                </span>
-              </button>
+                    <span className={styles.customerName}>
+                      {order.customer_name}
+                    </span>
+
+                    <span className={styles.itemsSummary}>
+                      Ønsket tidspunkt:{" "}
+                      {formatRequestedTime(order.requested_time)}
+                    </span>
+
+                    {order.order_note && (
+                      <span className={styles.orderNote}>
+                        Kommentar: {order.order_note}
+                      </span>
+                    )}
+                  </span>
+
+                  <span className={styles.arrow} aria-hidden="true">
+                    ›
+                  </span>
+                </button>
+
+                {(order.status === "accepted" || order.status === "ready") &&
+                  order.accepted_at !== null &&
+                  order.fulfillment_due_at !== null && (
+                    <div className={styles.fulfillmentActions}>
+                      <OrderCountdown
+                        acceptedAt={order.accepted_at}
+                        fulfillmentDueAt={order.fulfillment_due_at}
+                      />
+
+                      <button
+                        type="button"
+                        className={styles.completeOrderButton}
+                        disabled={completingOrderId === order.id}
+                        onClick={() => void handleCompleteOrder(order)}
+                      >
+                        {completingOrderId === order.id
+                          ? "Gemmer..."
+                          : order.delivery_method === "delivery"
+                            ? "Leveret"
+                            : "Afhentet"}
+                      </button>
+                    </div>
+                  )}
+              </article>
             );
           })}
         </section>

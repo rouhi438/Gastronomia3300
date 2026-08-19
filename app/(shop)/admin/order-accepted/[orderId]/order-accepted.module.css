@@ -3,7 +3,7 @@
     width: 100%;
     box-sizing: border-box;
     background-color: var(--bg);
-    padding: 7rem 1.5rem 3rem;
+    padding: 3.5rem 1.5rem 3rem;
 }
 
 .actionsBar {
@@ -166,7 +166,7 @@
 
 @media (max-width: 600px) {
     .page {
-        padding: 6rem 1rem 2rem;
+        padding: 2rem 1rem 2rem;
     }
 
     .actionsBar {

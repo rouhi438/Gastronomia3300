@@ -1,0 +1,73 @@
+.countdown {
+    position: relative;
+    width: 76px;
+    height: 76px;
+    flex: 0 0 76px;
+    color: var(--green);
+}
+
+.ring {
+    display: block;
+    transform: rotate(-90deg);
+}
+
+.track,
+.progress {
+    fill: none;
+    stroke-width: 7;
+}
+
+.track {
+    stroke: currentcolor;
+    opacity: 0.16;
+}
+
+.progress {
+    stroke: currentcolor;
+    stroke-linecap: round;
+    transition:
+        stroke-dashoffset 0.5s ease,
+        stroke 0.25s ease;
+}
+
+.value {
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    line-height: 1;
+}
+
+.value strong {
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.value small {
+    margin-top: 0.2rem;
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.active {
+    color: var(--green);
+}
+
+.urgent {
+    color: #d92d35;
+}
+
+.expired {
+    border-radius: 50%;
+    background: rgb(217 45 53 / 10%);
+    color: #d92d35;
+}
+
+.expired .track {
+    opacity: 1;
+}
