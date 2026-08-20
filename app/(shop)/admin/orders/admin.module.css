@@ -426,9 +426,11 @@
 
     .fulfillmentActions {
         flex-direction: row;
-        justify-content: flex-end;
-        gap: 0.75rem;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
 
+        width: 100%;
         padding-top: 0.75rem;
         padding-left: 0;
 
@@ -437,6 +439,7 @@
     }
 
     .completeOrderButton {
+        flex: 0 1 200px;
         min-width: 120px;
         min-height: 40px;
     }
