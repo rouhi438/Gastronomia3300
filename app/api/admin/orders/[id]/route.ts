@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { refundNetsCharge } from "@/lib/nets/refundCharge";
 import { sendOrderRejectedEmail } from "@/lib/email/orderEmails";
+import { createFulfillmentTiming } from "@/lib/orders/fulfillmentTiming";
 
 const VALID_STATUSES = [
   "pending",
@@ -123,6 +124,7 @@ export async function PATCH(
         `
           id,
           status,
+          completed_at,
           checkout_session_id,
           nets_payment_id,
           nets_charge_id,
@@ -170,22 +172,96 @@ export async function PATCH(
       );
     }
 
+    if (status === "accepted" && currentOrder.status !== "pending") {
+      return NextResponse.json(
+        { error: "Only a pending order can be accepted." },
+        { status: 409 },
+      );
+    }
+
+    if (
+      status === "ready" &&
+      currentOrder.status !== "accepted" &&
+      currentOrder.status !== "ready"
+    ) {
+      return NextResponse.json(
+        { error: "Only an accepted order can be marked ready." },
+        { status: 409 },
+      );
+    }
+
+    if (
+      status === "completed" &&
+      currentOrder.status !== "accepted" &&
+      currentOrder.status !== "ready" &&
+      currentOrder.status !== "completed"
+    ) {
+      return NextResponse.json(
+        { error: "Only an accepted or ready order can be completed." },
+        { status: 409 },
+      );
+    }
+
+    if (status === "pending" && currentOrder.status !== "pending") {
+      return NextResponse.json(
+        { error: "An order cannot be moved back to pending." },
+        { status: 409 },
+      );
+    }
+
+    if (status === "cancelled" && currentOrder.status === "completed") {
+      return NextResponse.json(
+        { error: "A completed order cannot be cancelled." },
+        { status: 409 },
+      );
+    }
+
     const updateData: {
       status: OrderStatus;
       estimated_time?: number | null;
       cancel_reason?: string | null;
+      accepted_at?: string;
+      fulfillment_due_at?: string;
+      completed_at?: string | null;
     } = {
       status: status as OrderStatus,
     };
 
     if (status === "accepted") {
-      updateData.estimated_time = estimatedTime;
-      updateData.cancel_reason = null;
-    } else {
-      updateData.estimated_time = null;
+      try {
+        const timing = createFulfillmentTiming({
+          estimatedTimeMinutes: estimatedTime,
+          requestedTime: null,
+          useRequestedTime: false,
+        });
+
+        updateData.estimated_time = estimatedTime;
+        updateData.cancel_reason = null;
+        updateData.accepted_at = timing.acceptedAt;
+        updateData.fulfillment_due_at = timing.fulfillmentDueAt;
+        updateData.completed_at = null;
+      } catch (timingError: unknown) {
+        console.error("Order fulfillment timing failed:", timingError);
+
+        return NextResponse.json(
+          {
+            error:
+              timingError instanceof Error
+                ? timingError.message
+                : "Could not determine fulfillment time.",
+          },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (status === "completed") {
+      updateData.completed_at =
+        currentOrder.completed_at ?? new Date().toISOString();
     }
 
     if (status === "cancelled") {
+      updateData.estimated_time = null;
       updateData.cancel_reason = cancelReason;
     }
 

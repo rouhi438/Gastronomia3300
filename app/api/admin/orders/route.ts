@@ -5,6 +5,7 @@ import {
 } from "@/lib/email/orderEmails";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createFulfillmentTiming } from "@/lib/orders/fulfillmentTiming";
 
 const ALLOWED_STATUSES = ["accepted", "cancelled"] as const;
 
@@ -182,20 +183,66 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const updateData =
-      status === "accepted"
-        ? {
-            status: "accepted",
-            estimated_time: useRequestedTime ? null : estimatedTime,
-            cancel_reason: null,
-          }
-        : {
-            status: "cancelled",
-            estimated_time: null,
-            cancel_reason: cancelReason,
-          };
-
     const supabaseAdmin = createAdminClient();
+
+    const { data: currentOrder, error: currentOrderError } = await supabaseAdmin
+      .from("orders")
+      .select("id, requested_time")
+      .eq("id", orderId)
+      .eq("status", "pending")
+      .maybeSingle();
+
+    if (currentOrderError) {
+      console.error("Order timing lookup failed:", currentOrderError);
+
+      return NextResponse.json(
+        { error: "Order timing lookup failed" },
+        { status: 500 },
+      );
+    }
+
+    if (!currentOrder) {
+      return NextResponse.json(
+        {
+          error: "Order was not found or is no longer pending.",
+        },
+        { status: 409 },
+      );
+    }
+
+    let fulfillmentTiming: ReturnType<typeof createFulfillmentTiming>;
+
+    try {
+      fulfillmentTiming = createFulfillmentTiming({
+        estimatedTimeMinutes: useRequestedTime ? null : estimatedTime,
+        requestedTime:
+          typeof currentOrder.requested_time === "string"
+            ? currentOrder.requested_time
+            : null,
+        useRequestedTime,
+      });
+    } catch (timingError: unknown) {
+      console.error("Order fulfillment timing failed:", timingError);
+
+      return NextResponse.json(
+        {
+          error:
+            timingError instanceof Error
+              ? timingError.message
+              : "Could not determine fulfillment time.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const updateData = {
+      status: "accepted",
+      estimated_time: useRequestedTime ? null : estimatedTime,
+      cancel_reason: null,
+      accepted_at: fulfillmentTiming.acceptedAt,
+      fulfillment_due_at: fulfillmentTiming.fulfillmentDueAt,
+      completed_at: null,
+    };
 
     const { data: order, error: updateError } = await supabaseAdmin
       .from("orders")
