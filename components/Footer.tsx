@@ -6,7 +6,6 @@ import {
   Mail,
   MapPin,
   Phone,
-  ShieldCheck,
 } from "lucide-react";
 import {
   FaFacebookF,
@@ -14,6 +13,7 @@ import {
   FaRegSmile,
   FaRegLaughWink,
 } from "react-icons/fa";
+import GoogleMapEmbed from "./GoogleMapEmbed";
 import styles from "./Footer.module.css";
 
 const STORE = {
@@ -68,6 +68,7 @@ export default function Footer() {
               <div className={styles.socialLinks}>
                 {STORE.facebookUrl && (
                   <a
+                    className={styles.facebookLink}
                     href={STORE.facebookUrl}
                     target="_blank"
                     rel="noreferrer"
@@ -79,6 +80,7 @@ export default function Footer() {
 
                 {STORE.instagramUrl && (
                   <a
+                    className={styles.instagramLink}
                     href={STORE.instagramUrl}
                     target="_blank"
                     rel="noreferrer"
@@ -159,16 +161,7 @@ export default function Footer() {
 
           <section className={styles.section}>
             <h2 className={styles.heading}>Find os</h2>
-
-            <div className={styles.mapWrapper}>
-              <iframe
-                title="Gastronomia Pizza på Google Maps"
-                src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            </div>
-
+            <GoogleMapEmbed mapQuery={mapQuery} />
             <a
               className={styles.directionsLink}
               href={`https://www.google.com/maps/search/?api=1&query=${mapQuery}`}
