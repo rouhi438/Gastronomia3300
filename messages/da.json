@@ -1,0 +1,235 @@
+{
+  "Header": {
+    "home": "Hjem",
+    "menu": "Menu",
+    "cart": "Kurv",
+    "admin": "Admin",
+    "orders": "Ordrer",
+    "openingHours": "Åbningstider",
+    "profile": "Profil",
+    "myProfile": "Min profil",
+    "logout": "Log ud",
+    "loginOrCreate": "Log ind / Opret"
+  },
+  "StoreStatus": {
+    "loading": "Henter status",
+    "ariaLabel": "Bestillingsstatus",
+    "pickup": "Afhentning",
+    "delivery": "Levering",
+    "status": {
+      "open": "Åben",
+      "preorder": "Forudbestilling",
+      "paused": "Pauset",
+      "closed": "Lukket"
+    }
+  },
+  "Menu": {
+    "categories": {
+      "all": "Alle",
+      "pizza": "Pizza",
+      "calzone": "Indbagt Pizza",
+      "alaCarte": "Ala Carte",
+      "mainCourses": "Hovedretter",
+      "pasta": "Pasta",
+      "salads": "Salat",
+      "fries": "Pommes Frites",
+      "kidsMenu": "Børn menu",
+      "burgers": "Burger",
+      "mealDeals": "Menuer",
+      "drinks": "Drikkevarer",
+      "extraDips": "Ekstra dyppelse"
+    },
+    "soldOut": "Udsolgt",
+    "availableAgain": "Tilgængelig igen",
+    "items": {}
+  },
+  "ItemModal": {
+    "close": "Luk",
+    "size": "Størrelse",
+    "sizes": {
+      "normal": "Almindelig",
+      "family": "Familie (+{difference} kr.)",
+      "children": "Børn ({price} kr.)",
+      "deepPan": "Deep Pan (+{price} kr.)"
+    },
+    "groups": {
+      "protein": "Vælg protein",
+      "pizzaExtras": "Pizza tilbehør",
+      "sauces": "Saucer",
+      "size": "Vælg størrelse",
+      "variantAndSize": "Vælg variant og størrelse",
+      "extras": "Tilbehør"
+    },
+    "buttons": {
+      "update": "Opdater ordre",
+      "add": "Tilføj til ordre",
+      "soldOut": "Udsolgt",
+      "chooseSize": "Vælg størrelse",
+      "chooseVariantAndSize": "Vælg variant og størrelse",
+      "chooseProtein": "Vælg protein",
+      "requiredChoice": "Foretag påkrævet valg"
+    },
+    "soldOut": "Udsolgt",
+    "soldOutUntil": "Udsolgt indtil {time}",
+    "included": "Inkluderet",
+    "decreaseQuantity": "Reducer antal",
+    "increaseQuantity": "Forøg antal",
+    "extras": {}
+  },
+  "Cart": {
+    "userFallback": "bruger",
+    "drawerAria": "Indkøbskurv",
+    "backToCartAria": "Tilbage til indkøbskurven",
+    "yourOrder": "Din ordre",
+    "cartTitle": "Indkøbskurv",
+    "detailsTitle": "Dine oplysninger",
+    "closeCartAria": "Luk indkøbskurv",
+    "steps": {
+      "cart": "Kurv",
+      "details": "Oplysninger",
+      "payment": "Betaling"
+    },
+    "minimumOrderTitle": "Minimumsbestilling",
+    "continueOrdering": "Fortsæt med at bestille",
+    "emptyAlt": "Tom indkøbskurv",
+    "emptyTitle": "Din kurv er tom",
+    "emptyText": "Tilføj noget fra menuen, så vi har noget at arbejde med.",
+    "viewMenu": "Se menuen",
+    "order": "Din bestilling",
+    "itemsInCart": "{count, plural, =1 {# vare i kurven.} other {# varer i kurven.}}",
+    "editItem": "Rediger {name}",
+    "sizes": {
+      "normal": "Almindelig",
+      "family": "Familie",
+      "children": "Børn",
+      "deepPan": "Deep Pan"
+    },
+    "quantity": "{count} stk.",
+    "decreaseQuantity": "Reducer antal af {name}",
+    "increaseQuantity": "Forøg antal af {name}",
+    "removeItem": "Fjern {name}",
+    "remove": "Fjern",
+    "add": "Tilføj",
+    "orderNote": {
+      "label": "Kommentar til ordren",
+      "placeholder": "Fx: Ingen løg, allergi eller anden vigtig besked...",
+      "help": "Ekstra tilvalg skal bestilles via menuen – ikke i kommentaren."
+    },
+    "bag": {
+      "title": "Bærepose",
+      "description": "Praktisk emballage til ordren"
+    },
+    "summary": {
+      "items": "Varer",
+      "serviceFee": "Servicegebyr",
+      "deliveryIfSelected": "Levering ved valg",
+      "total": "I alt",
+      "dependsOnMethod": "Afhænger af leveringsmetode"
+    },
+    "method": {
+      "title": "Hvordan vil du have ordren?",
+      "help": "Du går direkte videre, når du vælger.",
+      "pickup": "Afhentning",
+      "pickupDescription": "Hent i restauranten",
+      "delivery": "Levering",
+      "deliveryDescription": "Inden for {distance} km"
+    },
+    "details": {
+      "pickupIntro": "Vi bruger oplysningerne, når ordren er klar.",
+      "deliveryIntro": "Vi bruger oplysningerne til at levere ordren korrekt.",
+      "goToPayment": "Gå til betaling",
+      "backToCart": "Tilbage til kurven"
+    },
+    "time": {
+      "requestedTime": "Ønsket tidspunkt",
+      "deliveryQuestion": "Hvornår ønsker du ordren leveret?",
+      "pickupQuestion": "Hvornår ønsker du at hente ordren?",
+      "asap": "Hurtigst muligt",
+      "schedule": "Vælg tidspunkt",
+      "selectAria": "Vælg ønsket tidspunkt",
+      "noMoreToday": "Der er ingen flere valgbare tider i dag.",
+      "hoursUnavailable": "Åbningstider kunne ikke hentes."
+    },
+    "account": {
+      "loggedInAs": "Logget ind som",
+      "haveAccount": "Har du allerede en konto?",
+      "loginHelp": "Log ind og udfyld dine oplysninger automatisk.",
+      "login": "Log ind"
+    },
+    "fields": {
+      "name": "Navn",
+      "namePlaceholder": "Dit navn",
+      "phone": "Telefon",
+      "phonePlaceholder": "Fx 12 34 56 78",
+      "floorDoor": "Etage / dør",
+      "optional": "Valgfrit",
+      "floorDoorPlaceholder": "Fx 2. th."
+    },
+    "deliveryArea": {
+      "title": "Adressen er uden for leveringsområdet",
+      "description": "Vi leverer inden for {maximum} km fra restauranten. Den valgte adresse ligger ca. {distance} km væk."
+    },
+    "errors": {
+      "openingHours": "Kunne ikke hente restaurantens åbningstider.",
+      "minimumDelivery": "Minimumsbestilling for levering er {minimum} kr. Du mangler {missing} kr.",
+      "nameRequired": "Indtast dit navn.",
+      "phoneRequired": "Indtast dit telefonnummer.",
+      "selectGoogleAddress": "Vælg en adresse fra Googles adresseliste.",
+      "incompleteAddress": "Adressen mangler nødvendige oplysninger. Vælg den igen.",
+      "outsideDeliveryArea": "Leveringsadressen ligger uden for vores leveringsområde på {distance} km."
+    }
+  },
+  "AddressAutocomplete": {
+    "label": "Leveringsadresse",
+    "loadingPlaceholder": "Indlæser adressesøgning...",
+    "searchPlaceholder": "Søg efter din adresse...",
+    "loading": "Indlæser",
+    "helper": "Vælg adressen fra Googles liste, så postnummer, by og koordinater bliver registreret korrekt.",
+    "errors": {
+      "invalidAddress": "Vælg en gyldig adresse fra listen.",
+      "incompleteAddress": "Adressen mangler vej, postnummer eller by.",
+      "missingApiKey": "Google Maps API-nøglen mangler.",
+      "loadFailed": "Adressesøgningen kunne ikke indlæses."
+    }
+  },
+  "Checkout": {
+    "loading": "Indlæser...",
+    "title": "Betaling",
+    "customerInformation": "Kundeoplysninger",
+    "fullName": "Fulde navn",
+    "address": "Adresse",
+    "phone": "Telefon",
+    "email": "E-mail",
+    "deliveryMethod": "Leveringsmetode",
+    "change": "Skift",
+    "pickup": "Afhentning",
+    "delivery": "Levering",
+    "pickupDescription": "Du henter selv ordren hos Gastronomia 3300.",
+    "deliveryDescription": "Ordren leveres til adressen valgt i kurven.",
+    "payment": "Betaling",
+    "paymentCard": "Betalingskort",
+    "submitting": "Sender...",
+    "completeOrder": "Gennemfør bestilling",
+    "yourOrder": "Din ordre",
+    "total": "I alt",
+    "emptyTitle": "Din kurv er tom",
+    "emptyDescription": "Gå tilbage til menuen og tilføj nogle lækre pizzaer.",
+    "viewMenu": "Se menuen",
+    "close": "Luk",
+    "orderNotPossible": "Bestilling ikke mulig",
+    "placeholders": {
+      "name": "Mads Jensen",
+      "address": "Vælg adressen i kurven",
+      "phone": "+45 40 40 41 83",
+      "email": "din@email.dk"
+    },
+    "errors": {
+      "emptyCart": "Din kurv er tom. Tilføj nogle varer først.",
+      "incompleteDeliveryAddress": "Leveringsadressen mangler oplysninger. Gå tilbage og vælg adressen igen.",
+      "invalidExtraGroup": "Hver valgt ekstra skal have en ikke-tom gruppe-id.",
+      "paymentStartFailed": "Betalingen kunne ikke startes.",
+      "invalidPaymentLink": "Betalingen blev oprettet uden et gyldigt betalingslink.",
+      "unknownPayment": "Ukendt fejl ved opstart af betaling"
+    }
+  }
+}

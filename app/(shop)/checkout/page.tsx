@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import {
   CreditCard,
   Home,
@@ -12,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { useCart } from "@/context/CartContext";
+import { extraGroups, type Extra } from "@/data/menu";
 import styles from "./checkout.module.css";
 
 type PaymentMethod = "mobilepay" | "card";
@@ -36,14 +38,17 @@ const initialForm: CheckoutForm = {
 };
 
 export default function CheckoutPage() {
+  const t = useTranslations("Checkout");
+  const menuT = useTranslations("Menu");
+  const itemModalT = useTranslations("ItemModal");
+  const locale = useLocale();
+
   const {
     items,
     totalPrice,
     bagIncluded,
-
     deliveryMethod,
     deliveryAddress,
-
     requestedTime,
   } = useCart();
 
@@ -57,46 +62,55 @@ export default function CheckoutPage() {
   const [payment, setPayment] = useState<PaymentMethod>("mobilepay");
 
   useEffect(() => {
-    setMounted(true);
+    let cancelled = false;
 
-    const storedCheckoutCustomer = localStorage.getItem("checkout-customer");
-
-    if (!storedCheckoutCustomer) {
-      return;
-    }
-
-    try {
-      const parsed: unknown = JSON.parse(storedCheckoutCustomer);
-
-      if (!parsed || typeof parsed !== "object") {
-        localStorage.removeItem("checkout-customer");
+    queueMicrotask(() => {
+      if (cancelled) {
         return;
       }
 
-      const customer = parsed as {
-        name?: unknown;
-        phone?: unknown;
-        email?: unknown;
-        orderNote?: unknown;
-      };
+      setMounted(true);
 
-      setForm((current) => ({
-        ...current,
+      const storedCheckoutCustomer = localStorage.getItem("checkout-customer");
 
-        name: typeof customer.name === "string" ? customer.name : "",
+      if (!storedCheckoutCustomer) {
+        return;
+      }
 
-        phone: typeof customer.phone === "string" ? customer.phone : "",
+      try {
+        const parsed: unknown = JSON.parse(storedCheckoutCustomer);
 
-        email:
-          typeof customer.email === "string" ? customer.email : current.email,
-      }));
+        if (!parsed || typeof parsed !== "object") {
+          localStorage.removeItem("checkout-customer");
+          return;
+        }
 
-      setOrderNote(
-        typeof customer.orderNote === "string" ? customer.orderNote : "",
-      );
-    } catch {
-      localStorage.removeItem("checkout-customer");
-    }
+        const customer = parsed as {
+          name?: unknown;
+          phone?: unknown;
+          email?: unknown;
+          orderNote?: unknown;
+        };
+
+        setForm((current) => ({
+          ...current,
+          name: typeof customer.name === "string" ? customer.name : "",
+          phone: typeof customer.phone === "string" ? customer.phone : "",
+          email:
+            typeof customer.email === "string" ? customer.email : current.email,
+        }));
+
+        setOrderNote(
+          typeof customer.orderNote === "string" ? customer.orderNote : "",
+        );
+      } catch {
+        localStorage.removeItem("checkout-customer");
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -118,6 +132,23 @@ export default function CheckoutPage() {
     .filter(Boolean)
     .join(", ");
 
+  const priceLocale = locale === "en" ? "en-DK" : "da-DK";
+
+  const formatPrice = (value: number) =>
+    `${value.toLocaleString(priceLocale)} kr.`;
+
+  const getExtraDisplayName = (extra: Extra) => {
+    if (!extra.groupId) {
+      return extra.name;
+    }
+
+    const group = extraGroups[extra.groupId];
+    const index = group.findIndex((option) => option.name === extra.name);
+    const key = `extras.${extra.groupId}.${index}`;
+
+    return index >= 0 && itemModalT.has(key) ? itemModalT(key) : extra.name;
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -126,7 +157,7 @@ export default function CheckoutPage() {
     }
 
     if (items.length === 0) {
-      alert("Din kurv er tom. Tilføj nogle varer først.");
+      alert(t("errors.emptyCart"));
 
       return;
     }
@@ -140,14 +171,13 @@ export default function CheckoutPage() {
         deliveryAddress.latitude === null ||
         deliveryAddress.longitude === null)
     ) {
-      alert(
-        "Leveringsadressen mangler oplysninger. Gå tilbage og vælg adressen igen.",
-      );
+      alert(t("errors.incompleteDeliveryAddress"));
 
       return;
     }
 
     setIsSubmitting(true);
+    setSubmitError("");
 
     try {
       const orderItems = items.map((item) => {
@@ -155,9 +185,7 @@ export default function CheckoutPage() {
           const groupId = extra.groupId;
 
           if (typeof groupId !== "string" || groupId.trim() === "") {
-            throw new Error(
-              "Hver valgt ekstra skal have en ikke-tom gruppe-id.",
-            );
+            throw new Error(t("errors.invalidExtraGroup"));
           }
 
           return {
@@ -182,73 +210,56 @@ export default function CheckoutPage() {
         delivery_method: deliveryMethod,
         payment_method: payment,
         bag_included: bagIncluded,
-
         customer_name: form.name.trim(),
         customer_phone: form.phone.trim(),
         customer_email: form.email.trim(),
-
         customer_address: customerAddress,
-
         customer_address_line1:
           deliveryMethod === "delivery" ? deliveryAddress.addressLine1 : null,
-
         customer_postal_code:
           deliveryMethod === "delivery" ? deliveryAddress.postalCode : null,
-
         customer_city:
           deliveryMethod === "delivery" ? deliveryAddress.city : null,
-
         customer_floor_door:
           deliveryMethod === "delivery"
             ? deliveryAddress.floorDoor || null
             : null,
-
         customer_place_id:
           deliveryMethod === "delivery" ? deliveryAddress.placeId : null,
-
         customer_latitude:
           deliveryMethod === "delivery" ? deliveryAddress.latitude : null,
-
         customer_longitude:
           deliveryMethod === "delivery" ? deliveryAddress.longitude : null,
-
         requested_time: requestedTime,
         order_note: orderNote.trim() || null,
-
         items: orderItems,
       };
 
       const response = await fetch("/api/payments/create", {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
         },
-
         body: JSON.stringify(orderData),
       });
 
       const result = (await response.json()) as CreatePaymentResponse;
 
       if (!response.ok) {
-        throw new Error(result.error || "Betalingen kunne ikke startes.");
+        throw new Error(result.error || t("errors.paymentStartFailed"));
       }
 
       if (
         typeof result.payment_url !== "string" ||
         result.payment_url.trim() === ""
       ) {
-        throw new Error(
-          "Betalingen blev oprettet uden et gyldigt betalingslink.",
-        );
+        throw new Error(t("errors.invalidPaymentLink"));
       }
 
       window.location.assign(result.payment_url);
     } catch (error: unknown) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Ukendt fejl ved opstart af betaling";
+        error instanceof Error ? error.message : t("errors.unknownPayment");
 
       setSubmitError(message);
     } finally {
@@ -257,19 +268,19 @@ export default function CheckoutPage() {
   };
 
   if (!mounted) {
-    return <div className={styles.loading}>Indlæser...</div>;
+    return <div className={styles.loading}>{t("loading")}</div>;
   }
 
   if (items.length === 0) {
     return (
       <div className={styles.empty}>
         <div className={styles.emptyContent}>
-          <h2>Din kurv er tom</h2>
+          <h2>{t("emptyTitle")}</h2>
 
-          <p>Gå tilbage til menuen og tilføj nogle lækre pizzaer.</p>
+          <p>{t("emptyDescription")}</p>
 
           <Link href="/menu" className="btn-primary">
-            Se menuen
+            {t("viewMenu")}
           </Link>
         </div>
       </div>
@@ -279,15 +290,15 @@ export default function CheckoutPage() {
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
-        <h1 className={styles.title}>Checkout</h1>
+        <h1 className={styles.title}>{t("title")}</h1>
 
         <div className={styles.grid}>
           <form onSubmit={handleSubmit} className={styles.form}>
             <div className={styles.section}>
-              <h3>Kundeoplysninger</h3>
+              <h3>{t("customerInformation")}</h3>
 
               <div className={styles.inputGroup}>
-                <label htmlFor="checkout-name">Fulde navn</label>
+                <label htmlFor="checkout-name">{t("fullName")}</label>
 
                 <input
                   id="checkout-name"
@@ -297,13 +308,13 @@ export default function CheckoutPage() {
                   onChange={handleChange}
                   required
                   autoComplete="name"
-                  placeholder="Mads Jensen"
+                  placeholder={t("placeholders.name")}
                 />
               </div>
 
               {deliveryMethod === "delivery" && (
                 <div className={styles.inputGroup}>
-                  <label htmlFor="checkout-address">Adresse</label>
+                  <label htmlFor="checkout-address">{t("address")}</label>
 
                   <input
                     id="checkout-address"
@@ -311,13 +322,13 @@ export default function CheckoutPage() {
                     value={formattedDeliveryAddress}
                     readOnly
                     autoComplete="street-address"
-                    placeholder="Vælg adressen i kurven"
+                    placeholder={t("placeholders.address")}
                   />
                 </div>
               )}
 
               <div className={styles.inputGroup}>
-                <label htmlFor="checkout-phone">Telefon</label>
+                <label htmlFor="checkout-phone">{t("phone")}</label>
 
                 <input
                   id="checkout-phone"
@@ -327,12 +338,12 @@ export default function CheckoutPage() {
                   onChange={handleChange}
                   required
                   autoComplete="tel"
-                  placeholder="+45 40 40 41 83"
+                  placeholder={t("placeholders.phone")}
                 />
               </div>
 
               <div className={styles.inputGroup}>
-                <label htmlFor="checkout-email">E-mail</label>
+                <label htmlFor="checkout-email">{t("email")}</label>
 
                 <input
                   id="checkout-email"
@@ -342,19 +353,20 @@ export default function CheckoutPage() {
                   onChange={handleChange}
                   required
                   autoComplete="email"
-                  placeholder="din@email.dk"
+                  placeholder={t("placeholders.email")}
                 />
               </div>
             </div>
+
             <div className={styles.section}>
               <div className={styles.deliverySummaryHeader}>
-                <h3>Leveringsmetode</h3>
+                <h3>{t("deliveryMethod")}</h3>
 
                 <Link
                   href="/menu?cart=open"
                   className={styles.changeDeliveryLink}
                 >
-                  Skift
+                  {t("change")}
                 </Link>
               </div>
 
@@ -369,19 +381,20 @@ export default function CheckoutPage() {
 
                 <div className={styles.deliverySummaryText}>
                   <strong>
-                    {deliveryMethod === "pickup" ? "Afhentning" : "Levering"}
+                    {deliveryMethod === "pickup" ? t("pickup") : t("delivery")}
                   </strong>
 
                   <span>
                     {deliveryMethod === "pickup"
-                      ? "Du henter selv ordren hos Gastronomia 3300."
-                      : "Ordren leveres til adressen valgt i kurven."}
+                      ? t("pickupDescription")
+                      : t("deliveryDescription")}
                   </span>
                 </div>
               </div>
             </div>
+
             <div className={styles.section}>
-              <h3>Betaling</h3>
+              <h3>{t("payment")}</h3>
 
               <div className={styles.options}>
                 <button
@@ -405,7 +418,7 @@ export default function CheckoutPage() {
                   aria-pressed={payment === "card"}
                 >
                   <CreditCard size={20} />
-                  <span>Betalingskort</span>
+                  <span>{t("paymentCard")}</span>
                 </button>
               </div>
             </div>
@@ -415,34 +428,41 @@ export default function CheckoutPage() {
               className={styles.submitBtn}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Sender..." : "Gennemfør bestilling"}
+              {isSubmitting ? t("submitting") : t("completeOrder")}
             </button>
           </form>
 
           <div className={styles.summary}>
-            <h3>Din ordre</h3>
+            <h3>{t("yourOrder")}</h3>
 
             <ul className={styles.itemList}>
               {items.map((item, index) => {
                 const uniqueKey = item.cartId || index;
+                const itemNameKey = `items.${item.id}.name`;
+                const displayItemName = menuT.has(itemNameKey)
+                  ? menuT(itemNameKey)
+                  : item.name;
 
                 return (
                   <li key={uniqueKey} className={styles.summaryItem}>
                     <div>
                       <span className={styles.summaryName}>
-                        {item.quantity}× {item.name}
+                        {item.quantity}× {displayItemName}
                       </span>
 
                       {item.extras && item.extras.length > 0 && (
                         <span className={styles.summaryExtras}>
                           (+
-                          {item.extras.map((extra) => extra.name).join(", ")})
+                          {item.extras
+                            .map((extra) => getExtraDisplayName(extra))
+                            .join(", ")}
+                          )
                         </span>
                       )}
                     </div>
 
                     <span className={styles.summaryPrice}>
-                      {item.price * item.quantity} kr.
+                      {formatPrice(item.price * item.quantity)}
                     </span>
                   </li>
                 );
@@ -450,13 +470,16 @@ export default function CheckoutPage() {
             </ul>
 
             <div className={styles.totalRow}>
-              <span>I alt</span>
+              <span>{t("total")}</span>
 
-              <span className={styles.totalPrice}>{totalPrice} kr.</span>
+              <span className={styles.totalPrice}>
+                {formatPrice(totalPrice)}
+              </span>
             </div>
           </div>
         </div>
       </div>
+
       {submitError && (
         <div className={styles.errorOverlay} role="presentation">
           <div
@@ -469,7 +492,7 @@ export default function CheckoutPage() {
               type="button"
               className={styles.errorClose}
               onClick={() => setSubmitError("")}
-              aria-label="Luk"
+              aria-label={t("close")}
             >
               <X size={20} />
             </button>
@@ -478,7 +501,7 @@ export default function CheckoutPage() {
               <CircleAlert size={34} />
             </div>
 
-            <h2 id="checkout-error-title">Bestilling ikke mulig</h2>
+            <h2 id="checkout-error-title">{t("orderNotPossible")}</h2>
 
             <p>{submitError}</p>
 
@@ -487,7 +510,7 @@ export default function CheckoutPage() {
               className={styles.errorButton}
               onClick={() => setSubmitError("")}
             >
-              Luk
+              {t("close")}
             </button>
           </div>
         </div>

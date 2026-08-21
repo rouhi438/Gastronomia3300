@@ -1,0 +1,551 @@
+{
+  "Header": {
+    "home": "Home",
+    "menu": "Menu",
+    "cart": "Cart",
+    "admin": "Admin",
+    "orders": "Orders",
+    "openingHours": "Opening hours",
+    "profile": "Profile",
+    "myProfile": "My profile",
+    "logout": "Log out",
+    "loginOrCreate": "Log in / Sign up"
+  },
+  "StoreStatus": {
+    "loading": "Loading status",
+    "ariaLabel": "Ordering status",
+    "pickup": "Pickup",
+    "delivery": "Delivery",
+    "status": {
+      "open": "Open",
+      "preorder": "Pre-order",
+      "paused": "Paused",
+      "closed": "Closed"
+    }
+  },
+  "Menu": {
+    "categories": {
+      "all": "All",
+      "pizza": "Pizza",
+      "calzone": "Calzone",
+      "alaCarte": "À la carte",
+      "mainCourses": "Main courses",
+      "pasta": "Pasta",
+      "salads": "Salads",
+      "fries": "French fries",
+      "kidsMenu": "Kids' menu",
+      "burgers": "Burgers",
+      "mealDeals": "Meal deals",
+      "drinks": "Drinks",
+      "extraDips": "Extra dips"
+    },
+    "soldOut": "Sold out",
+    "availableAgain": "Available again",
+    "items": {
+      "1": { "name": "MARGHERITA", "description": "Tomato sauce, cheese" },
+      "2": {
+        "name": "TUNA",
+        "description": "Tomato sauce, cheese, tuna, onions"
+      },
+      "3": {
+        "name": "PEPPERONI",
+        "description": "Tomato sauce, cheese and pepperoni"
+      },
+      "4": { "name": "VESUVIO", "description": "Tomato sauce, cheese and ham" },
+      "5": {
+        "name": "HAWAII",
+        "description": "Tomato sauce, cheese, ham and pineapple"
+      },
+      "6": {
+        "name": "CAPRICCIOSA",
+        "description": "Tomato sauce, cheese, ham and mushrooms"
+      },
+      "7": {
+        "name": "VICHINGA",
+        "description": "Tomato sauce, cheese, ham, pepperoni and bacon"
+      },
+      "8": {
+        "name": "CURRY",
+        "description": "Tomato sauce, cheese, chicken, bacon, red onions and curry dressing"
+      },
+      "9": {
+        "name": "POLLO E PESTO",
+        "description": "Tomato sauce, cheese, chicken, potatoes, bell pepper and pesto"
+      },
+      "10": {
+        "name": "MESSICANO",
+        "description": "Tomato sauce, cheese, chicken, bell pepper, jalapeños and garlic"
+      },
+      "11": {
+        "name": "BOLOGNESE",
+        "description": "Tomato sauce, cheese, beef bolognese sauce and onions"
+      },
+      "12": {
+        "name": "PANCETTA",
+        "description": "Tomato sauce, cheese, spinach, chicken, sun-dried tomatoes and bacon"
+      },
+      "13": {
+        "name": "TORINO",
+        "description": "Tomato sauce, cheese, potatoes and bacon"
+      },
+      "14": {
+        "name": "MIX",
+        "description": "Tomato sauce, cheese, ham, beef strips, chicken, kebab and béarnaise sauce"
+      },
+      "15": {
+        "name": "MILANO",
+        "description": "Tomato sauce, cheese, beef strips, gorgonzola and red onions"
+      },
+      "16": {
+        "name": "BÉARNAISE PIZZA",
+        "description": "Tomato sauce, cheese, kebab and béarnaise sauce"
+      },
+      "17": {
+        "name": "PUNJABI PIZZA",
+        "description": "Tomato sauce, cheese, beef strips, bell pepper, onions, jalapeños and garlic"
+      },
+      "18": {
+        "name": "QUATTRO FORMAGGI",
+        "description": "Tomato sauce and four different cheeses"
+      },
+      "19": {
+        "name": "PARMA CON RUCOLA",
+        "description": "Tomato sauce, cheese, bresaola, parmesan and rocket"
+      },
+      "20": {
+        "name": "PIZZA SALATA",
+        "description": "Tomato sauce, cheese, your choice of protein, salad and dressing"
+      },
+      "21": {
+        "name": "RUSTICA",
+        "description": "Tomato sauce, cheese, aubergine, semi-dried tomatoes, cherry tomatoes, parmesan, pesto and rocket"
+      },
+      "22": {
+        "name": "BARI",
+        "description": "Tomato sauce, cheese, turkey, chorizo, cherry tomatoes, parmesan and rocket"
+      },
+      "23": {
+        "name": "PATATE",
+        "description": "Tomato sauce, cheese, potatoes, gorgonzola, cherry tomatoes, pesto and ham"
+      },
+      "24": {
+        "name": "CALZONE",
+        "description": "Tomato sauce, cheese, mushrooms and ham"
+      },
+      "25": {
+        "name": "HALF CALZONE",
+        "description": "Cheese, kebab, mushrooms, onions, béarnaise sauce and chili"
+      },
+      "26": {
+        "name": "SANDWICH",
+        "description": "Filled with your choice of protein, salad and dressing"
+      },
+      "27": {
+        "name": "PITA BREAD",
+        "description": "With your choice of protein, salad and dressing"
+      },
+      "28": {
+        "name": "DURUM",
+        "description": "With your choice of protein, salad and dressing"
+      },
+      "29": {
+        "name": "BOX",
+        "description": "With your choice of protein, salad and dressing"
+      },
+      "30": {
+        "name": "GREEK BEEF PATTY",
+        "description": "Served with French fries, salad and mayonnaise"
+      },
+      "31": {
+        "name": "HALF CHICKEN",
+        "description": "Served with French fries, remoulade, salad and dressing"
+      },
+      "32": {
+        "name": "CHICKEN NUGGETS (10 pcs.)",
+        "description": "Served with French fries, remoulade, salad and dressing"
+      },
+      "33": {
+        "name": "FISH FILLETS (2 pcs.)",
+        "description": "Served with French fries, remoulade, salad and dressing"
+      },
+      "34": { "name": "GARLIC BREAD", "description": "With cheese and garlic" },
+      "35": {
+        "name": "NACHOS",
+        "description": "Choose kebab or chicken, served with cheese, olives, jalapeños and guacamole"
+      },
+      "36": {
+        "name": "LASAGNE BOLOGNESE",
+        "description": "With meat sauce and cheese"
+      },
+      "37": {
+        "name": "SPAGHETTI BOLOGNESE",
+        "description": "Spaghetti with meat sauce and parmesan"
+      },
+      "38": {
+        "name": "PASTA LA FREDERIKSVÆRK",
+        "description": "Pasta spirals with chicken, bacon and creamy tomato sauce"
+      },
+      "39": {
+        "name": "CARBONARA",
+        "description": "Spaghetti with bacon, egg yolk and cream sauce"
+      },
+      "40": {
+        "name": "SALAD",
+        "description": "With iceberg lettuce, tomato, cucumber and dressing"
+      },
+      "41": {
+        "name": "PASTA SALAD",
+        "description": "With pasta, kebab, ham, chicken or falafel and dressing"
+      },
+      "42": {
+        "name": "GREEK SALAD",
+        "description": "With tomato, cucumber, iceberg lettuce, feta and olives"
+      },
+      "43": {
+        "name": "PITA MEAL",
+        "description": "Served with a small portion of French fries, mayonnaise and a canned Coca-Cola"
+      },
+      "44": {
+        "name": "DURUM MEAL",
+        "description": "Served with a small portion of French fries, mayonnaise and a canned Coca-Cola"
+      },
+      "45": {
+        "name": "BURGER MEAL",
+        "description": "Served with a small portion of French fries, mayonnaise and a canned Coca-Cola"
+      },
+      "46": { "name": "FRENCH FRIES (Small)", "description": "" },
+      "47": { "name": "FRENCH FRIES (Large)", "description": "" },
+      "48": {
+        "name": "HOMEMADE BIG BURGER",
+        "description": "With mayonnaise, ketchup, lettuce, tomato, cucumber and onions"
+      },
+      "49": {
+        "name": "HOMEMADE CHEESEBURGER",
+        "description": "With mayonnaise, ketchup, lettuce, tomato, cucumber and onions"
+      },
+      "50": {
+        "name": "HOMEMADE BACON BURGER",
+        "description": "With mayonnaise, ketchup, lettuce, tomato, cucumber and onions"
+      },
+      "51": {
+        "name": "HOMEMADE BACON CHEESEBURGER",
+        "description": "With mayonnaise, ketchup, lettuce, tomato, cucumber and onions"
+      },
+      "52": {
+        "name": "HOMEMADE DOUBLE BACON CHEESEBURGER",
+        "description": "With mayonnaise, ketchup, lettuce, tomato, cucumber and onions"
+      },
+      "53": {
+        "name": "CRISPY CHICKEN BURGER",
+        "description": "With mayonnaise, ketchup, lettuce, tomato, cucumber and onions"
+      },
+      "54": {
+        "name": "KIDS' CHICKEN NUGGETS (6 pcs.)",
+        "description": "Served with French fries and remoulade"
+      },
+      "55": {
+        "name": "KIDS' FISH FILLET",
+        "description": "Served with French fries and remoulade"
+      },
+      "60": { "name": "Coca-Cola", "description": "Choose your size" },
+      "61": { "name": "Faxe Kondi", "description": "Choose your size" },
+      "62": { "name": "Fanta", "description": "Choose your size" },
+      "63": { "name": "Cocio Chocolate Milk", "description": "0.5 L" },
+      "64": { "name": "Iced Tea", "description": "0.5 L" },
+      "65": { "name": "Nestea", "description": "0.5 L" },
+      "66": { "name": "Red Bull", "description": "0.33 L" },
+      "67": { "name": "Monster", "description": "0.5 L" },
+      "68": { "name": "Tuborg", "description": "Beer" },
+      "69": { "name": "Tuborg Classic", "description": "Beer" },
+      "70": { "name": "Carlsberg", "description": "Beer" },
+      "71": { "name": "Pilsner", "description": "Beer" },
+      "72": { "name": "WATER", "description": "Spring water" },
+      "73": { "name": "HOUSE RED WINE", "description": "Red wine, 0.75 L" },
+      "74": { "name": "HOUSE WHITE WINE", "description": "White wine, 0.75 L" },
+      "200": { "name": "Chili", "description": "Sauce for French fries" },
+      "201": { "name": "Mayonnaise", "description": "Sauce for French fries" },
+      "202": { "name": "Remoulade", "description": "Sauce for French fries" },
+      "203": { "name": "Ketchup", "description": "Sauce for French fries" },
+      "204": { "name": "Béarnaise", "description": "Sauce for French fries" },
+      "205": {
+        "name": "Garlic dressing",
+        "description": "Sauce for French fries"
+      },
+      "300": {
+        "name": "EXTRA SIDES",
+        "description": "Chili, dressing, salad, cream and garlic"
+      },
+      "301": {
+        "name": "FRENCH FRIES EXTRAS",
+        "description": "Chili, mayonnaise, remoulade, ketchup, béarnaise and dressing"
+      },
+      "302": {
+        "name": "EXTRA TOPPINGS (vegetables)",
+        "description": "Egg, pineapple, béarnaise, mushrooms, jalapeños, onions, olives, potato slices, bell pepper, rocket, tomato sauce and gorgonzola"
+      },
+      "303": {
+        "name": "EXTRA TOPPINGS (meat)",
+        "description": "Bacon, meat sauce, beef strips, chicken, kebab, ham and pepperoni"
+      }
+    }
+  },
+  "ItemModal": {
+    "close": "Close",
+    "size": "Size",
+    "sizes": {
+      "normal": "Regular",
+      "family": "Family (+{difference} kr.)",
+      "children": "Kids ({price} kr.)",
+      "deepPan": "Deep pan (+{price} kr.)"
+    },
+    "groups": {
+      "protein": "Choose protein",
+      "pizzaExtras": "Pizza extras",
+      "sauces": "Sauces",
+      "size": "Choose size",
+      "variantAndSize": "Choose variant and size",
+      "extras": "Extras"
+    },
+    "buttons": {
+      "update": "Update order",
+      "add": "Add to order",
+      "soldOut": "Sold out",
+      "chooseSize": "Choose size",
+      "chooseVariantAndSize": "Choose variant and size",
+      "chooseProtein": "Choose protein",
+      "requiredChoice": "Make the required selection"
+    },
+    "soldOut": "Sold out",
+    "soldOutUntil": "Sold out until {time}",
+    "included": "Included",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity",
+    "extras": {
+      "pizza": {
+        "0": "Chili",
+        "1": "Dressing",
+        "2": "Salad",
+        "3": "Cream",
+        "4": "Garlic",
+        "5": "Egg",
+        "6": "Pineapple",
+        "7": "Béarnaise sauce",
+        "8": "Mushrooms",
+        "9": "Jalapeños",
+        "10": "Onions",
+        "11": "Olives",
+        "12": "Potato slices",
+        "13": "Bell pepper",
+        "14": "Rocket",
+        "15": "Tomato sauce",
+        "16": "Gorgonzola",
+        "17": "Bacon",
+        "18": "Meat sauce",
+        "19": "Beef strips",
+        "20": "Chicken",
+        "21": "Kebab",
+        "22": "Ham",
+        "23": "Pepperoni"
+      },
+      "fries": {
+        "0": "Chili",
+        "1": "Mayonnaise",
+        "2": "Remoulade",
+        "3": "Ketchup",
+        "4": "Béarnaise",
+        "5": "Dressing"
+      },
+      "cocaColaSizes": {
+        "0": "0.33 L Original",
+        "1": "0.33 L Zero",
+        "2": "0.5 L Original",
+        "3": "1.5 L Original",
+        "4": "1.5 L Zero"
+      },
+      "faxeKondiSizes": {
+        "0": "0.33 L Original",
+        "1": "0.33 L Sugar-free",
+        "2": "0.5 L",
+        "3": "1.5 L"
+      },
+      "drinkSizes": {
+        "0": "0.33 L",
+        "1": "0.5 L",
+        "2": "1.5 L"
+      },
+      "pizzaSaladProteinChoice": {
+        "0": "Kebab",
+        "1": "Chicken",
+        "2": "Pepperoni",
+        "3": "Ham",
+        "4": "Beef strips"
+      },
+      "proteinChoice": {
+        "0": "Kebab",
+        "1": "Chicken",
+        "2": "Falafel",
+        "3": "Ham"
+      },
+      "nachosProtein": {
+        "0": "Kebab",
+        "1": "Chicken"
+      }
+    }
+  },
+  "Cart": {
+    "userFallback": "user",
+    "drawerAria": "Shopping cart",
+    "backToCartAria": "Back to shopping cart",
+    "yourOrder": "Your order",
+    "cartTitle": "Shopping cart",
+    "detailsTitle": "Your details",
+    "closeCartAria": "Close shopping cart",
+    "steps": {
+      "cart": "Cart",
+      "details": "Details",
+      "payment": "Payment"
+    },
+    "minimumOrderTitle": "Minimum order",
+    "continueOrdering": "Continue ordering",
+    "emptyAlt": "Empty shopping cart",
+    "emptyTitle": "Your cart is empty",
+    "emptyText": "Add something from the menu to get started.",
+    "viewMenu": "View menu",
+    "order": "Your order",
+    "itemsInCart": "{count, plural, =1 {# item in cart.} other {# items in cart.}}",
+    "editItem": "Edit {name}",
+    "sizes": {
+      "normal": "Regular",
+      "family": "Family",
+      "children": "Children",
+      "deepPan": "Deep Pan"
+    },
+    "quantity": "{count} pcs.",
+    "decreaseQuantity": "Decrease quantity of {name}",
+    "increaseQuantity": "Increase quantity of {name}",
+    "removeItem": "Remove {name}",
+    "remove": "Remove",
+    "add": "Add",
+    "orderNote": {
+      "label": "Order comment",
+      "placeholder": "E.g. no onions, allergy information or another important message...",
+      "help": "Extra options must be selected from the menu – not added as a comment."
+    },
+    "bag": {
+      "title": "Carrier bag",
+      "description": "Practical packaging for your order"
+    },
+    "summary": {
+      "items": "Items",
+      "serviceFee": "Service fee",
+      "deliveryIfSelected": "Delivery if selected",
+      "total": "Total",
+      "dependsOnMethod": "Depends on the fulfilment method"
+    },
+    "method": {
+      "title": "How would you like your order?",
+      "help": "You will continue as soon as you choose.",
+      "pickup": "Pickup",
+      "pickupDescription": "Collect from the restaurant",
+      "delivery": "Delivery",
+      "deliveryDescription": "Within {distance} km"
+    },
+    "details": {
+      "pickupIntro": "We use these details when your order is ready.",
+      "deliveryIntro": "We use these details to deliver your order correctly.",
+      "goToPayment": "Proceed to payment",
+      "backToCart": "Back to cart"
+    },
+    "time": {
+      "requestedTime": "Requested time",
+      "deliveryQuestion": "When would you like your order delivered?",
+      "pickupQuestion": "When would you like to collect your order?",
+      "asap": "As soon as possible",
+      "schedule": "Choose a time",
+      "selectAria": "Choose requested time",
+      "noMoreToday": "There are no more available times today.",
+      "hoursUnavailable": "Opening hours could not be loaded."
+    },
+    "account": {
+      "loggedInAs": "Logged in as",
+      "haveAccount": "Already have an account?",
+      "loginHelp": "Log in to fill in your details automatically.",
+      "login": "Log in"
+    },
+    "fields": {
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "phone": "Phone",
+      "phonePlaceholder": "E.g. 12 34 56 78",
+      "floorDoor": "Floor / door",
+      "optional": "Optional",
+      "floorDoorPlaceholder": "E.g. 2nd floor, right"
+    },
+    "deliveryArea": {
+      "title": "The address is outside the delivery area",
+      "description": "We deliver within {maximum} km of the restaurant. The selected address is approximately {distance} km away."
+    },
+    "errors": {
+      "openingHours": "Could not load the restaurant's opening hours.",
+      "minimumDelivery": "The minimum order for delivery is {minimum} kr. You need {missing} kr. more.",
+      "nameRequired": "Enter your name.",
+      "phoneRequired": "Enter your phone number.",
+      "selectGoogleAddress": "Choose an address from Google's address list.",
+      "incompleteAddress": "The address is missing required information. Choose it again.",
+      "outsideDeliveryArea": "The delivery address is outside our {distance} km delivery area."
+    }
+  },
+  "AddressAutocomplete": {
+    "label": "Delivery address",
+    "loadingPlaceholder": "Loading address search...",
+    "searchPlaceholder": "Search for your address...",
+    "loading": "Loading",
+    "helper": "Select the address from Google's list so the postal code, city and coordinates are registered correctly.",
+    "errors": {
+      "invalidAddress": "Select a valid address from the list.",
+      "incompleteAddress": "The address is missing a street, postal code or city.",
+      "missingApiKey": "The Google Maps API key is missing.",
+      "loadFailed": "The address search could not be loaded."
+    }
+  },
+  "Checkout": {
+    "loading": "Loading...",
+    "title": "Checkout",
+    "customerInformation": "Customer information",
+    "fullName": "Full name",
+    "address": "Address",
+    "phone": "Phone",
+    "email": "Email",
+    "deliveryMethod": "Delivery method",
+    "change": "Change",
+    "pickup": "Pickup",
+    "delivery": "Delivery",
+    "pickupDescription": "You will pick up the order at Gastronomia 3300.",
+    "deliveryDescription": "The order will be delivered to the address selected in the cart.",
+    "payment": "Payment",
+    "paymentCard": "Payment card",
+    "submitting": "Processing...",
+    "completeOrder": "Complete order",
+    "yourOrder": "Your order",
+    "total": "Total",
+    "emptyTitle": "Your cart is empty",
+    "emptyDescription": "Return to the menu and add something delicious.",
+    "viewMenu": "View menu",
+    "close": "Close",
+    "orderNotPossible": "Unable to place order",
+    "placeholders": {
+      "name": "John Smith",
+      "address": "Select the address in the cart",
+      "phone": "+45 40 40 41 83",
+      "email": "you@example.com"
+    },
+    "errors": {
+      "emptyCart": "Your cart is empty. Add some items first.",
+      "incompleteDeliveryAddress": "The delivery address is incomplete. Go back and select the address again.",
+      "invalidExtraGroup": "Each selected extra must have a non-empty group ID.",
+      "paymentStartFailed": "The payment could not be started.",
+      "invalidPaymentLink": "The payment was created without a valid payment link.",
+      "unknownPayment": "Unknown error while starting the payment"
+    }
+  }
+}
