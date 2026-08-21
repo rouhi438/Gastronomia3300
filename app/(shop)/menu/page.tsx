@@ -20,6 +20,8 @@ import { menuData, type MenuItem } from "@/data/menu";
 
 import ItemModal from "@/components/ItemModal";
 
+import { useLocale, useTranslations } from "next-intl";
+
 import styles from "./menu.module.css";
 
 type AvailabilityStatus = "active" | "until_next_opening" | "manual_off";
@@ -47,73 +49,73 @@ type AvailabilityResponse = {
 const categories = [
   {
     id: "alle",
-    label: "Alle",
+    labelKey: "categories.all",
     icon: <ChefHat size={18} />,
   },
   {
     id: "pizza",
-    label: "Pizza",
+    labelKey: "categories.pizza",
     icon: <Pizza size={18} />,
   },
   {
     id: "indbagt",
-    label: "Indbagt Pizza",
+    labelKey: "categories.calzone",
     icon: <Pizza size={18} />,
   },
   {
     id: "ala-carte",
-    label: "Ala Carte",
+    labelKey: "categories.alaCarte",
     icon: <UtensilsCrossed size={18} />,
   },
   {
     id: "hovedretter",
-    label: "Hovedretter",
+    labelKey: "categories.mainCourses",
     icon: <ChefHat size={18} />,
   },
   {
     id: "pasta",
-    label: "Pasta",
+    labelKey: "categories.pasta",
     icon: <Soup size={18} />,
   },
   {
     id: "salad",
-    label: "Salat",
+    labelKey: "categories.salads",
     icon: <Salad size={18} />,
   },
   {
     id: "fries",
-    label: "Pommes Frites",
+    labelKey: "categories.fries",
     icon: <Sandwich size={18} />,
   },
   {
     id: "børn",
-    label: "Børn menu",
+    labelKey: "categories.kidsMenu",
     icon: <Baby size={18} />,
   },
   {
     id: "burger",
-    label: "Burger",
+    labelKey: "categories.burgers",
     icon: <Hamburger size={18} />,
   },
   {
     id: "menuer",
-    label: "Menuer",
+    labelKey: "categories.mealDeals",
     icon: <Sandwich size={18} />,
   },
   {
     id: "drikke",
-    label: "Drikkevarer",
+    labelKey: "categories.drinks",
     icon: <CupSoda size={18} />,
   },
   {
     id: "dyppelse",
-    label: "Ekstra dyppelse",
+    labelKey: "categories.extraDips",
     icon: <Cherry size={18} />,
   },
 ];
 
-function formatAvailableAgain(value: string) {
-  return new Intl.DateTimeFormat("da-DK", {
+function formatAvailableAgain(value: string, locale: string) {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "da-DK", {
     timeZone: "Europe/Copenhagen",
     weekday: "short",
     day: "2-digit",
@@ -124,6 +126,10 @@ function formatAvailableAgain(value: string) {
 }
 
 export default function MenuPage() {
+  const locale = useLocale();
+
+  const t = useTranslations("Menu");
+
   const [activeCategory, setActiveCategory] = useState("alle");
 
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
@@ -247,7 +253,7 @@ export default function MenuPage() {
               >
                 {cat.icon}
 
-                <span>{cat.label}</span>
+                <span>{t(cat.labelKey)}</span>
               </button>
             ))}
           </nav>
@@ -258,6 +264,14 @@ export default function MenuPage() {
         <section className={styles.cardsSection}>
           <div className={styles.cardsGrid}>
             {filteredItems.map((item) => {
+              const nameKey = `items.${item.id}.name`;
+              const descriptionKey = `items.${item.id}.description`;
+
+              const displayName = t.has(nameKey) ? t(nameKey) : item.name;
+
+              const displayDescription = t.has(descriptionKey)
+                ? t(descriptionKey)
+                : item.description;
               const price = item.prices.normal ?? item.prices.fixed ?? 0;
 
               const hidePrice = [60, 61, 62].includes(item.id);
@@ -291,10 +305,10 @@ export default function MenuPage() {
                     <h3 className={styles.itemName}>
                       {item.menuNumber ? `${item.menuNumber}. ` : ""}
 
-                      {item.name}
+                      {displayName}
                     </h3>
 
-                    <p className={styles.itemDesc}>{item.description}</p>
+                    <p className={styles.itemDesc}>{displayDescription}</p>
 
                     {unavailable && (
                       <div
@@ -310,7 +324,7 @@ export default function MenuPage() {
                             fontSize: "0.8rem",
                           }}
                         >
-                          Udsolgt
+                          {t("soldOut")}
                         </strong>
 
                         {temporary && availability?.available_again_at && (
@@ -320,9 +334,10 @@ export default function MenuPage() {
                               fontSize: "0.68rem",
                             }}
                           >
-                            Tilgængelig igen{" "}
+                            {t("availableAgain")}{" "}
                             {formatAvailableAgain(
                               availability.available_again_at,
+                              locale,
                             )}
                           </span>
                         )}
@@ -338,7 +353,7 @@ export default function MenuPage() {
                     {item.image ? (
                       <img
                         src={item.image}
-                        alt={item.name}
+                        alt={displayName}
                         className={styles.image}
                       />
                     ) : (

@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Minus, Pizza, Plus, X } from "lucide-react";
 
+import { useLocale, useTranslations } from "next-intl";
+
 import type { Extra, MenuItem } from "@/data/menu";
 
 import { extraGroups } from "@/data/menu";
@@ -60,12 +62,12 @@ const getExtraKey = (extra: Extra, groupId: ExtraGroupId) =>
 const optionNameToKey = (name: string) =>
   name.toLowerCase().replace(/\s+/g, "");
 
-function formatAvailableAgain(value: string | null) {
+function formatAvailableAgain(value: string | null, locale: string) {
   if (!value) {
     return "";
   }
 
-  return new Intl.DateTimeFormat("da-DK", {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "da-DK", {
     timeZone: "Europe/Copenhagen",
     weekday: "short",
     day: "2-digit",
@@ -100,6 +102,10 @@ export default function ItemModal({
   editingCartId = null,
   optionStatuses = EMPTY_OPTION_STATUSES,
 }: ItemModalProps) {
+  const locale = useLocale();
+  const menuT = useTranslations("Menu");
+  const t = useTranslations("ItemModal");
+
   const { addItem, updateItem } = useCart();
 
   const [selectedSize, setSelectedSize] = useState<SizeOption>(initialSize);
@@ -158,30 +164,34 @@ export default function ItemModal({
       return;
     }
 
-    const sizeChanged = previousSizeRef.current !== initialSize;
+    const syncModalState = window.setTimeout(() => {
+      const sizeChanged = previousSizeRef.current !== initialSize;
 
-    const extrasChanged =
-      JSON.stringify(previousExtrasRef.current) !==
-      JSON.stringify(initialExtras);
+      const extrasChanged =
+        JSON.stringify(previousExtrasRef.current) !==
+        JSON.stringify(initialExtras);
 
-    if (sizeChanged) {
-      setSelectedSize(initialSize);
+      if (sizeChanged) {
+        setSelectedSize(initialSize);
+        previousSizeRef.current = initialSize;
+      }
 
-      previousSizeRef.current = initialSize;
-    }
+      if (extrasChanged || editingCartId) {
+        const normalizedExtras = normalizeInitialExtras(
+          initialExtras,
+          extraGroupIds,
+        );
 
-    if (extrasChanged || editingCartId) {
-      const normalizedExtras = normalizeInitialExtras(
-        initialExtras,
-        extraGroupIds,
-      );
+        setSelectedExtras(normalizedExtras);
+        previousExtrasRef.current = initialExtras;
+      }
 
-      setSelectedExtras(normalizedExtras);
+      setQuantity(1);
+    }, 0);
 
-      previousExtrasRef.current = initialExtras;
-    }
-
-    setQuantity(1);
+    return () => {
+      window.clearTimeout(syncModalState);
+    };
   }, [isOpen, initialSize, initialExtras, editingCartId, extraGroupIds]);
 
   useEffect(() => {
@@ -189,18 +199,31 @@ export default function ItemModal({
       return;
     }
 
-    setSelectedSize("normal");
-    setSelectedExtras([]);
-    setQuantity(1);
+    const resetModalState = window.setTimeout(() => {
+      setSelectedSize("normal");
+      setSelectedExtras([]);
+      setQuantity(1);
 
-    previousSizeRef.current = "normal";
+      previousSizeRef.current = "normal";
+      previousExtrasRef.current = [];
+    }, 0);
 
-    previousExtrasRef.current = [];
+    return () => {
+      window.clearTimeout(resetModalState);
+    };
   }, [isOpen]);
 
   if (!isOpen || !item) {
     return null;
   }
+
+  const nameKey = `items.${item.id}.name`;
+  const descriptionKey = `items.${item.id}.description`;
+
+  const displayName = menuT.has(nameKey) ? menuT(nameKey) : item.name;
+  const displayDescription = menuT.has(descriptionKey)
+    ? menuT(descriptionKey)
+    : item.description;
 
   const sizePriceMap: Record<SizeOption, number> = {
     normal: item.prices.normal ?? item.prices.fixed ?? 0,
@@ -215,20 +238,20 @@ export default function ItemModal({
   const getSizeLabel = (size: SizeOption) => {
     switch (size) {
       case "normal":
-        return "Almindelig";
+        return t("sizes.normal");
 
       case "family": {
         const difference =
           (item.prices.family ?? 0) - (item.prices.normal ?? 0);
 
-        return `Familie (+${difference} kr.)`;
+        return t("sizes.family", { difference });
       }
 
       case "children":
-        return `Børn (${item.prices.children ?? 0} kr.)`;
+        return t("sizes.children", { price: item.prices.children ?? 0 });
 
       case "deepPan":
-        return `Deep Pan (+${item.deepPanExtra ?? 0} kr.)`;
+        return t("sizes.deepPan", { price: item.deepPanExtra ?? 0 });
 
       default:
         return "";
@@ -240,23 +263,23 @@ export default function ItemModal({
       case "proteinChoice":
       case "nachosProtein":
       case "pizzaSaladProteinChoice":
-        return "Vælg protein";
+        return t("groups.protein");
 
       case "pizza":
-        return "Pizza tilbehør";
+        return t("groups.pizzaExtras");
 
       case "fries":
-        return "Saucer";
+        return t("groups.sauces");
 
       case "drinkSizes":
-        return "Vælg størrelse";
+        return t("groups.size");
 
       case "cocaColaSizes":
       case "faxeKondiSizes":
-        return "Vælg variant og størrelse";
+        return t("groups.variantAndSize");
 
       default:
-        return "Tilbehør";
+        return t("groups.extras");
     }
   };
 
@@ -405,25 +428,25 @@ export default function ItemModal({
 
   const firstMissingGroup = missingRequiredGroupIds[0];
 
-  let addButtonLabel = editingCartId ? "Opdater ordre" : "Tilføj til ordre";
+  let addButtonLabel = editingCartId ? t("buttons.update") : t("buttons.add");
 
   if (allDrinkOptionsUnavailable) {
-    addButtonLabel = "Udsolgt";
+    addButtonLabel = t("buttons.soldOut");
   } else if (firstMissingGroup === "drinkSizes") {
-    addButtonLabel = "Vælg størrelse";
+    addButtonLabel = t("buttons.chooseSize");
   } else if (
     firstMissingGroup === "cocaColaSizes" ||
     firstMissingGroup === "faxeKondiSizes"
   ) {
-    addButtonLabel = "Vælg variant og størrelse";
+    addButtonLabel = t("buttons.chooseVariantAndSize");
   } else if (
     firstMissingGroup === "proteinChoice" ||
     firstMissingGroup === "nachosProtein" ||
     firstMissingGroup === "pizzaSaladProteinChoice"
   ) {
-    addButtonLabel = "Vælg protein";
+    addButtonLabel = t("buttons.chooseProtein");
   } else if (firstMissingGroup) {
-    addButtonLabel = "Foretag påkrævet valg";
+    addButtonLabel = t("buttons.requiredChoice");
   }
 
   const handleAddToCart = () => {
@@ -473,7 +496,7 @@ export default function ItemModal({
             type="button"
             className={styles.closeBtn}
             onClick={onClose}
-            aria-label="Luk"
+            aria-label={t("close")}
           >
             <X size={24} />
           </button>
@@ -484,7 +507,7 @@ export default function ItemModal({
             {item.image ? (
               <img
                 src={item.image}
-                alt={item.name}
+                alt={displayName}
                 className={styles.modalImage}
               />
             ) : (
@@ -494,15 +517,15 @@ export default function ItemModal({
             )}
           </div>
 
-          <h2 className={styles.stickyTitle}>{item.name}</h2>
+          <h2 className={styles.stickyTitle}>{displayName}</h2>
 
           <div className={styles.section}>
-            <p className={styles.description}>{item.description}</p>
+            <p className={styles.description}>{displayDescription}</p>
           </div>
 
           {hasSizeOptions && availableSizes.length > 0 && (
             <div className={styles.section}>
-              <h4 className={styles.sectionTitle}>Størrelse</h4>
+              <h4 className={styles.sectionTitle}>{t("size")}</h4>
 
               <div className={styles.sizeOptions}>
                 {availableSizes.map((size) => {
@@ -547,8 +570,14 @@ export default function ItemModal({
                 </h4>
 
                 <div className={styles.extrasGrid}>
-                  {groupExtras.map((extra) => {
+                  {groupExtras.map((extra, extraIndex) => {
                     const displayPrice = getExtraPrice(extra);
+
+                    const extraTranslationKey = `extras.${groupId}.${extraIndex}`;
+
+                    const displayExtraName = t.has(extraTranslationKey)
+                      ? t(extraTranslationKey)
+                      : extra.name;
 
                     const selected = isExtraSelected(extra, groupId);
 
@@ -577,7 +606,7 @@ export default function ItemModal({
                           onChange={() => toggleExtra(extra, groupId)}
                         />
 
-                        <span>{extra.name}</span>
+                        <span>{displayExtraName}</span>
 
                         {unavailable ? (
                           <span
@@ -591,16 +620,19 @@ export default function ItemModal({
                           >
                             {availability?.status === "until_next_opening" &&
                             availability.available_again_at
-                              ? `Udsolgt indtil ${formatAvailableAgain(
-                                  availability.available_again_at,
-                                )}`
-                              : "Udsolgt"}
+                              ? t("soldOutUntil", {
+                                  time: formatAvailableAgain(
+                                    availability.available_again_at,
+                                    locale,
+                                  ),
+                                })
+                              : t("soldOut")}
                           </span>
                         ) : (
                           <span className={styles.extraPrice}>
                             {displayPrice > 0
                               ? `+${displayPrice} kr.`
-                              : "Inkluderet"}
+                              : t("included")}
                           </span>
                         )}
                       </label>
@@ -619,7 +651,7 @@ export default function ItemModal({
                 onClick={() =>
                   setQuantity((current) => Math.max(1, current - 1))
                 }
-                aria-label="Reducer antal"
+                aria-label={t("decreaseQuantity")}
               >
                 <Minus size={18} />
               </button>
@@ -630,7 +662,7 @@ export default function ItemModal({
                 type="button"
                 className={styles.qtyBtn}
                 onClick={() => setQuantity((current) => current + 1)}
-                aria-label="Forøg antal"
+                aria-label={t("increaseQuantity")}
               >
                 <Plus size={18} />
               </button>

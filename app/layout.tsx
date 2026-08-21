@@ -1,7 +1,11 @@
 import type { Metadata, Viewport } from "next";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
+
 import { Providers } from "./providers";
 import { CartProvider } from "@/context/CartContext";
 import { CartUIProvider } from "@/context/CartUIContext";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,19 +22,24 @@ export const viewport: Viewport = {
   themeColor: "#ffffff",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="da" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body>
-        <Providers>
-          <CartProvider>
-            <CartUIProvider>{children}</CartUIProvider>
-          </CartProvider>
-        </Providers>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <Providers>
+            <CartProvider>
+              <CartUIProvider>{children}</CartUIProvider>
+            </CartProvider>
+          </Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

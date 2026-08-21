@@ -29,6 +29,7 @@ import {
 import { useCart } from "@/context/CartContext";
 import { useCartUI } from "@/context/CartUIContext";
 import CartDrawer from "./CartDrawer";
+import { useLocale, useTranslations } from "next-intl";
 import styles from "./Header.module.css";
 
 const subscribeToHydration = () => () => {};
@@ -48,12 +49,14 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [language, setLanguage] = useState<"da" | "en">("da");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [profileHref, setProfileHref] = useState("/complete-profile");
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   const adminMenuRef = useRef<HTMLDivElement>(null);
   const mobileAdminMenuRef = useRef<HTMLDivElement>(null);
+  const locale = useLocale();
+  const t = useTranslations("Header");
+
   useEffect(() => {
     const loadUser = async () => {
       const {
@@ -183,8 +186,28 @@ export default function Header() {
     router.refresh();
   };
 
-  const toggleLanguage = () => {
-    setLanguage((prev) => (prev === "da" ? "en" : "da"));
+  const changeLanguage = async (nextLocale: "da" | "en") => {
+    if (locale === nextLocale) return;
+
+    try {
+      const response = await fetch("/api/locale", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          locale: nextLocale,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Language update failed.");
+      }
+
+      router.refresh();
+    } catch (languageError) {
+      console.error("Language update failed:", languageError);
+    }
   };
 
   const toggleTheme = () => {
@@ -250,11 +273,11 @@ export default function Header() {
         <nav className={styles.navDesktop}>
           <Link href="/" className={styles.navLink}>
             <Home size={18} />
-            <span>Hjem</span>
+            <span>{t("home")}</span>
           </Link>
           <Link href="/menu" className={styles.navLink} onClick={closeMenu}>
             <SquareMenu size={20} />
-            <span>Menu</span>
+            <span>{t("menu")}</span>
           </Link>
           <button type="button" className={styles.navLink} onClick={openCart}>
             <div className={styles.cartIconWrapper}>
@@ -265,7 +288,7 @@ export default function Header() {
               )}
             </div>
 
-            <span>Kurv</span>
+            <span>{t("cart")}</span>
           </button>
 
           {isLoggedIn && userRole === "admin" && (
@@ -277,7 +300,7 @@ export default function Header() {
                 aria-haspopup="menu"
                 aria-expanded={isAdminMenuOpen}
               >
-                <span>Admin</span>
+                <span>{t("admin")}</span>
 
                 <ChevronDown
                   size={16}
@@ -295,7 +318,7 @@ export default function Header() {
                     onClick={() => setIsAdminMenuOpen(false)}
                   >
                     <ClipboardList size={17} />
-                    <span>Ordrer</span>
+                    <span>{t("orders")}</span>
                   </Link>
 
                   <Link
@@ -304,7 +327,7 @@ export default function Header() {
                     onClick={() => setIsAdminMenuOpen(false)}
                   >
                     <UtensilsCrossed size={17} />
-                    <span>Menu</span>
+                    <span>{t("menu")}</span>
                   </Link>
 
                   <Link
@@ -313,7 +336,7 @@ export default function Header() {
                     onClick={() => setIsAdminMenuOpen(false)}
                   >
                     <Clock3 size={17} />
-                    <span>Åbningstider</span>
+                    <span>{t("openingHours")}</span>
                   </Link>
                 </div>
               )}
@@ -323,7 +346,7 @@ export default function Header() {
           {isLoggedIn ? (
             <>
               <Link href={profileHref} className={styles.navLink}>
-                <span>{userName || "Profil"}</span>
+                <span>{userName || t("profile")}</span>
               </Link>
 
               <button
@@ -331,13 +354,13 @@ export default function Header() {
                 onClick={handleLogout}
                 className={styles.navLink}
               >
-                <span>Log ud</span>
+                <span> {t("logout")}</span>
               </button>
             </>
           ) : (
             <Link href="/auth" className={styles.navLink}>
               <User size={18} />
-              <span>Log ind / Opret</span>
+              <span>{t("loginOrCreate")}</span>
             </Link>
           )}
         </nav>
@@ -346,20 +369,22 @@ export default function Header() {
           <div className={styles.langSwitcher}>
             <button
               type="button"
-              onClick={toggleLanguage}
+              onClick={() => void changeLanguage("da")}
               className={`${styles.langBtn} ${
-                language === "da" ? styles.active : ""
+                locale === "da" ? styles.active : ""
               }`}
+              aria-pressed={locale === "da"}
             >
               DA
             </button>
 
             <button
               type="button"
-              onClick={toggleLanguage}
+              onClick={() => void changeLanguage("en")}
               className={`${styles.langBtn} ${
-                language === "en" ? styles.active : ""
+                locale === "en" ? styles.active : ""
               }`}
+              aria-pressed={locale === "en"}
             >
               EN
             </button>
@@ -504,7 +529,7 @@ export default function Header() {
                   onClick={closeMenu}
                 >
                   <User size={20} />
-                  <span>Min profil</span>
+                  <span>{t("myProfile")}</span>
                 </Link>
 
                 <button

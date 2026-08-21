@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 import { useCart } from "@/context/CartContext";
-import { menuData, type Extra, type MenuItem } from "@/data/menu";
+import { extraGroups, menuData, type Extra, type MenuItem } from "@/data/menu";
 import { createClient } from "@/lib/supabase/client";
 
 import AddressAutocomplete from "./AddressAutocomplete";
@@ -29,6 +29,7 @@ import {
   MAX_DELIVERY_DISTANCE_KM,
   validateDeliveryDistance,
 } from "@/lib/delivery";
+import { useLocale, useTranslations } from "next-intl";
 import styles from "./CartDrawer.module.css";
 
 const supabase = createClient();
@@ -159,6 +160,8 @@ function buildTimeAvailability(serviceStatus: ServiceStatus | null) {
 }
 
 export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
+  const t = useTranslations("Cart");
+
   const {
     items,
     removeItem,
@@ -253,29 +256,34 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   ]);
 
   useEffect(() => {
-    const storedCustomer = localStorage.getItem(CUSTOMER_STORAGE_KEY);
+    const hydrateCustomerState = window.setTimeout(() => {
+      const storedCustomer = localStorage.getItem(CUSTOMER_STORAGE_KEY);
+      const storedOrderNote = localStorage.getItem(ORDER_NOTE_STORAGE_KEY);
 
-    const storedOrderNote = localStorage.getItem(ORDER_NOTE_STORAGE_KEY);
+      if (storedCustomer) {
+        try {
+          const parsed = JSON.parse(storedCustomer) as Partial<CustomerDetails>;
 
-    if (storedCustomer) {
-      try {
-        const parsed = JSON.parse(storedCustomer) as Partial<CustomerDetails>;
-
-        setCustomerDetails({
-          name: typeof parsed.name === "string" ? parsed.name : "",
-          phone: typeof parsed.phone === "string" ? parsed.phone : "",
-          email: typeof parsed.email === "string" ? parsed.email : "",
-        });
-      } catch {
-        localStorage.removeItem(CUSTOMER_STORAGE_KEY);
+          setCustomerDetails({
+            name: typeof parsed.name === "string" ? parsed.name : "",
+            phone: typeof parsed.phone === "string" ? parsed.phone : "",
+            email: typeof parsed.email === "string" ? parsed.email : "",
+          });
+        } catch {
+          localStorage.removeItem(CUSTOMER_STORAGE_KEY);
+        }
       }
-    }
 
-    if (storedOrderNote) {
-      setOrderNote(storedOrderNote);
-    }
+      if (storedOrderNote) {
+        setOrderNote(storedOrderNote);
+      }
 
-    setHasLoadedCustomer(true);
+      setHasLoadedCustomer(true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(hydrateCustomerState);
+    };
   }, []);
 
   useEffect(() => {
@@ -334,7 +342,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       const resolvedPhone = profilePhone || providerPhone;
 
       setIsLoggedIn(true);
-      setLoggedInLabel(resolvedName || user.email || "bruger");
+      setLoggedInLabel(resolvedName || user.email || t("userFallback"));
 
       setCustomerDetails((current) => ({
         name: resolvedName || current.name,
@@ -383,13 +391,21 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [isOpen]);
+  }, [isOpen, t]);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      return;
+    }
+
+    const resetClosedDrawer = window.setTimeout(() => {
       setStep("cart");
       setFormError("");
-    }
+    }, 0);
+
+    return () => {
+      window.clearTimeout(resetClosedDrawer);
+    };
   }, [isOpen]);
 
   const deliveryDistance = useMemo(() => {
@@ -496,7 +512,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
       setServiceStatuses(null);
       setDeliveryMethod(method);
-      setFormError("Kunne ikke hente restaurantens åbningstider.");
+      setFormError(t("errors.openingHours"));
       setStep("details");
     }
   };
@@ -516,25 +532,26 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
     if (deliveryMethod === "delivery" && totalPrice < MIN_DELIVERY_TOTAL) {
       setMinimumOrderError(
-        `Minimumsbestilling for levering er ${MIN_DELIVERY_TOTAL} kr. Du mangler ${
-          MIN_DELIVERY_TOTAL - totalPrice
-        } kr.`,
+        t("errors.minimumDelivery", {
+          minimum: MIN_DELIVERY_TOTAL,
+          missing: MIN_DELIVERY_TOTAL - totalPrice,
+        }),
       );
 
       return;
     }
     if (!customerDetails.name.trim()) {
-      setFormError("Indtast dit navn.");
+      setFormError(t("errors.nameRequired"));
       return;
     }
 
     if (!customerDetails.phone.trim()) {
-      setFormError("Indtast dit telefonnummer.");
+      setFormError(t("errors.phoneRequired"));
       return;
     }
 
     if (deliveryMethod === "delivery" && !deliveryAddress.placeId) {
-      setFormError("Vælg en adresse fra Googles adresseliste.");
+      setFormError(t("errors.selectGoogleAddress"));
       return;
     }
 
@@ -545,7 +562,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         deliveryAddress.latitude === null ||
         deliveryAddress.longitude === null)
     ) {
-      setFormError("Adressen mangler nødvendige oplysninger. Vælg den igen.");
+      setFormError(t("errors.incompleteAddress"));
       return;
     }
 
@@ -555,7 +572,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       !deliveryDistance.isWithinDeliveryArea
     ) {
       setFormError(
-        `Leveringsadressen ligger uden for vores leveringsområde på ${MAX_DELIVERY_DISTANCE_KM} km.`,
+        t("errors.outsideDeliveryArea", {
+          distance: MAX_DELIVERY_DISTANCE_KM,
+        }),
       );
 
       return;
@@ -580,7 +599,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         <aside
           className={styles.drawer}
           onClick={(event) => event.stopPropagation()}
-          aria-label="Indkøbskurv"
+          aria-label={t("drawerAria")}
         >
           <header className={styles.header}>
             <div className={styles.headerContent}>
@@ -592,17 +611,17 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     setStep("cart");
                     setFormError("");
                   }}
-                  aria-label="Tilbage til indkøbskurven"
+                  aria-label={t("backToCartAria")}
                 >
                   <ArrowLeft size={19} />
                 </button>
               )}
 
               <div>
-                <span className={styles.eyebrow}>Din ordre</span>
+                <span className={styles.eyebrow}>{t("yourOrder")}</span>
 
                 <h2 className={styles.title}>
-                  {step === "cart" ? "Indkøbskurv" : "Dine oplysninger"}
+                  {step === "cart" ? t("cartTitle") : t("detailsTitle")}
 
                   <span className={styles.itemCount}>{totalItems}</span>
                 </h2>
@@ -613,7 +632,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               type="button"
               className={styles.closeBtn}
               onClick={onClose}
-              aria-label="Luk indkøbskurv"
+              aria-label={t("closeCartAria")}
             >
               <X size={22} />
             </button>
@@ -629,7 +648,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 }`}
               >
                 <span>{step === "details" ? <Check size={12} /> : "1"}</span>
-                Kurv
+                {t("steps.cart")}
               </span>
 
               <span className={styles.progressLine} />
@@ -640,14 +659,14 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 }`}
               >
                 <span>2</span>
-                Oplysninger
+                {t("steps.details")}
               </span>
 
               <span className={styles.progressLine} />
 
               <span className={styles.progressItem}>
                 <span>3</span>
-                Betaling
+                {t("steps.payment")}
               </span>
             </div>
           )}
@@ -740,7 +759,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             aria-labelledby="minimum-order-title"
             onClick={(event) => event.stopPropagation()}
           >
-            <h2 id="minimum-order-title">Minimumsbestilling</h2>
+            <h2 id="minimum-order-title">{t("minimumOrderTitle")}</h2>
 
             <p>{minimumOrderError}</p>
 
@@ -749,7 +768,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               className={styles.minimumOrderButton}
               onClick={() => setMinimumOrderError("")}
             >
-              Fortsæt med at bestille
+              {t("continueOrdering")}
             </button>
           </div>
         </div>
@@ -763,12 +782,14 @@ interface EmptyCartProps {
 }
 
 function EmptyCart({ onClose }: EmptyCartProps) {
+  const t = useTranslations("Cart");
+
   return (
     <div className={styles.emptyState}>
       <div className={styles.emptyImage}>
         <Image
           src="/images/cat.png"
-          alt="Tom indkøbskurv"
+          alt={t("emptyAlt")}
           width={220}
           height={320}
           priority
@@ -776,13 +797,13 @@ function EmptyCart({ onClose }: EmptyCartProps) {
       </div>
 
       <div className={styles.emptyText}>
-        <h3>Din kurv er tom</h3>
+        <h3>{t("emptyTitle")}</h3>
 
-        <p>Tilføj noget fra menuen, så vi har noget at arbejde med.</p>
+        <p>{t("emptyText")}</p>
       </div>
 
       <Link href="/menu" onClick={onClose} className={styles.backToShopBtn}>
-        Se menuen
+        {t("viewMenu")}
       </Link>
     </div>
   );
@@ -826,6 +847,10 @@ function CartStep({
   onSelectMethod,
   formatPrice,
 }: CartStepProps) {
+  const t = useTranslations("Cart");
+  const menuT = useTranslations("Menu");
+  const itemModalT = useTranslations("ItemModal");
+
   const primarySelectionGroupIds = [
     "proteinChoice",
     "nachosProtein",
@@ -835,19 +860,36 @@ function CartStep({
     "faxeKondiSizes",
   ] as const;
 
+  const getExtraDisplayName = (extra: Extra) => {
+    if (!extra.groupId) {
+      return extra.name;
+    }
+
+    const group = extraGroups[extra.groupId];
+    const index = group.findIndex((option) => option.name === extra.name);
+    const key = `extras.${extra.groupId}.${index}`;
+
+    return index >= 0 && itemModalT.has(key) ? itemModalT(key) : extra.name;
+  };
+
   return (
     <div className={styles.cartStep}>
       <section className={styles.cartSection}>
         <div className={styles.sectionHeading}>
           <div>
-            <h3>Din bestilling</h3>
-            <p>{totalItems} varer i kurven.</p>
+            <h3>{t("order")}</h3>
+            <p>{t("itemsInCart", { count: totalItems })}</p>
           </div>
         </div>
 
         <ul className={styles.list}>
           {items.map((item) => {
             const menuItem = menuData.find((entry) => entry.id === item.id);
+            const itemNameKey = `items.${item.id}.name`;
+            const displayItemName = menuT.has(itemNameKey)
+              ? menuT(itemNameKey)
+              : item.name;
+
             const primarySelections =
               item.extras?.filter((extra) =>
                 extra.groupId
@@ -875,13 +917,13 @@ function CartStep({
 
             const itemSizeLabel =
               item.size === "family"
-                ? "Familie"
+                ? t("sizes.family")
                 : item.size === "children"
-                  ? "Børn"
+                  ? t("sizes.children")
                   : item.deepPan || item.size === "deepPan"
-                    ? "Deep Pan"
+                    ? t("sizes.deepPan")
                     : item.size && hasAlternativeSizeOptions
-                      ? "Almindelig"
+                      ? t("sizes.normal")
                       : null;
 
             return (
@@ -890,12 +932,12 @@ function CartStep({
                   type="button"
                   className={styles.itemEditArea}
                   onClick={() => onEditItem(item)}
-                  aria-label={`Rediger ${item.name}`}
+                  aria-label={t("editItem", { name: displayItemName })}
                 >
                   <div className={styles.itemMain}>
                     <div className={styles.itemHeader}>
                       <div className={styles.itemTitleRow}>
-                        <h4 className={styles.itemName}>{item.name}</h4>
+                        <h4 className={styles.itemName}>{displayItemName}</h4>
 
                         {primarySelections.length > 0 && (
                           <div className={styles.variantBadges}>
@@ -904,7 +946,7 @@ function CartStep({
                                 key={`${item.cartId}-${extra.name}-${index}`}
                                 className={styles.proteinLabel}
                               >
-                                {extra.name}
+                                {getExtraDisplayName(extra)}
                               </span>
                             ))}
                           </div>
@@ -922,7 +964,7 @@ function CartStep({
                       )}
 
                       <span className={styles.itemQty}>
-                        {item.quantity} stk.
+                        {t("quantity", { count: item.quantity })}
                       </span>
                     </div>
 
@@ -941,7 +983,7 @@ function CartStep({
                             >
                               <Plus size={12} aria-hidden="true" />
 
-                              <span>{extra.name}</span>
+                              <span>{getExtraDisplayName(extra)}</span>
 
                               {displayedExtraPrice > 0 && (
                                 <small>
@@ -963,7 +1005,9 @@ function CartStep({
                       onClick={() =>
                         onUpdateQuantity(item.cartId, item.quantity - 1)
                       }
-                      aria-label={`Reducer antal af ${item.name}`}
+                      aria-label={t("decreaseQuantity", {
+                        name: displayItemName,
+                      })}
                     >
                       <Minus size={15} />
                     </button>
@@ -975,7 +1019,9 @@ function CartStep({
                       onClick={() =>
                         onUpdateQuantity(item.cartId, item.quantity + 1)
                       }
-                      aria-label={`Forøg antal af ${item.name}`}
+                      aria-label={t("increaseQuantity", {
+                        name: displayItemName,
+                      })}
                     >
                       <Plus size={15} />
                     </button>
@@ -985,10 +1031,10 @@ function CartStep({
                     type="button"
                     className={styles.removeBtn}
                     onClick={() => onRemoveItem(item.cartId)}
-                    aria-label={`Fjern ${item.name}`}
+                    aria-label={t("removeItem", { name: displayItemName })}
                   >
                     <X size={16} />
-                    <span>Fjern</span>
+                    <span>{t("remove")}</span>
                   </button>
                 </div>
               </li>
@@ -999,7 +1045,7 @@ function CartStep({
 
       <section className={styles.noteSection}>
         <label htmlFor="order-note" className={styles.fieldLabel}>
-          Kommentar til ordren
+          {t("orderNote.label")}
         </label>
 
         <textarea
@@ -1008,14 +1054,12 @@ function CartStep({
           maxLength={500}
           rows={3}
           className={styles.noteInput}
-          placeholder="Fx: Ingen løg, allergi eller anden vigtig besked..."
+          placeholder={t("orderNote.placeholder")}
           onChange={(event) => onOrderNoteChange(event.target.value)}
         />
 
         <div className={styles.noteMeta}>
-          <small>
-            Ekstra tilvalg skal bestilles via menuen – ikke i kommentaren.
-          </small>
+          <small>{t("orderNote.help")}</small>
 
           <span>{orderNote.length}/500</span>
         </div>
@@ -1029,8 +1073,8 @@ function CartStep({
             </span>
 
             <div>
-              <strong>Bærepose</strong>
-              <small>Praktisk emballage til ordren</small>
+              <strong>{t("bag.title")}</strong>
+              <small>{t("bag.description")}</small>
             </div>
           </div>
 
@@ -1039,7 +1083,7 @@ function CartStep({
               <span>{formatPrice(bagFee)}</span>
 
               <button type="button" onClick={onToggleBag}>
-                Fjern
+                {t("remove")}
               </button>
             </div>
           ) : (
@@ -1048,38 +1092,38 @@ function CartStep({
               className={styles.addBagButton}
               onClick={onToggleBag}
             >
-              Tilføj
+              {t("add")}
             </button>
           )}
         </div>
 
         <div className={styles.summary}>
           <div className={styles.summaryRow}>
-            <span>Varer</span>
+            <span>{t("summary.items")}</span>
             <span>{formatPrice(subtotal)}</span>
           </div>
 
           <div className={styles.summaryRow}>
-            <span>Servicegebyr</span>
+            <span>{t("summary.serviceFee")}</span>
             <span>{formatPrice(serviceFee)}</span>
           </div>
 
           {bagIncluded && (
             <div className={styles.summaryRow}>
-              <span>Bærepose</span>
+              <span>{t("bag.title")}</span>
               <span>{formatPrice(bagFee)}</span>
             </div>
           )}
 
           <div className={styles.deliveryPreviewRow}>
-            <span>Levering ved valg</span>
+            <span>{t("summary.deliveryIfSelected")}</span>
             <span>{formatPrice(deliveryFee || 45)}</span>
           </div>
 
           <div className={styles.totalRow}>
             <div>
-              <span>I alt</span>
-              <small>Afhænger af leveringsmetode</small>
+              <span>{t("summary.total")}</span>
+              <small>{t("summary.dependsOnMethod")}</small>
             </div>
 
             <strong>{formatPrice(totalPrice)}</strong>
@@ -1091,9 +1135,9 @@ function CartStep({
           aria-labelledby="delivery-method-title"
         >
           <div className={styles.methodHeading}>
-            <h3 id="delivery-method-title">Hvordan vil du have ordren?</h3>
+            <h3 id="delivery-method-title">{t("method.title")}</h3>
 
-            <p>Du går direkte videre, når du vælger.</p>
+            <p>{t("method.help")}</p>
           </div>
 
           <div className={styles.methodGrid}>
@@ -1107,8 +1151,8 @@ function CartStep({
               </span>
 
               <span className={styles.methodText}>
-                <strong>Afhentning</strong>
-                <small>Hent i restauranten</small>
+                <strong>{t("method.pickup")}</strong>
+                <small>{t("method.pickupDescription")}</small>
               </span>
 
               <span className={styles.methodArrow}>→</span>
@@ -1124,8 +1168,12 @@ function CartStep({
               </span>
 
               <span className={styles.methodText}>
-                <strong>Levering</strong>
-                <small>Inden for 10 km</small>
+                <strong>{t("method.delivery")}</strong>
+                <small>
+                  {t("method.deliveryDescription", {
+                    distance: MAX_DELIVERY_DISTANCE_KM,
+                  })}
+                </small>
               </span>
 
               <span className={styles.methodArrow}>→</span>
@@ -1186,6 +1234,9 @@ function DetailsStep({
   onBack,
   formatPrice,
 }: DetailsStepProps) {
+  const t = useTranslations("Cart");
+  const locale = useLocale();
+
   const authRedirect =
     typeof window !== "undefined"
       ? encodeURIComponent(`${window.location.pathname}?cart=open`)
@@ -1203,12 +1254,16 @@ function DetailsStep({
         </span>
 
         <div>
-          <h3>{deliveryMethod === "pickup" ? "Afhentning" : "Levering"}</h3>
+          <h3>
+            {deliveryMethod === "pickup"
+              ? t("method.pickup")
+              : t("method.delivery")}
+          </h3>
 
           <p>
             {deliveryMethod === "pickup"
-              ? "Vi bruger oplysningerne, når ordren er klar."
-              : "Vi bruger oplysningerne til at levere ordren korrekt."}
+              ? t("details.pickupIntro")
+              : t("details.deliveryIntro")}
           </p>
         </div>
       </section>
@@ -1222,12 +1277,12 @@ function DetailsStep({
           </span>
 
           <div>
-            <strong id="requested-time-title">Ønsket tidspunkt</strong>
+            <strong id="requested-time-title">{t("time.requestedTime")}</strong>
 
             <small>
               {deliveryMethod === "delivery"
-                ? "Hvornår ønsker du ordren leveret?"
-                : "Hvornår ønsker du at hente ordren?"}
+                ? t("time.deliveryQuestion")
+                : t("time.pickupQuestion")}
             </small>
           </div>
         </div>
@@ -1249,7 +1304,7 @@ function DetailsStep({
               onChange={() => onRequestedTimeChange("asap")}
             />
 
-            <span>Hurtigst muligt</span>
+            <span>{t("time.asap")}</span>
           </label>
 
           <label
@@ -1270,7 +1325,7 @@ function DetailsStep({
               }}
             />
 
-            <span>Vælg tidspunkt</span>
+            <span>{t("time.schedule")}</span>
           </label>
         </div>
 
@@ -1279,7 +1334,7 @@ function DetailsStep({
             className={styles.timeSelect}
             value={requestedTime}
             onChange={(event) => onRequestedTimeChange(event.target.value)}
-            aria-label="Vælg ønsket tidspunkt"
+            aria-label={t("time.selectAria")}
           >
             {availableTimes.map((time) => (
               <option key={time} value={time}>
@@ -1291,10 +1346,11 @@ function DetailsStep({
 
         {availableTimes.length === 0 && (
           <div className={styles.timeStatusBox}>
-            {serviceStatusMessage ??
-              (isScheduledSelectionOpen
-                ? "Der er ingen flere valgbare tider i dag."
-                : "Åbningstider kunne ikke hentes.")}
+            {locale === "da" && serviceStatusMessage
+              ? serviceStatusMessage
+              : isScheduledSelectionOpen
+                ? t("time.noMoreToday")
+                : t("time.hoursUnavailable")}
           </div>
         )}
       </section>
@@ -1305,7 +1361,7 @@ function DetailsStep({
           </span>
 
           <div>
-            <small>Logget ind som</small>
+            <small>{t("account.loggedInAs")}</small>
             <strong>{loggedInLabel}</strong>
           </div>
 
@@ -1314,9 +1370,9 @@ function DetailsStep({
       ) : (
         <div className={styles.loginCard}>
           <div>
-            <strong>Har du allerede en konto?</strong>
+            <strong>{t("account.haveAccount")}</strong>
 
-            <span>Log ind og udfyld dine oplysninger automatisk.</span>
+            <span>{t("account.loginHelp")}</span>
           </div>
 
           <Link
@@ -1324,7 +1380,7 @@ function DetailsStep({
             className={styles.loginButton}
           >
             <LogIn size={17} />
-            Log ind
+            {t("account.login")}
           </Link>
         </div>
       )}
@@ -1332,7 +1388,7 @@ function DetailsStep({
       <div className={styles.formFields}>
         <div className={styles.fieldGroup}>
           <label htmlFor="customer-name" className={styles.fieldLabel}>
-            Navn
+            {t("fields.name")}
           </label>
 
           <input
@@ -1342,7 +1398,7 @@ function DetailsStep({
             autoComplete="name"
             value={customerDetails.name}
             className={styles.textInput}
-            placeholder="Dit navn"
+            placeholder={t("fields.namePlaceholder")}
             onChange={(event) => onCustomerChange("name", event.target.value)}
             required
           />
@@ -1350,7 +1406,7 @@ function DetailsStep({
 
         <div className={styles.fieldGroup}>
           <label htmlFor="customer-phone" className={styles.fieldLabel}>
-            Telefon
+            {t("fields.phone")}
           </label>
 
           <input
@@ -1361,7 +1417,7 @@ function DetailsStep({
             autoComplete="tel"
             value={customerDetails.phone}
             className={styles.textInput}
-            placeholder="Fx 12 34 56 78"
+            placeholder={t("fields.phonePlaceholder")}
             onChange={(event) => onCustomerChange("phone", event.target.value)}
             required
           />
@@ -1376,8 +1432,8 @@ function DetailsStep({
 
             <div className={styles.fieldGroup}>
               <label htmlFor="floor-door" className={styles.fieldLabel}>
-                Etage / dør
-                <span className={styles.optional}>Valgfrit</span>
+                {t("fields.floorDoor")}
+                <span className={styles.optional}>{t("fields.optional")}</span>
               </label>
 
               <input
@@ -1387,7 +1443,7 @@ function DetailsStep({
                 autoComplete="address-line2"
                 value={deliveryAddress.floorDoor}
                 className={styles.textInput}
-                placeholder="Fx 2. th."
+                placeholder={t("fields.floorDoorPlaceholder")}
                 onChange={(event) =>
                   onAddressChange({
                     ...deliveryAddress,
@@ -1415,13 +1471,19 @@ function DetailsStep({
                 <Truck size={20} />
 
                 <div>
-                  <strong>Adressen er uden for leveringsområdet</strong>
+                  <strong>{t("deliveryArea.title")}</strong>
 
                   <span>
-                    Vi leverer inden for {MAX_DELIVERY_DISTANCE_KM} km fra
-                    restauranten. Den valgte adresse ligger ca.{" "}
-                    {deliveryDistance.distanceKm.toFixed(1).replace(".", ",")}{" "}
-                    km væk.
+                    {t("deliveryArea.description", {
+                      maximum: MAX_DELIVERY_DISTANCE_KM,
+                      distance: new Intl.NumberFormat(
+                        locale === "en" ? "en-GB" : "da-DK",
+                        {
+                          minimumFractionDigits: 1,
+                          maximumFractionDigits: 1,
+                        },
+                      ).format(deliveryDistance.distanceKm),
+                    })}
                   </span>
                 </div>
               </div>
@@ -1438,7 +1500,7 @@ function DetailsStep({
 
       <div className={styles.detailsFooter}>
         <div className={styles.detailsTotal}>
-          <span>I alt</span>
+          <span>{t("summary.total")}</span>
           <strong>{formatPrice(totalPrice)}</strong>
         </div>
 
@@ -1447,7 +1509,7 @@ function DetailsStep({
           className={styles.paymentButton}
           disabled={!canSubmit}
         >
-          Gå til betaling
+          {t("details.goToPayment")}
         </button>
 
         <button
@@ -1456,7 +1518,7 @@ function DetailsStep({
           onClick={onBack}
         >
           <ArrowLeft size={17} />
-          Tilbage til kurven
+          {t("details.backToCart")}
         </button>
       </div>
     </form>

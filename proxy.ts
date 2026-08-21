@@ -38,9 +38,8 @@ export async function proxy(request: NextRequest) {
   });
 
   /*
-   * ضروری است:
-   * getUser() باعث می‌شود Supabase در صورت انقضای access token،
-   * از refresh token استفاده کند و cookie جدید بنویسد.
+   * Calling getUser() allows Supabase to use the refresh token
+   * and write updated cookies when the access token has expired.
    */
   await supabase.auth.getUser();
 
@@ -50,7 +49,7 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * فایل‌های استاتیک و تصاویر را از Proxy خارج می‌کنیم.
+     * Exclude static files and images from the proxy.
      */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],

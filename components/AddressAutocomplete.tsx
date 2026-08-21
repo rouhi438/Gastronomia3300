@@ -2,6 +2,7 @@
 "use client";
 
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 
 import styles from "./AddressAutocomplete.module.css";
 
@@ -45,10 +46,13 @@ function isGooglePlacesReady(): boolean {
   return Boolean(typeof window !== "undefined" && window.google?.maps?.places);
 }
 
-function loadGoogleMapsScript(apiKey: string): Promise<void> {
+function loadGoogleMapsScript(
+  apiKey: string,
+  language: "da" | "en",
+): Promise<void> {
   if (typeof window === "undefined") {
     return Promise.reject(
-      new Error("Google Maps kan kun indlæses i browseren."),
+      new Error("Google Maps can only be loaded in the browser."),
     );
   }
 
@@ -72,9 +76,13 @@ function loadGoogleMapsScript(apiKey: string): Promise<void> {
           return;
         }
 
-        reject(
-          new Error("Google Places blev indlæst uden Places-biblioteket."),
-        );
+        window.__gastronomiaGoogleMapsPromise = undefined;
+        reject(new Error("Google Places loaded without the Places library."));
+      };
+
+      const handleScriptError = () => {
+        window.__gastronomiaGoogleMapsPromise = undefined;
+        reject(new Error("The Google Maps script could not be loaded."));
       };
 
       if (existingScript) {
@@ -87,15 +95,9 @@ function loadGoogleMapsScript(apiKey: string): Promise<void> {
           once: true,
         });
 
-        existingScript.addEventListener(
-          "error",
-          () => {
-            reject(new Error("Google Maps-scriptet kunne ikke indlæses."));
-          },
-          {
-            once: true,
-          },
-        );
+        existingScript.addEventListener("error", handleScriptError, {
+          once: true,
+        });
 
         return;
       }
@@ -105,7 +107,7 @@ function loadGoogleMapsScript(apiKey: string): Promise<void> {
       const params = new URLSearchParams({
         key: apiKey,
         libraries: "places",
-        language: "da",
+        language,
         region: "DK",
         v: "weekly",
       });
@@ -119,17 +121,9 @@ function loadGoogleMapsScript(apiKey: string): Promise<void> {
         once: true,
       });
 
-      script.addEventListener(
-        "error",
-        () => {
-          window.__gastronomiaGoogleMapsPromise = undefined;
-
-          reject(new Error("Google Maps-scriptet kunne ikke indlæses."));
-        },
-        {
-          once: true,
-        },
-      );
+      script.addEventListener("error", handleScriptError, {
+        once: true,
+      });
 
       document.head.appendChild(script);
     },
@@ -204,6 +198,12 @@ export default function AddressAutocomplete({
   required = false,
   error,
 }: AddressAutocompleteProps) {
+  const t = useTranslations("AddressAutocomplete");
+
+  const locale = useLocale();
+
+  const googleMapsLanguage: "da" | "en" = locale === "en" ? "en" : "da";
+
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -238,7 +238,7 @@ export default function AddressAutocomplete({
     const location = place.geometry?.location;
 
     if (!place.place_id || !location || !place.address_components) {
-      setLoadError("Vælg en gyldig adresse fra listen.");
+      setLoadError(t("errors.invalidAddress"));
 
       return;
     }
@@ -250,7 +250,7 @@ export default function AddressAutocomplete({
       !parsedAddress.postalCode ||
       !parsedAddress.city
     ) {
-      setLoadError("Adressen mangler vej, postnummer eller by.");
+      setLoadError(t("errors.incompleteAddress"));
 
       return;
     }
@@ -275,19 +275,18 @@ export default function AddressAutocomplete({
           .filter(Boolean)
           .join(", "),
     });
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     let cancelled = false;
 
     const initializeAutocomplete = async () => {
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-      console.log("STEP 1");
-      console.log("API KEY:", apiKey);
+
       if (!apiKey) {
         if (!cancelled) {
           setIsLoading(false);
-          setLoadError("Google Maps API-nøglen mangler.");
+          setLoadError(t("errors.missingApiKey"));
         }
 
         return;
@@ -297,8 +296,7 @@ export default function AddressAutocomplete({
         setIsLoading(true);
         setLoadError(null);
 
-        await loadGoogleMapsScript(apiKey);
-        console.log("STEP 2");
+        await loadGoogleMapsScript(apiKey, googleMapsLanguage);
 
         if (cancelled || !inputRef.current || autocompleteRef.current) {
           return;
@@ -335,12 +333,14 @@ export default function AddressAutocomplete({
 
         if (!cancelled) {
           setIsLoading(false);
-          setLoadError("Adressesøgningen kunne ikke indlæses.");
+          setLoadError(t("errors.loadFailed"));
         }
       }
     };
 
-    void initializeAutocomplete();
+    queueMicrotask(() => {
+      void initializeAutocomplete();
+    });
 
     return () => {
       cancelled = true;
@@ -354,7 +354,8 @@ export default function AddressAutocomplete({
         autocompleteRef.current = null;
       }
     };
-  }, [handlePlaceChanged]);
+  }, [googleMapsLanguage, handlePlaceChanged, t]);
+
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const typedAddress = event.target.value;
 
@@ -378,7 +379,8 @@ export default function AddressAutocomplete({
   return (
     <div className={styles.wrapper}>
       <label className={styles.label} htmlFor="delivery-address">
-        Leveringsadresse
+        {t("label")}
+
         {required ? (
           <span className={styles.required} aria-hidden="true">
             *
@@ -396,9 +398,7 @@ export default function AddressAutocomplete({
           inputMode="text"
           value={value.addressLine1}
           placeholder={
-            isLoading
-              ? "Indlæser adressesøgning..."
-              : "Søg efter din adresse..."
+            isLoading ? t("loadingPlaceholder") : t("searchPlaceholder")
           }
           disabled={disabled || isLoading}
           required={required}
@@ -417,7 +417,7 @@ export default function AddressAutocomplete({
         />
 
         {isLoading ? (
-          <span className={styles.spinner} aria-label="Indlæser" />
+          <span className={styles.spinner} aria-label={t("loading")} />
         ) : null}
 
         {!isLoading && hasSelectedAddress ? (
@@ -447,8 +447,7 @@ export default function AddressAutocomplete({
         </p>
       ) : (
         <p id="delivery-address-helper" className={styles.helper}>
-          Vælg adressen fra Googles liste, så postnummer, by og koordinater
-          bliver registreret korrekt.
+          {t("helper")}
         </p>
       )}
     </div>
