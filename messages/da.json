@@ -191,5 +191,45 @@
       "missingApiKey": "Google Maps API-nøglen mangler.",
       "loadFailed": "Adressesøgningen kunne ikke indlæses."
     }
+  },
+  "Checkout": {
+    "loading": "Indlæser...",
+    "title": "Betaling",
+    "customerInformation": "Kundeoplysninger",
+    "fullName": "Fulde navn",
+    "address": "Adresse",
+    "phone": "Telefon",
+    "email": "E-mail",
+    "deliveryMethod": "Leveringsmetode",
+    "change": "Skift",
+    "pickup": "Afhentning",
+    "delivery": "Levering",
+    "pickupDescription": "Du henter selv ordren hos Gastronomia 3300.",
+    "deliveryDescription": "Ordren leveres til adressen valgt i kurven.",
+    "payment": "Betaling",
+    "paymentCard": "Betalingskort",
+    "submitting": "Sender...",
+    "completeOrder": "Gennemfør bestilling",
+    "yourOrder": "Din ordre",
+    "total": "I alt",
+    "emptyTitle": "Din kurv er tom",
+    "emptyDescription": "Gå tilbage til menuen og tilføj nogle lækre pizzaer.",
+    "viewMenu": "Se menuen",
+    "close": "Luk",
+    "orderNotPossible": "Bestilling ikke mulig",
+    "placeholders": {
+      "name": "Mads Jensen",
+      "address": "Vælg adressen i kurven",
+      "phone": "+45 40 40 41 83",
+      "email": "din@email.dk"
+    },
+    "errors": {
+      "emptyCart": "Din kurv er tom. Tilføj nogle varer først.",
+      "incompleteDeliveryAddress": "Leveringsadressen mangler oplysninger. Gå tilbage og vælg adressen igen.",
+      "invalidExtraGroup": "Hver valgt ekstra skal have en ikke-tom gruppe-id.",
+      "paymentStartFailed": "Betalingen kunne ikke startes.",
+      "invalidPaymentLink": "Betalingen blev oprettet uden et gyldigt betalingslink.",
+      "unknownPayment": "Ukendt fejl ved opstart af betaling"
+    }
   }
 }

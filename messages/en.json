@@ -507,5 +507,45 @@
       "missingApiKey": "The Google Maps API key is missing.",
       "loadFailed": "The address search could not be loaded."
     }
+  },
+  "Checkout": {
+    "loading": "Loading...",
+    "title": "Checkout",
+    "customerInformation": "Customer information",
+    "fullName": "Full name",
+    "address": "Address",
+    "phone": "Phone",
+    "email": "Email",
+    "deliveryMethod": "Delivery method",
+    "change": "Change",
+    "pickup": "Pickup",
+    "delivery": "Delivery",
+    "pickupDescription": "You will pick up the order at Gastronomia 3300.",
+    "deliveryDescription": "The order will be delivered to the address selected in the cart.",
+    "payment": "Payment",
+    "paymentCard": "Payment card",
+    "submitting": "Processing...",
+    "completeOrder": "Complete order",
+    "yourOrder": "Your order",
+    "total": "Total",
+    "emptyTitle": "Your cart is empty",
+    "emptyDescription": "Return to the menu and add something delicious.",
+    "viewMenu": "View menu",
+    "close": "Close",
+    "orderNotPossible": "Unable to place order",
+    "placeholders": {
+      "name": "John Smith",
+      "address": "Select the address in the cart",
+      "phone": "+45 40 40 41 83",
+      "email": "you@example.com"
+    },
+    "errors": {
+      "emptyCart": "Your cart is empty. Add some items first.",
+      "incompleteDeliveryAddress": "The delivery address is incomplete. Go back and select the address again.",
+      "invalidExtraGroup": "Each selected extra must have a non-empty group ID.",
+      "paymentStartFailed": "The payment could not be started.",
+      "invalidPaymentLink": "The payment was created without a valid payment link.",
+      "unknownPayment": "Unknown error while starting the payment"
+    }
   }
 }
