@@ -173,7 +173,7 @@ export default function OrderAcceptedPage() {
   };
 
   const handleGoBack = () => {
-    router.push(isViewMode ? "/admin/orders" : "/admin/new-order");
+    router.push("/admin/orders");
   };
 
   if (loading) {
