@@ -830,6 +830,15 @@ export const menuData: MenuItem[] = [
   },
   {
     id: 68,
+    name: "Gazoz",
+    description: "0.33 L",
+    category: "drikke",
+    prices: { fixed: 25 },
+    image: "/images/drink-16.webp",
+    extraGroupId: "drinkFixed",
+  },
+  {
+    id: 69,
     name: "Tuborg",
     description: "Øl",
     category: "drikke",
@@ -838,7 +847,7 @@ export const menuData: MenuItem[] = [
     extraGroupId: "drinkFixed",
   },
   {
-    id: 69,
+    id: 70,
     name: "Tuborg Classic",
     description: "Øl",
     category: "drikke",
@@ -847,7 +856,7 @@ export const menuData: MenuItem[] = [
     extraGroupId: "drinkFixed",
   },
   {
-    id: 70,
+    id: 71,
     name: "Carlsberg",
     description: "Øl",
     category: "drikke",
@@ -856,7 +865,7 @@ export const menuData: MenuItem[] = [
     extraGroupId: "drinkFixed",
   },
   {
-    id: 71,
+    id: 72,
     name: "Pilsner",
     description: "Øl",
     category: "drikke",
@@ -865,7 +874,7 @@ export const menuData: MenuItem[] = [
     extraGroupId: "drinkFixed",
   },
   {
-    id: 72,
+    id: 73,
     name: "VAND",
     description: "Kildevand",
     category: "drikke",
@@ -874,7 +883,7 @@ export const menuData: MenuItem[] = [
     extraGroupId: "drinkFixed",
   },
   {
-    id: 73,
+    id: 74,
     name: "HUSETS RØDVIN",
     description: "Rødvin .75 cl",
     category: "drikke",
@@ -883,7 +892,7 @@ export const menuData: MenuItem[] = [
     extraGroupId: "drinkFixed",
   },
   {
-    id: 74,
+    id: 75,
     name: "HUSETS HVIDVIN",
     description: "Hvidvin .75 cl",
     category: "drikke",
