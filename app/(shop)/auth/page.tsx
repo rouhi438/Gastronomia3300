@@ -8,6 +8,7 @@ import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF } from "react-icons/fa";
 // import { FaApple } from "react-icons/fa";
 import { Eye, EyeOff, LockKeyhole, Mail, Phone, User } from "lucide-react";
+import { useTranslations } from "next-intl";
 import styles from "./auth.module.css";
 
 type AuthMode = "login" | "register";
@@ -29,6 +30,11 @@ export default function AuthPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const recoveryT = useTranslations("AuthRecovery");
+
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState("");
 
   const isLogin = mode === "login";
 
@@ -57,6 +63,43 @@ export default function AuthPage() {
 
     if (error) {
       setError(error.message);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (resetLoading) return;
+
+    setError("");
+    setResetMessage("");
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      setError(recoveryT("emailRequired"));
+      return;
+    }
+
+    setResetLoading(true);
+
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        normalizedEmail,
+        {
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(
+            "/auth/reset-password",
+          )}`,
+        },
+      );
+
+      if (resetError) {
+        console.error("Password reset request failed:", resetError);
+        setError(recoveryT("sendFailed"));
+        return;
+      }
+
+      setResetMessage(recoveryT("sent"));
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -243,6 +286,11 @@ export default function AuthPage() {
           </div>
         )}
 
+        {resetMessage && (
+          <div className={styles.successMsg} role="status">
+            {resetMessage}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className={styles.form} noValidate>
           {!isLogin && (
             <div className={styles.inputGroup}>
@@ -305,9 +353,10 @@ export default function AuthPage() {
                 <button
                   type="button"
                   className={styles.forgotPassword}
-                  disabled={loading}
+                  onClick={() => void handleForgotPassword()}
+                  disabled={loading || resetLoading}
                 >
-                  Glemt adgangskode?
+                  {resetLoading ? recoveryT("sending") : recoveryT("forgot")}
                 </button>
               )}
             </div>

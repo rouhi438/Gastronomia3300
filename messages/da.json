@@ -231,5 +231,94 @@
       "invalidPaymentLink": "Betalingen blev oprettet uden et gyldigt betalingslink.",
       "unknownPayment": "Ukendt fejl ved opstart af betaling"
     }
+  },
+  "AuthRecovery": {
+    "forgot": "Glemt adgangskode?",
+    "sending": "Sender...",
+    "emailRequired": "Indtast din e-mail først.",
+    "sent": "Hvis e-mailadressen findes, har vi sendt et link til nulstilling af adgangskoden.",
+    "sendFailed": "Linket kunne ikke sendes. Prøv igen."
+  },
+  "ResetPassword": {
+    "title": "Vælg en ny adgangskode",
+    "subtitle": "Indtast og bekræft din nye adgangskode.",
+    "newPassword": "Ny adgangskode",
+    "confirmPassword": "Gentag ny adgangskode",
+    "update": "Opdater adgangskode",
+    "updating": "Opdaterer...",
+    "completeTitle": "Adgangskoden er opdateret",
+    "completeText": "Du kan nu logge ind med din nye adgangskode.",
+    "login": "Gå til login",
+    "errors": {
+      "minLength": "Adgangskoden skal være mindst 6 tegn.",
+      "mismatch": "Adgangskoderne er ikke ens.",
+      "invalidLink": "Linket er ugyldigt eller udløbet. Anmod om et nyt link.",
+      "updateFailed": "Adgangskoden kunne ikke opdateres. Prøv igen.",
+      "showPassword": "Vis adgangskode",
+      "hidePassword": "Skjul adgangskode"
+    }
+  },
+  "Profile": {
+    "title": "Min profil",
+    "fields": {
+      "fullName": "Fulde navn",
+      "fullNamePlaceholder": "Dit fulde navn",
+      "email": "E-mail",
+      "emailPlaceholder": "din@email.dk",
+      "phone": "Telefon",
+      "phonePlaceholder": "+45 12 34 56 78"
+    },
+    "actions": {
+      "edit": "Rediger profil",
+      "saving": "Gemmer...",
+      "save": "Gem ændringer",
+      "cancel": "Fortryd",
+      "logout": "Log ud"
+    },
+    "alerts": {
+      "nameRequired": "Indtast venligst dit fulde navn.",
+      "emailRequired": "Indtast venligst din e-mail.",
+      "updated": "Profilen er opdateret!",
+      "emailConfirmation": "Profilen er opdateret. Kontrollér din nye e-mailadresse for at bekræfte ændringen.",
+      "updateFailed": "Profilen kunne ikke opdateres.",
+      "logoutFailed": "Kunne ikke logge ud. Prøv igen."
+    },
+    "password": {
+      "title": "Skift adgangskode",
+      "current": "Nuværende adgangskode",
+      "new": "Ny adgangskode",
+      "confirm": "Gentag ny adgangskode",
+      "update": "Opdater adgangskode",
+      "updating": "Opdaterer...",
+      "currentRequired": "Indtast din nuværende adgangskode.",
+      "mismatch": "De nye adgangskoder er ikke ens.",
+      "minLength": "Adgangskoden skal være mindst 6 tegn.",
+      "mustDiffer": "Den nye adgangskode skal være forskellig fra den nuværende.",
+      "updated": "Adgangskoden er opdateret!",
+      "failed": "Adgangskoden kunne ikke opdateres."
+    },
+    "orders": {
+      "eyebrow": "Mine ordrer",
+      "title": "Ordrehistorik",
+      "description": "Se dine tidligere bestillinger og åbn den enkelte ordre.",
+      "previous": "Tidligere ordrer",
+      "loading": "Henter dine ordrer...",
+      "fetchFailed": "Kunne ikke hente dine ordrer.",
+      "emptyTitle": "Ingen tidligere ordrer",
+      "emptyText": "Når du har bestilt hos os, finder du dine ordrer her.",
+      "viewMenu": "Se menuen",
+      "orderNumber": "Ordre #{id}",
+      "viewOrder": "Se ordre",
+      "delivery": "Levering",
+      "pickup": "Afhentning",
+      "statuses": {
+        "pending": "Afventer",
+        "accepted": "Accepteret",
+        "ready": "Klar",
+        "completed": "Afsluttet",
+        "cancelled": "Annulleret",
+        "rejected": "Annulleret"
+      }
+    }
   }
 }
