@@ -120,6 +120,16 @@ export default function ProfilePage() {
         setOriginalUser(profileData);
 
         try {
+          const claimResponse = await fetch("/api/profile/orders/claim", {
+            method: "POST",
+            credentials: "include",
+            cache: "no-store",
+          });
+
+          if (!claimResponse.ok && claimResponse.status !== 403) {
+            console.error("Previous guest orders could not be connected.");
+          }
+
           const ordersResponse = await fetch("/api/profile/orders", {
             method: "GET",
             credentials: "include",
