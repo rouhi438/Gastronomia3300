@@ -6,6 +6,13 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const { origin } = requestUrl;
 
+  const requestedNext = requestUrl.searchParams.get("next");
+
+  const nextPath =
+    requestedNext?.startsWith("/") && !requestedNext.startsWith("//")
+      ? requestedNext
+      : "/menu";
+
   const code = requestUrl.searchParams.get("code");
 
   if (!code) {
@@ -34,5 +41,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/auth?error=oauth`);
   }
 
-  return NextResponse.redirect(`${origin}/menu`);
+  return NextResponse.redirect(new URL(nextPath, origin));
 }

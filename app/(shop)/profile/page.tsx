@@ -17,6 +17,7 @@ import {
   getProfileCompletionStatus,
   getProfileDestination,
 } from "@/lib/profile";
+import { useLocale, useTranslations } from "next-intl";
 import styles from "./profile.module.css";
 
 interface ProfileUser {
@@ -42,6 +43,11 @@ interface ProfileOrdersResponse {
 export default function ProfilePage() {
   const router = useRouter();
 
+  const t = useTranslations("Profile");
+  const locale = useLocale();
+  const localeCode = locale === "en" ? "en-GB" : "da-DK";
+  const ordersFetchFailedMessage = t("orders.fetchFailed");
+
   const [user, setUser] = useState<ProfileUser>({
     name: "",
     email: "",
@@ -61,6 +67,7 @@ export default function ProfilePage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [passwordMessage, setPasswordMessage] = useState("");
+  const [passwordSucceeded, setPasswordSucceeded] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [authProvider, setAuthProvider] = useState<string | null>(null);
 
@@ -145,19 +152,15 @@ export default function ProfilePage() {
           }
 
           if (!ordersResponse.ok) {
-            throw new Error(
-              ordersResult.error || "Kunne ikke hente dine ordrer.",
-            );
+            console.error("Profile orders fetch failed:", ordersResult.error);
+            throw new Error(ordersFetchFailedMessage);
           }
 
           setOrders(ordersResult.orders ?? []);
           setOrdersError("");
         } catch (ordersFetchError: unknown) {
-          setOrdersError(
-            ordersFetchError instanceof Error
-              ? ordersFetchError.message
-              : "Kunne ikke hente dine ordrer.",
-          );
+          console.error("Profile orders request failed:", ordersFetchError);
+          setOrdersError(ordersFetchFailedMessage);
         } finally {
           setOrdersLoading(false);
         }
@@ -168,7 +171,7 @@ export default function ProfilePage() {
     };
 
     loadUser();
-  }, [router]);
+  }, [router, ordersFetchFailedMessage]);
 
   const getInitials = (fullName: string) => {
     const parts = fullName.trim().split(/\s+/).filter(Boolean);
@@ -202,7 +205,7 @@ export default function ProfilePage() {
   const avatarColor = getAvatarColor(user.name || "User");
 
   const formatOrderDate = (value: string) => {
-    return new Intl.DateTimeFormat("da-DK", {
+    return new Intl.DateTimeFormat(localeCode, {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -214,26 +217,28 @@ export default function ProfilePage() {
   const formatOrderPrice = (value: number | string | null) => {
     const numericValue = typeof value === "number" ? value : Number(value ?? 0);
 
-    return `${numericValue.toLocaleString("da-DK")} kr.`;
+    return `${numericValue.toLocaleString(localeCode)} kr.`;
   };
 
   const getOrderStatusLabel = (status: string) => {
     switch (status) {
       case "pending":
-        return "Afventer";
+        return t("orders.statuses.pending");
 
       case "accepted":
-        return "Accepteret";
+        return t("orders.statuses.accepted");
 
       case "ready":
-        return "Klar";
+        return t("orders.statuses.ready");
 
       case "completed":
-        return "Afsluttet";
+        return t("orders.statuses.completed");
 
       case "cancelled":
+        return t("orders.statuses.cancelled");
+
       case "rejected":
-        return "Annulleret";
+        return t("orders.statuses.rejected");
 
       default:
         return status;
@@ -252,12 +257,12 @@ export default function ProfilePage() {
     const trimmedPhone = user.phone.trim();
 
     if (!trimmedName) {
-      alert("Indtast venligst dit fulde navn.");
+      alert(t("alerts.nameRequired"));
       return;
     }
 
     if (!trimmedEmail) {
-      alert("Indtast venligst din e-mail.");
+      alert(t("alerts.emailRequired"));
       return;
     }
 
@@ -309,19 +314,15 @@ export default function ProfilePage() {
       setIsEditing(false);
 
       if (emailChanged && data.user.email !== trimmedEmail) {
-        alert(
-          "Profilen er opdateret. Kontrollér din nye e-mailadresse for at bekræfte ændringen.",
-        );
+        alert(t("alerts.emailConfirmation"));
       } else {
-        alert("Profilen er opdateret!");
+        alert(t("alerts.updated"));
       }
 
       router.refresh();
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Profilen kunne ikke opdateres.";
-
-      alert(message);
+      console.error("Profile update failed:", err);
+      alert(t("alerts.updateFailed"));
     } finally {
       setSavingProfile(false);
     }
@@ -344,26 +345,25 @@ export default function ProfilePage() {
     }
 
     setPasswordMessage("");
+    setPasswordSucceeded(false);
 
     if (!currentPassword) {
-      setPasswordMessage("Indtast din nuværende adgangskode.");
+      setPasswordMessage(t("password.currentRequired"));
       return;
     }
 
     if (newPassword !== confirmNewPassword) {
-      setPasswordMessage("De nye adgangskoder er ikke ens.");
+      setPasswordMessage(t("password.mismatch"));
       return;
     }
 
     if (newPassword.length < 6) {
-      setPasswordMessage("Adgangskoden skal være mindst 6 tegn.");
+      setPasswordMessage(t("password.minLength"));
       return;
     }
 
     if (currentPassword === newPassword) {
-      setPasswordMessage(
-        "Den nye adgangskode skal være forskellig fra den nuværende.",
-      );
+      setPasswordMessage(t("password.mustDiffer"));
       return;
     }
 
@@ -388,19 +388,20 @@ export default function ProfilePage() {
         router.replace("/auth");
         return;
       }
-
       if (!res.ok) {
-        throw new Error(data?.error || "Noget gik galt.");
+        console.error("Password update failed:", data?.error);
+        throw new Error(t("password.failed"));
       }
 
-      setPasswordMessage("Adgangskode opdateret!");
+      setPasswordSucceeded(true);
+      setPasswordMessage(t("password.updated"));
       setCurrentPassword("");
       setNewPassword("");
       setConfirmNewPassword("");
     } catch (err) {
-      setPasswordMessage(
-        err instanceof Error ? err.message : "Noget gik galt.",
-      );
+      console.error("Password change request failed:", err);
+      setPasswordSucceeded(false);
+      setPasswordMessage(t("password.failed"));
     } finally {
       setChangingPassword(false);
     }
@@ -412,7 +413,7 @@ export default function ProfilePage() {
     const { error } = await supabase.auth.signOut();
 
     if (error) {
-      alert("Kunne ikke logge ud. Prøv igen.");
+      alert(t("alerts.logoutFailed"));
       return;
     }
 
@@ -424,7 +425,7 @@ export default function ProfilePage() {
     <div className={styles.container}>
       <div className={styles.profileLayout}>
         <div className={styles.card}>
-          <h1 className={styles.title}>Min profil</h1>
+          <h1 className={styles.title}>{t("title")}</h1>
 
           <div className={styles.avatarSection}>
             <div
@@ -439,7 +440,7 @@ export default function ProfilePage() {
           <form onSubmit={handleSave} className={styles.form}>
             <div className={styles.inputGroup}>
               <label className={styles.label}>
-                <User size={18} /> Fulde navn
+                <User size={18} /> {t("fields.fullName")}
               </label>
               <input
                 type="text"
@@ -447,14 +448,14 @@ export default function ProfilePage() {
                 value={user.name}
                 onChange={(e) => setUser({ ...user, name: e.target.value })}
                 disabled={!isEditing}
-                placeholder="Dit fulde navn"
+                placeholder={t("fields.fullNamePlaceholder")}
                 autoComplete="given-name"
               />
             </div>
 
             <div className={styles.inputGroup}>
               <label className={styles.label}>
-                <Mail size={18} /> E-mail
+                <Mail size={18} /> {t("fields.email")}
               </label>
               <input
                 type="email"
@@ -462,14 +463,14 @@ export default function ProfilePage() {
                 value={user.email}
                 onChange={(e) => setUser({ ...user, email: e.target.value })}
                 disabled={!isEditing}
-                placeholder="din@email.dk"
+                placeholder={t("fields.emailPlaceholder")}
                 autoComplete="email"
               />
             </div>
 
             <div className={styles.inputGroup}>
               <label className={styles.label}>
-                <Phone size={18} /> Telefon
+                <Phone size={18} /> {t("fields.phone")}
               </label>
               <input
                 type="tel"
@@ -477,7 +478,7 @@ export default function ProfilePage() {
                 value={user.phone}
                 onChange={(e) => setUser({ ...user, phone: e.target.value })}
                 disabled={!isEditing}
-                placeholder="+45 12 34 56 78"
+                placeholder={t("fields.phonePlaceholder")}
                 autoComplete="tel"
               />
             </div>
@@ -494,7 +495,7 @@ export default function ProfilePage() {
                   }}
                   onClick={() => setIsEditing(true)}
                 >
-                  Rediger profil
+                  {t("actions.edit")}
                 </button>
               ) : (
                 <>
@@ -504,7 +505,7 @@ export default function ProfilePage() {
                     style={{ flex: 1, padding: "0.8rem", fontSize: "1.1rem" }}
                     disabled={savingProfile}
                   >
-                    {savingProfile ? "Gemmer..." : "Gem ændringer"}
+                    {savingProfile ? t("actions.saving") : t("actions.save")}
                   </button>
                   <button
                     type="button"
@@ -512,7 +513,7 @@ export default function ProfilePage() {
                     onClick={handleCancelEdit}
                     disabled={savingProfile}
                   >
-                    Fortryd
+                    {t("actions.cancel")}
                   </button>
                 </>
               )}
@@ -522,25 +523,28 @@ export default function ProfilePage() {
             <div className={styles.passwordSection}>
               <h4 className={styles.passwordTitle}>
                 <Lock size={18} style={{ marginRight: "0.5rem" }} />
-                Skift adgangskode
+                {t("password.title")}
               </h4>
+
               {passwordMessage && (
                 <div
                   className={
-                    passwordMessage.includes("opdateret")
-                      ? styles.successMsg
-                      : styles.errorMsg
+                    passwordSucceeded ? styles.successMsg : styles.errorMsg
                   }
                 >
                   {passwordMessage}
                 </div>
               )}
+
               <form
                 onSubmit={handlePasswordChange}
                 className={styles.passwordForm}
               >
                 <div className={styles.inputGroup}>
-                  <label className={styles.label}>Nuværende adgangskode</label>
+                  <label className={styles.label}>
+                    {t("password.current")}
+                  </label>
+
                   <input
                     type="password"
                     className={styles.input}
@@ -551,8 +555,10 @@ export default function ProfilePage() {
                     autoComplete="current-password"
                   />
                 </div>
+
                 <div className={styles.inputGroup}>
-                  <label className={styles.label}>Ny adgangskode</label>
+                  <label className={styles.label}>{t("password.new")}</label>
+
                   <input
                     type="password"
                     className={styles.input}
@@ -563,8 +569,12 @@ export default function ProfilePage() {
                     autoComplete="new-password"
                   />
                 </div>
+
                 <div className={styles.inputGroup}>
-                  <label className={styles.label}>Gentag ny adgangskode</label>
+                  <label className={styles.label}>
+                    {t("password.confirm")}
+                  </label>
+
                   <input
                     type="password"
                     className={styles.input}
@@ -575,13 +585,16 @@ export default function ProfilePage() {
                     autoComplete="new-password"
                   />
                 </div>
+
                 <button
                   type="submit"
                   className="btn-secondary"
                   style={{ width: "100%" }}
                   disabled={changingPassword}
                 >
-                  {changingPassword ? "Opdaterer..." : "Opdater adgangskode"}
+                  {changingPassword
+                    ? t("password.updating")
+                    : t("password.update")}
                 </button>
               </form>
             </div>
@@ -593,25 +606,26 @@ export default function ProfilePage() {
               className={styles.logoutBtn}
               onClick={handleLogout}
             >
-              Log ud
+              {t("actions.logout")}
             </button>
           </div>
         </div>
+
         <section className={styles.ordersCard}>
           <div className={styles.ordersHeader}>
             <div>
               <div className={styles.ordersEyebrow}>
                 <ShoppingBag size={17} />
-                <span>Mine ordrer</span>
+                <span>{t("orders.eyebrow")}</span>
               </div>
 
-              <h2>Ordrehistorik</h2>
+              <h2>{t("orders.title")}</h2>
 
-              <p>Se dine tidligere bestillinger og åbn den enkelte ordre.</p>
+              <p>{t("orders.description")}</p>
             </div>
 
             <div className={styles.orderCount}>
-              <span>Tidligere ordrer</span>
+              <span>{t("orders.previous")}</span>
               <strong>{orders.length}</strong>
             </div>
           </div>
@@ -619,7 +633,7 @@ export default function ProfilePage() {
           {ordersLoading ? (
             <div className={styles.ordersState}>
               <Package size={28} />
-              <p>Henter dine ordrer...</p>
+              <p>{t("orders.loading")}</p>
             </div>
           ) : ordersError ? (
             <div className={styles.ordersError}>{ordersError}</div>
@@ -627,12 +641,12 @@ export default function ProfilePage() {
             <div className={styles.ordersState}>
               <Package size={32} />
 
-              <strong>Ingen tidligere ordrer</strong>
+              <strong>{t("orders.emptyTitle")}</strong>
 
-              <p>Når du har bestilt hos os, finder du dine ordrer her.</p>
+              <p>{t("orders.emptyText")}</p>
 
               <Link href="/menu" className={styles.menuLink}>
-                Se menuen
+                {t("orders.viewMenu")}
               </Link>
             </div>
           ) : (
@@ -646,7 +660,7 @@ export default function ProfilePage() {
                   <div className={styles.orderItemTop}>
                     <div>
                       <span className={styles.orderNumber}>
-                        Ordre #{order.id}
+                        {t("orders.orderNumber", { id: order.id })}
                       </span>
 
                       <span className={styles.orderDate}>
@@ -666,8 +680,8 @@ export default function ProfilePage() {
                     <div className={styles.orderMeta}>
                       <span>
                         {order.delivery_method === "delivery"
-                          ? "Levering"
-                          : "Afhentning"}
+                          ? t("orders.delivery")
+                          : t("orders.pickup")}
                       </span>
 
                       <span className={styles.metaSeparator}>•</span>
@@ -676,7 +690,7 @@ export default function ProfilePage() {
                     </div>
 
                     <span className={styles.viewOrder}>
-                      Se ordre
+                      {t("orders.viewOrder")}
                       <ChevronRight size={18} />
                     </span>
                   </div>

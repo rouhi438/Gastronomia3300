@@ -547,5 +547,94 @@
       "invalidPaymentLink": "The payment was created without a valid payment link.",
       "unknownPayment": "Unknown error while starting the payment"
     }
+  },
+  "AuthRecovery": {
+    "forgot": "Forgot password?",
+    "sending": "Sending...",
+    "emailRequired": "Enter your email address first.",
+    "sent": "If the email address exists, we have sent a password reset link.",
+    "sendFailed": "The reset link could not be sent. Please try again."
+  },
+  "ResetPassword": {
+    "title": "Choose a new password",
+    "subtitle": "Enter and confirm your new password.",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "update": "Update password",
+    "updating": "Updating...",
+    "completeTitle": "Password updated",
+    "completeText": "You can now log in with your new password.",
+    "login": "Go to login",
+    "errors": {
+      "minLength": "The password must contain at least 6 characters.",
+      "mismatch": "The passwords do not match.",
+      "invalidLink": "The link is invalid or has expired. Request a new link.",
+      "updateFailed": "The password could not be updated. Please try again.",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
+    }
+  },
+  "Profile": {
+    "title": "My profile",
+    "fields": {
+      "fullName": "Full name",
+      "fullNamePlaceholder": "Your full name",
+      "email": "Email",
+      "emailPlaceholder": "your@email.com",
+      "phone": "Phone",
+      "phonePlaceholder": "+45 12 34 56 78"
+    },
+    "actions": {
+      "edit": "Edit profile",
+      "saving": "Saving...",
+      "save": "Save changes",
+      "cancel": "Cancel",
+      "logout": "Log out"
+    },
+    "alerts": {
+      "nameRequired": "Please enter your full name.",
+      "emailRequired": "Please enter your email address.",
+      "updated": "Your profile has been updated!",
+      "emailConfirmation": "Your profile has been updated. Check your new email address to confirm the change.",
+      "updateFailed": "Your profile could not be updated.",
+      "logoutFailed": "Could not log out. Please try again."
+    },
+    "password": {
+      "title": "Change password",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "update": "Update password",
+      "updating": "Updating...",
+      "currentRequired": "Enter your current password.",
+      "mismatch": "The new passwords do not match.",
+      "minLength": "The password must contain at least 6 characters.",
+      "mustDiffer": "The new password must be different from the current password.",
+      "updated": "Your password has been updated!",
+      "failed": "Your password could not be updated."
+    },
+    "orders": {
+      "eyebrow": "My orders",
+      "title": "Order history",
+      "description": "View your previous orders and open an individual order.",
+      "previous": "Previous orders",
+      "loading": "Loading your orders...",
+      "fetchFailed": "Could not load your orders.",
+      "emptyTitle": "No previous orders",
+      "emptyText": "After placing an order, you will find it here.",
+      "viewMenu": "View menu",
+      "orderNumber": "Order #{id}",
+      "viewOrder": "View order",
+      "delivery": "Delivery",
+      "pickup": "Pickup",
+      "statuses": {
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "ready": "Ready",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "rejected": "Cancelled"
+      }
+    }
   }
 }
