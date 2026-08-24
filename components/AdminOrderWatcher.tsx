@@ -91,61 +91,122 @@ export default function AdminOrderWatcher() {
   }, [openNewOrderPage]);
 
   useEffect(() => {
+    let disposed = false;
+    let watching = false;
     let intervalId: number | null = null;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    void checkPendingOrder();
+    const stopWatching = () => {
+      watching = false;
+      isAdminRef.current = false;
+      redirectingRef.current = false;
 
-    intervalId = window.setInterval(() => {
-      void checkPendingOrder();
-    }, CHECK_INTERVAL_MS);
-
-    const handlePageVisible = () => {
-      if (document.visibilityState === "visible") {
-        void checkPendingOrder();
-      }
-    };
-
-    const handleWindowFocus = () => {
-      void checkPendingOrder();
-    };
-
-    document.addEventListener("visibilitychange", handlePageVisible);
-
-    window.addEventListener("focus", handleWindowFocus);
-
-    const channel = supabase
-      .channel("admin-order-watcher")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "orders",
-        },
-        (payload) => {
-          const newOrder = payload.new as {
-            status?: unknown;
-          };
-
-          if (isAdminRef.current && newOrder.status === "pending") {
-            openNewOrderPage();
-          }
-        },
-      )
-      .subscribe();
-
-    return () => {
       if (intervalId !== null) {
         window.clearInterval(intervalId);
+        intervalId = null;
       }
 
       document.removeEventListener("visibilitychange", handlePageVisible);
-
       window.removeEventListener("focus", handleWindowFocus);
 
-      void supabase.removeChannel(channel);
+      if (channel) {
+        const currentChannel = channel;
+        channel = null;
+
+        void supabase.removeChannel(currentChannel);
+      }
+    };
+
+    const runCheck = async () => {
+      const isAuthorized = await checkPendingOrder();
+
+      if (!isAuthorized) {
+        stopWatching();
+      }
+    };
+
+    function handlePageVisible() {
+      if (document.visibilityState === "visible") {
+        void runCheck();
+      }
+    }
+
+    function handleWindowFocus() {
+      void runCheck();
+    }
+
+    const startWatching = () => {
+      if (disposed || watching) {
+        return;
+      }
+
+      watching = true;
+      isAdminRef.current = true;
+
+      void runCheck();
+
+      intervalId = window.setInterval(() => {
+        void runCheck();
+      }, CHECK_INTERVAL_MS);
+
+      document.addEventListener("visibilitychange", handlePageVisible);
+      window.addEventListener("focus", handleWindowFocus);
+
+      channel = supabase
+        .channel("admin-order-watcher")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "orders",
+          },
+          (payload) => {
+            const newOrder = payload.new as {
+              status?: unknown;
+            };
+
+            if (isAdminRef.current && newOrder.status === "pending") {
+              openNewOrderPage();
+            }
+          },
+        )
+        .subscribe();
+    };
+
+    const syncAdminSession = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (disposed) {
+        return;
+      }
+
+      if (user?.app_metadata?.role === "admin") {
+        startWatching();
+      } else {
+        stopWatching();
+      }
+    };
+
+    void syncAdminSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user.app_metadata?.role === "admin") {
+        startWatching();
+      } else {
+        stopWatching();
+      }
+    });
+
+    return () => {
+      disposed = true;
+      subscription.unsubscribe();
+      stopWatching();
     };
   }, [checkPendingOrder, openNewOrderPage, supabase]);
-
   return null;
 }
