@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
+
 import { extraGroups, menuData } from "@/data/menu";
 import styles from "./OrderReceipt.module.css";
 
@@ -89,10 +91,10 @@ function toNumber(value: MoneyValue): number {
   return 0;
 }
 
-function formatMoney(value: MoneyValue): string {
+function formatMoney(value: MoneyValue, locale: string): string {
   const amount = toNumber(value);
 
-  return `${new Intl.NumberFormat("da-DK", {
+  return `${new Intl.NumberFormat(locale, {
     minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
 
     maximumFractionDigits: 2,
@@ -230,67 +232,94 @@ function getPaidExtras(
     });
 }
 
-function getSizeLabel(size?: string | null) {
-  switch (size) {
-    case "family":
-      return "Familie";
-
-    case "children":
-      return "Børn";
-
-    case "deepPan":
-      return "Deep Pan";
-
-    case "normal":
-    case null:
-    case undefined:
-      return null;
-
-    default:
-      return size;
-  }
-}
-
-function getStatusLabel(status: string) {
-  switch (status) {
-    case "pending":
-      return "Afventer";
-
-    case "accepted":
-      return "Accepteret";
-
-    case "rejected":
-      return "Afvist";
-
-    case "cancelled":
-      return "Annulleret";
-
-    case "completed":
-      return "Færdig";
-
-    default:
-      return status;
-  }
-}
-
-function getPaymentLabel(paymentMethod?: string | null) {
-  switch (paymentMethod) {
-    case "mobilepay":
-      return "MobilePay";
-
-    case "card":
-      return "Betalingskort";
-
-    default:
-      return paymentMethod || "Ikke angivet";
-  }
-}
-
 export default function OrderReceipt({
   order,
   previousOrdersCount,
 }: OrderReceiptProps) {
-  const orderDate = new Date(order.created_at).toLocaleString("da-DK", {
+  const locale = useLocale();
+  const t = useTranslations("OrderReceipt");
+  const menuT = useTranslations("Menu");
+  const itemModalT = useTranslations("ItemModal");
+  const numberLocale = locale === "en" ? "en-GB" : "da-DK";
+
+  const formatReceiptMoney = (value: MoneyValue) =>
+    formatMoney(value, numberLocale);
+
+  const getSizeLabel = (size?: string | null) => {
+    switch (size) {
+      case "family":
+        return t("sizes.family");
+
+      case "children":
+        return t("sizes.children");
+
+      case "deepPan":
+        return t("sizes.deepPan");
+
+      case "normal":
+      case null:
+      case undefined:
+        return null;
+
+      default:
+        return size;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const key = `statuses.${status}`;
+
+    return t.has(key) ? t(key) : status;
+  };
+
+  const getPaymentLabel = (paymentMethod?: string | null) => {
+    switch (paymentMethod) {
+      case "mobilepay":
+        return "MobilePay";
+
+      case "card":
+        return t("paymentMethods.card");
+
+      default:
+        return paymentMethod || t("paymentMethods.unspecified");
+    }
+  };
+
+  const getItemDisplayName = (itemName: string) => {
+    const menuItem = getMenuItemByName(itemName);
+
+    if (!menuItem) {
+      return itemName;
+    }
+
+    const key = `items.${menuItem.id}.name`;
+
+    return menuT.has(key) ? menuT(key) : itemName;
+  };
+
+  const getExtraDisplayName = (itemName: string, extraName: string) => {
+    const itemGroupIds = getItemGroupIds(itemName);
+
+    for (const groupId of itemGroupIds) {
+      if (!(groupId in extraGroups)) {
+        continue;
+      }
+
+      const group = extraGroups[groupId as keyof typeof extraGroups];
+      const index = group.findIndex(
+        (extra) => normalizeName(extra.name) === normalizeName(extraName),
+      );
+      const key = `extras.${groupId}.${index}`;
+
+      if (index >= 0 && itemModalT.has(key)) {
+        return itemModalT(key);
+      }
+    }
+
+    return extraName;
+  };
+
+  const orderDate = new Date(order.created_at).toLocaleString(numberLocale, {
     timeZone: "Europe/Copenhagen",
     day: "2-digit",
     month: "2-digit",
@@ -300,11 +329,13 @@ export default function OrderReceipt({
   });
 
   const deliveryLabel =
-    order.delivery_method === "pickup" ? "Afhentning" : "Levering";
+    order.delivery_method === "pickup"
+      ? t("deliveryMethods.pickup")
+      : t("deliveryMethods.delivery");
 
   const customerTime =
     !order.requested_time || order.requested_time === "asap"
-      ? "Hurtigst muligt"
+      ? t("asSoonAsPossible")
       : order.requested_time;
 
   const statusLabel = getStatusLabel(order.status);
@@ -345,22 +376,24 @@ export default function OrderReceipt({
 
           <p>{restaurantInfo.address}</p>
 
-          <p>Tlf: {restaurantInfo.phone}</p>
+          <p>
+            {t("labels.phone")}: {restaurantInfo.phone}
+          </p>
 
           <p>{restaurantInfo.website}</p>
         </div>
 
         <div className={styles.orderInfo}>
           <p>
-            <strong>Ordre Nr:</strong> #{order.id}
+            <strong>{t("labels.orderNumber")}:</strong> #{order.id}
           </p>
 
           <p>
-            <strong>Dato:</strong> {orderDate}
+            <strong>{t("labels.date")}:</strong> {orderDate}
           </p>
 
           <div className={styles.orderTypeRow}>
-            <strong>Ordretype:</strong>
+            <strong>{t("labels.orderType")}:</strong>
 
             <span
               className={`${styles.orderTypeBadge} ${
@@ -380,20 +413,22 @@ export default function OrderReceipt({
       <table className={styles.itemsTable}>
         <thead>
           <tr>
-            <th>Antal</th>
-            <th>Nr.</th>
-            <th>Vare</th>
-            <th>Stk. pris</th>
+            <th>{t("table.quantity")}</th>
+            <th>{t("table.number")}</th>
+            <th>{t("table.item")}</th>
+            <th>{t("table.unitPrice")}</th>
 
-            <th className={styles.priceColumn}>Pris</th>
+            <th className={styles.priceColumn}>{t("table.price")}</th>
           </tr>
         </thead>
 
         <tbody>
           {order.order_items.map((item, index) => {
-            const itemName = item.item_name || item.name || "Ukendt vare";
+            const itemName =
+              item.item_name || item.name || t("table.unknownItem");
 
             const menuItem = getMenuItemByName(itemName);
+            const displayItemName = getItemDisplayName(itemName);
 
             const selectedExtras = Array.isArray(item.extras)
               ? item.extras
@@ -425,16 +460,17 @@ export default function OrderReceipt({
 
                 <td>
                   <div className={styles.itemTitleRow}>
-                    <span className={styles.itemName}>{itemName}</span>
+                    <span className={styles.itemName}>{displayItemName}</span>
 
                     {primaryChoices.map((choice, choiceIndex) => (
                       <span
                         key={`${choice.name}-${choiceIndex}`}
                         className={styles.proteinBadge}
                       >
-                        {choice.name}
+                        {getExtraDisplayName(itemName, choice.name)}
 
-                        {choice.price > 0 && ` (+${formatMoney(choice.price)})`}
+                        {choice.price > 0 &&
+                          ` (+${formatReceiptMoney(choice.price)})`}
                       </span>
                     ))}
 
@@ -452,11 +488,13 @@ export default function OrderReceipt({
                         >
                           <span className={styles.extraPlus}>+</span>
 
-                          <span>{extra.name}</span>
+                          <span>
+                            {getExtraDisplayName(itemName, extra.name)}
+                          </span>
 
                           {extra.price > 0 && (
                             <span className={styles.extraPrice}>
-                              ({formatMoney(extra.price)})
+                              ({formatReceiptMoney(extra.price)})
                             </span>
                           )}
                         </span>
@@ -465,9 +503,11 @@ export default function OrderReceipt({
                   )}
                 </td>
 
-                <td>{formatMoney(unitPrice)}</td>
+                <td>{formatReceiptMoney(unitPrice)}</td>
 
-                <td className={styles.priceColumn}>{formatMoney(itemTotal)}</td>
+                <td className={styles.priceColumn}>
+                  {formatReceiptMoney(itemTotal)}
+                </td>
               </tr>
             );
           })}
@@ -478,35 +518,35 @@ export default function OrderReceipt({
 
       <div className={styles.totals}>
         <div className={styles.totalRow}>
-          <span>Varer i alt:</span>
+          <span>{t("totals.items")}:</span>
 
-          <span>{formatMoney(subtotal)}</span>
+          <span>{formatReceiptMoney(subtotal)}</span>
         </div>
 
         <div className={styles.totalRow}>
-          <span>Pose:</span>
+          <span>{t("totals.bag")}:</span>
 
-          <span>{formatMoney(bagFee)}</span>
+          <span>{formatReceiptMoney(bagFee)}</span>
         </div>
 
         <div className={styles.totalRow}>
-          <span>Servicegebyr:</span>
+          <span>{t("totals.serviceFee")}:</span>
 
-          <span>{formatMoney(serviceFee)}</span>
+          <span>{formatReceiptMoney(serviceFee)}</span>
         </div>
 
         {order.delivery_method === "delivery" && (
           <div className={styles.totalRow}>
-            <span>Levering:</span>
+            <span>{t("totals.delivery")}:</span>
 
-            <span>{formatMoney(deliveryFee)}</span>
+            <span>{formatReceiptMoney(deliveryFee)}</span>
           </div>
         )}
 
         <div className={`${styles.totalRow} ${styles.grandTotal}`}>
-          <strong>I alt:</strong>
+          <strong>{t("totals.total")}:</strong>
 
-          <strong>{formatMoney(order.total_price)}</strong>
+          <strong>{formatReceiptMoney(order.total_price)}</strong>
         </div>
       </div>
 
@@ -514,63 +554,68 @@ export default function OrderReceipt({
 
       <div className={styles.customer}>
         <p>
-          <strong>Kunde:</strong> {order.customer_name}
+          <strong>{t("customer.name")}:</strong> {order.customer_name}
         </p>
 
         <p>
-          <strong>Tlf:</strong> {order.customer_phone}
+          <strong>{t("labels.phone")}:</strong> {order.customer_phone}
         </p>
 
         {typeof previousOrdersCount === "number" && (
           <p className={styles.previousOrders}>
-            <strong>Tidligere ordrer:</strong> {previousOrdersCount}
+            <strong>{t("customer.previousOrders")}:</strong>{" "}
+            {previousOrdersCount}
           </p>
         )}
         {order.customer_email && (
           <p>
-            <strong>E-mail:</strong> {order.customer_email}
+            <strong>{t("customer.email")}:</strong> {order.customer_email}
           </p>
         )}
 
         {order.delivery_method === "delivery" && customerAddress && (
           <p>
-            <strong>Adresse:</strong> {customerAddress}
+            <strong>{t("customer.address")}:</strong> {customerAddress}
           </p>
         )}
 
         <p>
-          <strong>Ønsket tid:</strong> {customerTime}
+          <strong>{t("customer.requestedTime")}:</strong> {customerTime}
         </p>
 
         <p>
-          <strong>Betaling:</strong> {paymentLabel}
+          <strong>{t("customer.payment")}:</strong> {paymentLabel}
         </p>
 
         <p>
-          <strong>Status:</strong> {statusLabel}
+          <strong>{t("customer.status")}:</strong> {statusLabel}
         </p>
 
         {order.order_note && (
           <p className={styles.orderNote}>
-            <strong>Kommentar:</strong> {order.order_note}
+            <strong>{t("customer.note")}:</strong> {order.order_note}
           </p>
         )}
       </div>
 
       <div className={styles.footer}>
-        <p>Tak for din bestilling!</p>
+        <p>{t("footer.thanks")}</p>
 
         <p className={styles.acceptTime}>
           {order.status === "accepted"
             ? order.estimated_time
-              ? `Ordren er accepteret og forventes klar om cirka ${order.estimated_time} minutter.`
+              ? t("footer.acceptedEstimated", {
+                  minutes: order.estimated_time,
+                })
               : order.requested_time && order.requested_time !== "asap"
-                ? `Ordren er accepteret til ønsket tid: ${order.requested_time}.`
-                : "Ordren er accepteret."
-            : "Ordren er modtaget."}
+                ? t("footer.acceptedRequested", {
+                    time: order.requested_time,
+                  })
+                : t("footer.accepted")
+            : t("footer.received")}
         </p>
 
-        <p className={styles.powered}> Leveret af Gastronomia 3300</p>
+        <p className={styles.powered}>{t("footer.poweredBy")}</p>
       </div>
     </article>
   );

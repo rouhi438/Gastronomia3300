@@ -1,25 +1,23 @@
 import Link from "next/link";
-
+import { getTranslations } from "next-intl/server";
 import styles from "../payment-result.module.css";
 
-export default function PaymentCancelledPage() {
+export default async function PaymentCancelledPage() {
+  const t = await getTranslations("PaymentCancelled");
+
   return (
     <main className={styles.page}>
       <section className={styles.card}>
         <div className={styles.icon}>×</div>
 
-        <h1>Betalingen blev afbrudt</h1>
+        <h1>{t("title")}</h1>
 
-        <p>
-          Betalingen blev ikke gennemført, og der er ikke oprettet nogen ordre.
-        </p>
+        <p>{t("message")}</p>
 
-        <p className={styles.muted}>
-          Du kan gå tilbage til menuen og prøve igen.
-        </p>
+        <p className={styles.muted}>{t("hint")}</p>
 
         <Link href="/" className={styles.button}>
-          Tilbage til menuen
+          {t("backToMenu")}
         </Link>
       </section>
     </main>

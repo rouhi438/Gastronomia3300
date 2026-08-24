@@ -636,5 +636,187 @@
         "rejected": "Cancelled"
       }
     }
+  },
+  "PaymentReturn": {
+    "title": "Payment is being processed",
+    "checking": "We are checking the payment. Your order will only be created once the payment has been confirmed.",
+    "stillProcessing": "The payment is still being processed. If the payment was completed, the order will be created automatically when confirmation is received.",
+    "checkFailed": "We could not confirm the payment status right now. Your order will still be created automatically if the payment was completed.",
+    "statusCheckError": "The payment status could not be checked.",
+    "automaticRedirect": "You will automatically be redirected to your receipt once the payment has been confirmed.",
+    "backToMenu": "Back to the menu"
+  },
+  "PaymentCancelled": {
+    "title": "Payment was cancelled",
+    "message": "The payment was not completed, and no order was created.",
+    "hint": "You can return to the menu and try again.",
+    "backToMenu": "Back to the menu"
+  },
+  "OrderStatus": {
+    "loading": {
+      "title": "Loading your order",
+      "description": "Please wait while we find your receipt."
+    },
+    "errors": {
+      "title": "The order could not be displayed",
+      "invalidLink": "The order link is invalid.",
+      "fetchFailed": "The order could not be loaded.",
+      "notFound": "The order was not found."
+    },
+    "accepted": {
+      "title": "Your order has been accepted",
+      "estimatedDelivery": "Your order is expected to be delivered in approximately {minutes} minutes.",
+      "estimatedPickup": "Your order is expected to be ready for pickup in approximately {minutes} minutes.",
+      "requestedDelivery": "Your order is expected to be delivered at your selected time, {time}.",
+      "requestedPickup": "Your order is expected to be ready for pickup at your selected time, {time}.",
+      "processing": "The restaurant has started processing your order."
+    },
+    "cancelled": {
+      "title": "Your order could not be accepted",
+      "description": "Contact the restaurant if you have any questions."
+    },
+    "pending": {
+      "sentTitle": "Your order has been sent",
+      "registeredTitle": "Your order has been registered",
+      "emailSent": "The order has been registered and sent to Gastronomia 3300. Check your inbox and spam folder.",
+      "emailFailed": "The confirmation email could not be sent, but you can follow the order status directly on this page.",
+      "reviewing": "The restaurant is reviewing your order. This page updates automatically."
+    },
+    "orderNumber": "Order #{id}",
+    "refreshingAria": "Updating order status",
+    "backToMenu": "Back to the menu",
+    "autoUpdate": "The order status updates automatically every 5 seconds."
+  },
+  "OrderReceipt": {
+    "labels": {
+      "phone": "Phone",
+      "orderNumber": "Order No.",
+      "date": "Date",
+      "orderType": "Order type"
+    },
+    "deliveryMethods": {
+      "pickup": "Pickup",
+      "delivery": "Delivery"
+    },
+    "asSoonAsPossible": "As soon as possible",
+    "sizes": {
+      "family": "Family",
+      "children": "Kids",
+      "deepPan": "Deep Pan"
+    },
+    "statuses": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "ready": "Ready",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled",
+      "completed": "Completed"
+    },
+    "paymentMethods": {
+      "card": "Payment card",
+      "unspecified": "Not specified"
+    },
+    "table": {
+      "quantity": "Quantity",
+      "number": "No.",
+      "item": "Item",
+      "unitPrice": "Unit price",
+      "price": "Price",
+      "unknownItem": "Unknown item"
+    },
+    "totals": {
+      "items": "Items subtotal",
+      "bag": "Bag",
+      "serviceFee": "Service fee",
+      "delivery": "Delivery",
+      "total": "Total"
+    },
+    "customer": {
+      "name": "Customer",
+      "previousOrders": "Previous orders",
+      "email": "Email",
+      "address": "Address",
+      "requestedTime": "Requested time",
+      "payment": "Payment",
+      "status": "Status",
+      "note": "Comment"
+    },
+    "footer": {
+      "thanks": "Thank you for your order!",
+      "acceptedEstimated": "The order has been accepted and is expected to be ready in approximately {minutes} minutes.",
+      "acceptedRequested": "The order has been accepted for the requested time: {time}.",
+      "accepted": "The order has been accepted.",
+      "received": "The order has been received.",
+      "poweredBy": "Delivered by Gastronomia 3300"
+    }
+  },
+  "CompleteProfile": {
+    "loading": "Loading profile...",
+    "title": "Complete your profile",
+    "description": "We need your email address and phone number for order confirmations and important communication about your order.",
+    "fields": {
+      "fullName": "Full name",
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "actions": {
+      "saving": "Saving...",
+      "saveAndContinue": "Save and continue"
+    },
+    "errors": {
+      "loadFailed": "The profile could not be loaded.",
+      "nameRequired": "Please enter your full name.",
+      "emailRequired": "Please enter your email address.",
+      "phoneRequired": "Please enter your phone number.",
+      "saveFailed": "The profile could not be saved. Please try again."
+    }
+  },
+  "Home": {
+    "logoAlt": "Gastronomia 3300 logo",
+    "title": "Welcome to Gastronomia Pizza Frederiksværk",
+    "descriptionFirst": "We make authentic Italian pizza in a traditional stone oven.",
+    "descriptionSecond": "Freshly baked, crispy and made with love every single day.",
+    "subDescription": "Explore our menu and experience the taste of Italy right here in Frederiksværk.",
+    "cta": "View the menu"
+  },
+  "Footer": {
+    "description": "Wood-fired stone-oven pizza made with quality ingredients in the heart of Frederiksværk.",
+    "openingHours": "Open daily from 15:00–21:00",
+    "social": {
+      "facebookAria": "Follow Gastronomia Pizza on Facebook",
+      "instagramAria": "Follow Gastronomia Pizza on Instagram"
+    },
+    "shortcuts": {
+      "title": "Quick links",
+      "ariaLabel": "Quick links",
+      "menu": "Menu",
+      "orderOnline": "Order online",
+      "profile": "My profile",
+      "privacy": "Privacy policy",
+      "terms": "Terms and conditions",
+      "cookies": "Cookie policy"
+    },
+    "company": {
+      "title": "Company information",
+      "cvr": "CVR",
+      "toBeAdded": "To be added",
+      "experience": "Experience"
+    },
+    "foodControl": {
+      "title": "Food inspection",
+      "description": "View Gastronomia Pizza's inspection report from the Danish Veterinary and Food Administration",
+      "ariaLabel": "View Gastronomia Pizza's inspection report from the Danish Veterinary and Food Administration"
+    },
+    "findUs": {
+      "title": "Find us",
+      "directions": "Get directions"
+    },
+    "map": {
+      "iframeTitle": "Gastronomia Pizza on Google Maps",
+      "privacyDescription": "The map is provided by Google. When you display it, Google may receive technical information and use cookies.",
+      "showMap": "Show map"
+    },
+    "copyright": "© {year} {name}. All rights reserved.",
+    "services": "Delivery · Pickup · MobilePay · Payment cards"
   }
 }

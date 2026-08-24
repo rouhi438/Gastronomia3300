@@ -320,5 +320,187 @@
         "rejected": "Annulleret"
       }
     }
+  },
+  "PaymentReturn": {
+    "title": "Betalingen behandles",
+    "checking": "Vi kontrollerer betalingen. Din ordre bliver først oprettet, når betalingen er bekræftet.",
+    "stillProcessing": "Betalingen behandles stadig. Hvis betalingen er gennemført, bliver ordren automatisk oprettet, når bekræftelsen modtages.",
+    "checkFailed": "Vi kunne ikke bekræfte betalingsstatus lige nu. Din ordre bliver stadig oprettet automatisk, hvis betalingen er gennemført.",
+    "statusCheckError": "Betalingsstatus kunne ikke kontrolleres.",
+    "automaticRedirect": "Du bliver automatisk sendt videre til din kvittering, når betalingen er bekræftet.",
+    "backToMenu": "Tilbage til menuen"
+  },
+  "PaymentCancelled": {
+    "title": "Betalingen blev afbrudt",
+    "message": "Betalingen blev ikke gennemført, og der er ikke oprettet nogen ordre.",
+    "hint": "Du kan gå tilbage til menuen og prøve igen.",
+    "backToMenu": "Tilbage til menuen"
+  },
+  "OrderStatus": {
+    "loading": {
+      "title": "Henter din ordre",
+      "description": "Vent et øjeblik, mens vi finder din kvittering."
+    },
+    "errors": {
+      "title": "Ordren kunne ikke vises",
+      "invalidLink": "Linket til ordren er ugyldigt.",
+      "fetchFailed": "Ordren kunne ikke hentes.",
+      "notFound": "Ordren blev ikke fundet."
+    },
+    "accepted": {
+      "title": "Din ordre er accepteret",
+      "estimatedDelivery": "Din ordre forventes leveret om cirka {minutes} minutter.",
+      "estimatedPickup": "Din ordre forventes klar til afhentning om cirka {minutes} minutter.",
+      "requestedDelivery": "Din ordre forventes leveret på det valgte tidspunkt kl. {time}.",
+      "requestedPickup": "Din ordre forventes klar til afhentning på det valgte tidspunkt kl. {time}.",
+      "processing": "Restauranten er begyndt at behandle din ordre."
+    },
+    "cancelled": {
+      "title": "Din ordre kunne ikke accepteres",
+      "description": "Kontakt restauranten, hvis du har spørgsmål."
+    },
+    "pending": {
+      "sentTitle": "Din ordre er sendt",
+      "registeredTitle": "Din ordre er registreret",
+      "emailSent": "Ordren er registreret og sendt til Gastronomia 3300. Tjek din indbakke og eventuelt din spam-mappe.",
+      "emailFailed": "Bekræftelsesmailen kunne ikke sendes, men du kan følge ordrestatus direkte på denne side.",
+      "reviewing": "Restauranten gennemgår din ordre. Siden opdateres automatisk."
+    },
+    "orderNumber": "Ordre #{id}",
+    "refreshingAria": "Opdaterer ordrestatus",
+    "backToMenu": "Tilbage til menuen",
+    "autoUpdate": "Ordrestatus opdateres automatisk hvert 5. sekund."
+  },
+  "OrderReceipt": {
+    "labels": {
+      "phone": "Tlf",
+      "orderNumber": "Ordre Nr",
+      "date": "Dato",
+      "orderType": "Ordretype"
+    },
+    "deliveryMethods": {
+      "pickup": "Afhentning",
+      "delivery": "Levering"
+    },
+    "asSoonAsPossible": "Hurtigst muligt",
+    "sizes": {
+      "family": "Familie",
+      "children": "Børn",
+      "deepPan": "Deep Pan"
+    },
+    "statuses": {
+      "pending": "Afventer",
+      "accepted": "Accepteret",
+      "ready": "Klar",
+      "rejected": "Afvist",
+      "cancelled": "Annulleret",
+      "completed": "Færdig"
+    },
+    "paymentMethods": {
+      "card": "Betalingskort",
+      "unspecified": "Ikke angivet"
+    },
+    "table": {
+      "quantity": "Antal",
+      "number": "Nr.",
+      "item": "Vare",
+      "unitPrice": "Stk. pris",
+      "price": "Pris",
+      "unknownItem": "Ukendt vare"
+    },
+    "totals": {
+      "items": "Varer i alt",
+      "bag": "Pose",
+      "serviceFee": "Servicegebyr",
+      "delivery": "Levering",
+      "total": "I alt"
+    },
+    "customer": {
+      "name": "Kunde",
+      "previousOrders": "Tidligere ordrer",
+      "email": "E-mail",
+      "address": "Adresse",
+      "requestedTime": "Ønsket tid",
+      "payment": "Betaling",
+      "status": "Status",
+      "note": "Kommentar"
+    },
+    "footer": {
+      "thanks": "Tak for din bestilling!",
+      "acceptedEstimated": "Ordren er accepteret og forventes klar om cirka {minutes} minutter.",
+      "acceptedRequested": "Ordren er accepteret til ønsket tid: {time}.",
+      "accepted": "Ordren er accepteret.",
+      "received": "Ordren er modtaget.",
+      "poweredBy": "Leveret af Gastronomia 3300"
+    }
+  },
+  "CompleteProfile": {
+    "loading": "Indlæser profil...",
+    "title": "Fuldfør din profil",
+    "description": "Vi skal bruge din e-mail og dit telefonnummer til ordrebekræftelser og vigtig kontakt vedrørende din bestilling.",
+    "fields": {
+      "fullName": "Fulde navn",
+      "email": "E-mail",
+      "phone": "Telefon"
+    },
+    "actions": {
+      "saving": "Gemmer...",
+      "saveAndContinue": "Gem og fortsæt"
+    },
+    "errors": {
+      "loadFailed": "Profilen kunne ikke indlæses.",
+      "nameRequired": "Indtast venligst dit fulde navn.",
+      "emailRequired": "Indtast venligst din e-mailadresse.",
+      "phoneRequired": "Indtast venligst dit telefonnummer.",
+      "saveFailed": "Profilen kunne ikke gemmes. Prøv igen."
+    }
+  },
+  "Home": {
+    "logoAlt": "Gastronomia 3300 logo",
+    "title": "Velkommen til Gastronomia Pizza Frederiksværk",
+    "descriptionFirst": "Hos os laver vi autentisk italiensk pizza i en ægte stenovn.",
+    "descriptionSecond": "Friskbagt, sprød og fyldt med kærlighed – hver eneste dag.",
+    "subDescription": "Prøv vores menu og oplev smagen af Italien – lige her i Frederiksværk.",
+    "cta": "Kom i gang"
+  },
+  "Footer": {
+    "description": "Brændefyret stenovnspizza og gode råvarer i hjertet af Frederiksværk.",
+    "openingHours": "Alle dage kl. 15.00–21.00",
+    "social": {
+      "facebookAria": "Følg Gastronomia Pizza på Facebook",
+      "instagramAria": "Følg Gastronomia Pizza på Instagram"
+    },
+    "shortcuts": {
+      "title": "Genveje",
+      "ariaLabel": "Genveje",
+      "menu": "Menu",
+      "orderOnline": "Bestil online",
+      "profile": "Min profil",
+      "privacy": "Privatlivspolitik",
+      "terms": "Handelsbetingelser",
+      "cookies": "Cookiepolitik"
+    },
+    "company": {
+      "title": "Virksomhedsoplysninger",
+      "cvr": "CVR",
+      "toBeAdded": "Tilføjes",
+      "experience": "Erfaring"
+    },
+    "foodControl": {
+      "title": "Fødevarekontrol",
+      "description": "Se Gastronomia Pizzas kontrolrapport hos Fødevarestyrelsen",
+      "ariaLabel": "Se Gastronomia Pizzas kontrolrapport hos Fødevarestyrelsen"
+    },
+    "findUs": {
+      "title": "Find os",
+      "directions": "Få rutevejledning"
+    },
+    "map": {
+      "iframeTitle": "Gastronomia Pizza på Google Maps",
+      "privacyDescription": "Kortet leveres af Google. Når du viser kortet, kan Google modtage tekniske oplysninger og anvende cookies.",
+      "showMap": "Vis kort"
+    },
+    "copyright": "© {year} {name}. Alle rettigheder forbeholdes.",
+    "services": "Levering · Afhentning · MobilePay · Betalingskort"
   }
 }

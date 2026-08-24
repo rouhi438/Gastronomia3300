@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { MapPin } from "lucide-react";
+
 import styles from "./Footer.module.css";
 
 type GoogleMapEmbedProps = {
@@ -9,13 +11,14 @@ type GoogleMapEmbedProps = {
 };
 
 export default function GoogleMapEmbed({ mapQuery }: GoogleMapEmbedProps) {
+  const t = useTranslations("Footer.map");
   const [mapAllowed, setMapAllowed] = useState(false);
 
   if (mapAllowed) {
     return (
       <div className={styles.mapWrapper}>
         <iframe
-          title="Gastronomia Pizza på Google Maps"
+          title={t("iframeTitle")}
           src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
@@ -31,13 +34,10 @@ export default function GoogleMapEmbed({ mapQuery }: GoogleMapEmbedProps) {
 
       <strong>Google Maps</strong>
 
-      <p>
-        Kortet leveres af Google. Når du viser kortet, kan Google modtage
-        tekniske oplysninger og anvende cookies.
-      </p>
+      <p>{t("privacyDescription")}</p>
 
       <button type="button" onClick={() => setMapAllowed(true)}>
-        Vis kort
+        {t("showMap")}
       </button>
     </div>
   );

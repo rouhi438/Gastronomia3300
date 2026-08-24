@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { useCart } from "@/context/CartContext";
 
@@ -13,12 +14,13 @@ type PaymentStatusResponse = {
   error?: string;
 };
 
+type PaymentMessageKey = "checking" | "stillProcessing" | "checkFailed";
+
 export default function PaymentReturnPage() {
   const { clearCart } = useCart();
+  const t = useTranslations("PaymentReturn");
 
-  const [message, setMessage] = useState(
-    "Vi kontrollerer betalingen. Din ordre bliver først oprettet, når betalingen er bekræftet.",
-  );
+  const [messageKey, setMessageKey] = useState<PaymentMessageKey>("checking");
 
   useEffect(() => {
     const sessionId = new URLSearchParams(window.location.search).get(
@@ -51,9 +53,7 @@ export default function PaymentReturnPage() {
         const result = (await response.json()) as PaymentStatusResponse;
 
         if (!response.ok) {
-          throw new Error(
-            result.error || "Betalingsstatus kunne ikke kontrolleres.",
-          );
+          throw new Error(result.error || t("statusCheckError"));
         }
 
         if (
@@ -76,14 +76,11 @@ export default function PaymentReturnPage() {
 
         if (result.status === "failed" || result.status === "cancelled") {
           window.location.replace("/payment/cancelled");
-
           return;
         }
 
         if (attempts >= 30) {
-          setMessage(
-            "Betalingen behandles stadig. Hvis betalingen er gennemført, bliver ordren automatisk oprettet, når bekræftelsen modtages.",
-          );
+          setMessageKey("stillProcessing");
           return;
         }
 
@@ -92,9 +89,7 @@ export default function PaymentReturnPage() {
         console.error("Payment status check failed:", error);
 
         if (attempts >= 30) {
-          setMessage(
-            "Vi kunne ikke bekræfte betalingsstatus lige nu. Din ordre bliver stadig oprettet automatisk, hvis betalingen er gennemført.",
-          );
+          setMessageKey("checkFailed");
           return;
         }
 
@@ -107,24 +102,21 @@ export default function PaymentReturnPage() {
     return () => {
       cancelled = true;
     };
-  }, [clearCart]);
+  }, [clearCart, t]);
 
   return (
     <main className={styles.page}>
       <section className={styles.card}>
         <div className={styles.icon}>✓</div>
 
-        <h1>Betalingen behandles</h1>
+        <h1>{t("title")}</h1>
 
-        <p>{message}</p>
+        <p>{t(messageKey)}</p>
 
-        <p className={styles.muted}>
-          Du bliver automatisk sendt videre til din kvittering, når betalingen
-          er bekræftet.
-        </p>
+        <p className={styles.muted}>{t("automaticRedirect")}</p>
 
         <Link href="/" className={styles.button}>
-          Tilbage til menuen
+          {t("backToMenu")}
         </Link>
       </section>
     </main>

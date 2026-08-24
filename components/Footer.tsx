@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import {
   Building2,
   Clock3,
@@ -13,6 +14,7 @@ import {
   FaRegSmile,
   FaRegLaughWink,
 } from "react-icons/fa";
+
 import GoogleMapEmbed from "./GoogleMapEmbed";
 import styles from "./Footer.module.css";
 
@@ -30,7 +32,8 @@ const STORE = {
 
 const mapQuery = encodeURIComponent(STORE.address);
 
-export default function Footer() {
+export default async function Footer() {
+  const t = await getTranslations("Footer");
   const currentYear = new Date().getFullYear();
 
   return (
@@ -40,10 +43,7 @@ export default function Footer() {
           <section className={styles.section}>
             <h2 className={styles.brand}>{STORE.name}</h2>
 
-            <p className={styles.description}>
-              Brændefyret stenovnspizza og gode råvarer i hjertet af
-              Frederiksværk.
-            </p>
+            <p className={styles.description}>{t("description")}</p>
 
             <div className={styles.contactList}>
               <a href={`tel:${STORE.phone.replace(/\s/g, "")}`}>
@@ -60,7 +60,7 @@ export default function Footer() {
 
               <p>
                 <Clock3 size={17} aria-hidden="true" />
-                <span>Alle dage kl. 15.00–21.00</span>
+                <span>{t("openingHours")}</span>
               </p>
             </div>
 
@@ -72,7 +72,7 @@ export default function Footer() {
                     href={STORE.facebookUrl}
                     target="_blank"
                     rel="noreferrer"
-                    aria-label="Følg Gastronomia Pizza på Facebook"
+                    aria-label={t("social.facebookAria")}
                   >
                     <FaFacebookF size={18} />
                   </a>
@@ -84,7 +84,7 @@ export default function Footer() {
                     href={STORE.instagramUrl}
                     target="_blank"
                     rel="noreferrer"
-                    aria-label="Følg Gastronomia Pizza på Instagram"
+                    aria-label={t("social.instagramAria")}
                   >
                     <FaInstagram size={20} />
                   </a>
@@ -94,20 +94,23 @@ export default function Footer() {
           </section>
 
           <section className={styles.section}>
-            <h2 className={styles.heading}>Genveje</h2>
+            <h2 className={styles.heading}>{t("shortcuts.title")}</h2>
 
-            <nav className={styles.linkList} aria-label="Genveje">
-              <Link href="/menu">Menu</Link>
-              <Link href="/checkout">Bestil online</Link>
-              <Link href="/profile">Min profil</Link>
-              <Link href="/privacy">Privatlivspolitik</Link>
-              <Link href="/terms">Handelsbetingelser</Link>
-              <Link href="/cookies">Cookiepolitik</Link>
+            <nav
+              className={styles.linkList}
+              aria-label={t("shortcuts.ariaLabel")}
+            >
+              <Link href="/menu">{t("shortcuts.menu")}</Link>
+              <Link href="/checkout">{t("shortcuts.orderOnline")}</Link>
+              <Link href="/profile">{t("shortcuts.profile")}</Link>
+              <Link href="/privacy">{t("shortcuts.privacy")}</Link>
+              <Link href="/terms">{t("shortcuts.terms")}</Link>
+              <Link href="/cookies">{t("shortcuts.cookies")}</Link>
             </nav>
           </section>
 
           <section className={styles.section}>
-            <h2 className={styles.heading}>Virksomhedsoplysninger</h2>
+            <h2 className={styles.heading}>{t("company.title")}</h2>
 
             <div className={styles.companyInfo}>
               <p>
@@ -121,13 +124,13 @@ export default function Footer() {
               </p>
 
               <p>
-                <strong>CVR:</strong>
-                <span>{STORE.cvr || "Tilføjes"}</span>
+                <strong>{t("company.cvr")}:</strong>
+                <span>{STORE.cvr || t("company.toBeAdded")}</span>
               </p>
 
               {STORE.experience && (
                 <p>
-                  <strong>Erfaring:</strong>
+                  <strong>{t("company.experience")}:</strong>
                   <span>{STORE.experience}</span>
                 </p>
               )}
@@ -140,11 +143,8 @@ export default function Footer() {
               </div>
 
               <div className={styles.smileyText}>
-                <strong>Fødevarekontrol</strong>
-
-                <span>
-                  Se Gastronomia Pizzas kontrolrapport hos Fødevarestyrelsen
-                </span>
+                <strong>{t("foodControl.title")}</strong>
+                <span>{t("foodControl.description")}</span>
               </div>
 
               {STORE.smileyReportUrl && (
@@ -153,15 +153,17 @@ export default function Footer() {
                   href={STORE.smileyReportUrl}
                   target="_blank"
                   rel="noreferrer"
-                  aria-label="Se Gastronomia Pizzas kontrolrapport hos Fødevarestyrelsen"
+                  aria-label={t("foodControl.ariaLabel")}
                 />
               )}
             </div>
           </section>
 
           <section className={styles.section}>
-            <h2 className={styles.heading}>Find os</h2>
+            <h2 className={styles.heading}>{t("findUs.title")}</h2>
+
             <GoogleMapEmbed mapQuery={mapQuery} />
+
             <a
               className={styles.directionsLink}
               href={`https://www.google.com/maps/search/?api=1&query=${mapQuery}`}
@@ -169,7 +171,7 @@ export default function Footer() {
               rel="noreferrer"
             >
               <MapPin size={17} aria-hidden="true" />
-              Få rutevejledning
+              {t("findUs.directions")}
               <ExternalLink size={14} aria-hidden="true" />
             </a>
           </section>
@@ -177,10 +179,13 @@ export default function Footer() {
 
         <div className={styles.bottomBar}>
           <p>
-            © {currentYear} {STORE.name}. Alle rettigheder forbeholdes.
+            {t("copyright", {
+              year: currentYear,
+              name: STORE.name,
+            })}
           </p>
 
-          <p>Levering · Afhentning · MobilePay . Betalingskort</p>
+          <p>{t("services")}</p>
         </div>
       </div>
     </footer>

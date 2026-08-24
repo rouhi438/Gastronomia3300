@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Mail, Phone, User } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -11,8 +12,16 @@ import {
 } from "@/lib/profile";
 import styles from "./complete-profile.module.css";
 
+type CompleteProfileErrorKey =
+  | "loadFailed"
+  | "nameRequired"
+  | "emailRequired"
+  | "phoneRequired"
+  | "saveFailed";
+
 export default function CompleteProfilePage() {
   const router = useRouter();
+  const t = useTranslations("CompleteProfile");
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -20,7 +29,9 @@ export default function CompleteProfilePage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [errorKey, setErrorKey] = useState<CompleteProfileErrorKey | null>(
+    null,
+  );
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -47,7 +58,8 @@ export default function CompleteProfilePage() {
           "Profile completion check failed while loading complete-profile page:",
           profileError.message,
         );
-        setError("Profilen kunne ikke indlæses.");
+
+        setErrorKey("loadFailed");
         setLoading(false);
         return;
       }
@@ -66,7 +78,9 @@ export default function CompleteProfilePage() {
             ? user.user_metadata.name
             : ""),
       );
+
       setEmail(profile?.email ?? user.email ?? "");
+
       setPhone(
         profile?.phone?.trim() ||
           (typeof user.user_metadata?.phone === "string"
@@ -83,26 +97,28 @@ export default function CompleteProfilePage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (saving) return;
+    if (saving) {
+      return;
+    }
 
-    setError("");
+    setErrorKey(null);
 
     const normalizedName = fullName.trim();
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedPhone = phone.trim();
 
     if (!normalizedName) {
-      setError("Indtast venligst dit fulde navn.");
+      setErrorKey("nameRequired");
       return;
     }
 
     if (!normalizedEmail) {
-      setError("Indtast venligst din e-mailadresse.");
+      setErrorKey("emailRequired");
       return;
     }
 
     if (!normalizedPhone) {
-      setError("Indtast venligst dit telefonnummer.");
+      setErrorKey("phoneRequired");
       return;
     }
 
@@ -139,21 +155,31 @@ export default function CompleteProfilePage() {
 
       router.replace("/profile");
       router.refresh();
-    } catch (error: unknown) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Profilen kunne ikke gemmes. Prøv igen.",
-      );
+    } catch (caughtError: unknown) {
+      console.error("Profile save failed:", caughtError);
+      setErrorKey("saveFailed");
     } finally {
       setSaving(false);
     }
   };
 
+  const errorMessage =
+    errorKey === "loadFailed"
+      ? t("errors.loadFailed")
+      : errorKey === "nameRequired"
+        ? t("errors.nameRequired")
+        : errorKey === "emailRequired"
+          ? t("errors.emailRequired")
+          : errorKey === "phoneRequired"
+            ? t("errors.phoneRequired")
+            : errorKey === "saveFailed"
+              ? t("errors.saveFailed")
+              : "";
+
   if (loading) {
     return (
       <main className={styles.loading}>
-        <p>Indlæser profil...</p>
+        <p>{t("loading")}</p>
       </main>
     );
   }
@@ -161,16 +187,13 @@ export default function CompleteProfilePage() {
   return (
     <main className={styles.container}>
       <section className={styles.card}>
-        <h1 className={styles.title}>Fuldfør din profil</h1>
+        <h1 className={styles.title}>{t("title")}</h1>
 
-        <p className={styles.description}>
-          Vi skal bruge din e-mail og dit telefonnummer til ordrebekræftelser og
-          vigtig kontakt vedrørende din bestilling.
-        </p>
+        <p className={styles.description}>{t("description")}</p>
 
-        {error && (
+        {errorMessage && (
           <p role="alert" className={styles.error}>
-            {error}
+            {errorMessage}
           </p>
         )}
 
@@ -178,7 +201,7 @@ export default function CompleteProfilePage() {
           <label className={styles.field}>
             <span className={styles.label}>
               <User size={18} />
-              Fulde navn
+              {t("fields.fullName")}
             </span>
 
             <input
@@ -195,7 +218,7 @@ export default function CompleteProfilePage() {
           <label className={styles.field}>
             <span className={styles.label}>
               <Mail size={18} />
-              E-mail
+              {t("fields.email")}
             </span>
 
             <input
@@ -212,7 +235,7 @@ export default function CompleteProfilePage() {
           <label className={styles.field}>
             <span className={styles.label}>
               <Phone size={18} />
-              Telefon
+              {t("fields.phone")}
             </span>
 
             <input
@@ -232,7 +255,7 @@ export default function CompleteProfilePage() {
             className={`btn-primary ${styles.submitButton}`}
             disabled={saving}
           >
-            {saving ? "Gemmer..." : "Gem og fortsæt"}
+            {saving ? t("actions.saving") : t("actions.saveAndContinue")}
           </button>
         </form>
       </section>
