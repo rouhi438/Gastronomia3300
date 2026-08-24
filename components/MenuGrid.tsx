@@ -1,23 +1,26 @@
 "use client";
 
-import { menuData } from "@/data/menu";
+import { menuData, type MenuItem } from "@/data/menu";
 import { Pizza } from "lucide-react";
+import Image from "next/image";
 import styles from "./MenuGrid.module.css";
 
 interface MenuGridProps {
-  onCardClick: (item: any) => void;
+  onCardClick: (item: MenuItem) => void;
 }
 
 export default function MenuGrid({ onCardClick }: MenuGridProps) {
-  const grouped = menuData.reduce(
-    (acc, item) => {
-      const cat = item.category;
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat].push(item);
-      return acc;
-    },
-    {} as Record<string, typeof menuData>,
-  );
+  const grouped = menuData.reduce<Record<string, MenuItem[]>>((acc, item) => {
+    const cat = item.category;
+
+    if (!acc[cat]) {
+      acc[cat] = [];
+    }
+
+    acc[cat].push(item);
+
+    return acc;
+  }, {});
 
   const categoryOrder = [
     "pizza",
@@ -73,9 +76,12 @@ export default function MenuGrid({ onCardClick }: MenuGridProps) {
                   >
                     <div className={styles.imageWrapper}>
                       {item.image ? (
-                        <img
+                        <Image
                           src={item.image}
                           alt={item.name}
+                          width={600}
+                          height={250}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           className={styles.image}
                         />
                       ) : (
