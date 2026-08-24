@@ -116,15 +116,22 @@ export default function NewOrderPage() {
   }, []);
 
   useEffect(() => {
-    // Prøv straks. Browseren kan blokere
-    // lyden, indtil administratoren klikker.
-    void playAlarm();
+    /*
+     * Try immediately after the effect has completed.
+     * The browser may block sound until the administrator interacts.
+     */
+    const initialAlarmTimeout = window.setTimeout(() => {
+      void playAlarm();
+    }, 0);
 
     alarmIntervalRef.current = window.setInterval(() => {
       void playAlarm();
     }, 5000);
 
-    return stopAlarm;
+    return () => {
+      window.clearTimeout(initialAlarmTimeout);
+      stopAlarm();
+    };
   }, [playAlarm, stopAlarm]);
 
   const handleActivateSound = () => {

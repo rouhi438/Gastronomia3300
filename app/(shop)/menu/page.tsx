@@ -22,6 +22,8 @@ import ItemModal from "@/components/ItemModal";
 
 import { useLocale, useTranslations } from "next-intl";
 
+import Image from "next/image";
+
 import styles from "./menu.module.css";
 
 type AvailabilityStatus = "active" | "until_next_opening" | "manual_off";
@@ -351,9 +353,12 @@ export default function MenuPage() {
 
                   <div className={styles.imageWrapper}>
                     {item.image ? (
-                      <img
+                      <Image
                         src={item.image}
-                        alt={displayName}
+                        alt={item.name}
+                        width={480}
+                        height={360}
+                        sizes="(max-width: 680px) 40vw, (max-width: 1200px) 30vw, 240px"
                         className={styles.image}
                       />
                     ) : (

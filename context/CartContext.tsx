@@ -111,48 +111,55 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [hasLoadedStorage, setHasLoadedStorage] = useState(false);
 
   useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
+    const loadStoredCartTimeout = window.setTimeout(() => {
+      const savedCart = localStorage.getItem("cart");
 
-    if (!savedCart) {
-      setHasLoadedStorage(true);
-      return;
-    }
-
-    try {
-      const parsed: CartItem[] | StoredCartState = JSON.parse(savedCart);
-
-      if (Array.isArray(parsed)) {
-        setItems(parsed);
+      if (!savedCart) {
         setHasLoadedStorage(true);
         return;
       }
 
-      setItems(Array.isArray(parsed.items) ? parsed.items : []);
+      try {
+        const parsed: CartItem[] | StoredCartState = JSON.parse(savedCart);
 
-      setDeliveryMethodState(
-        parsed.deliveryMethod === "delivery" ? "delivery" : "pickup",
-      );
+        if (Array.isArray(parsed)) {
+          setItems(parsed);
+          setHasLoadedStorage(true);
+          return;
+        }
 
-      setDeliveryAddressState({
-        ...emptyDeliveryAddress,
-        ...parsed.deliveryAddress,
-      });
+        setItems(Array.isArray(parsed.items) ? parsed.items : []);
 
-      setBagIncluded(parsed.bagIncluded !== false);
-      setRequestedTime(
-        typeof parsed.requestedTime === "string"
-          ? parsed.requestedTime
-          : "asap",
-      );
-    } catch {
-      setItems([]);
-      setDeliveryMethodState("pickup");
-      setDeliveryAddressState(emptyDeliveryAddress);
-      setBagIncluded(true);
-      setRequestedTime("asap");
-    } finally {
-      setHasLoadedStorage(true);
-    }
+        setDeliveryMethodState(
+          parsed.deliveryMethod === "delivery" ? "delivery" : "pickup",
+        );
+
+        setDeliveryAddressState({
+          ...emptyDeliveryAddress,
+          ...parsed.deliveryAddress,
+        });
+
+        setBagIncluded(parsed.bagIncluded !== false);
+
+        setRequestedTime(
+          typeof parsed.requestedTime === "string"
+            ? parsed.requestedTime
+            : "asap",
+        );
+      } catch {
+        setItems([]);
+        setDeliveryMethodState("pickup");
+        setDeliveryAddressState(emptyDeliveryAddress);
+        setBagIncluded(true);
+        setRequestedTime("asap");
+      } finally {
+        setHasLoadedStorage(true);
+      }
+    }, 0);
+
+    return () => {
+      window.clearTimeout(loadStoredCartTimeout);
+    };
   }, []);
 
   useEffect(() => {

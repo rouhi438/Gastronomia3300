@@ -12,6 +12,8 @@ import { extraGroups } from "@/data/menu";
 
 import { useCart } from "@/context/CartContext";
 
+import Image from "next/image";
+
 import styles from "./ItemModal.module.css";
 
 export type SizeOption = "normal" | "family" | "children" | "deepPan";
@@ -505,9 +507,12 @@ export default function ItemModal({
         <div className={styles.modalBody}>
           <div className={styles.imageContainer}>
             {item.image ? (
-              <img
+              <Image
                 src={item.image}
                 alt={displayName}
+                width={900}
+                height={450}
+                sizes="(max-width: 600px) calc(100vw - 2.4rem), 640px"
                 className={styles.modalImage}
               />
             ) : (
