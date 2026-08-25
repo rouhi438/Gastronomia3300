@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Baby,
   ChefHat,
-  Cherry,
   CupSoda,
   Hamburger,
   Plus,
@@ -14,7 +13,10 @@ import {
   Sandwich,
   Soup,
   UtensilsCrossed,
+  BadgePercent,
 } from "lucide-react";
+import { GiFrenchFries, GiDumpling } from "react-icons/gi";
+import { TbBowlSpoon } from "react-icons/tb";
 
 import { menuData, type MenuItem } from "@/data/menu";
 
@@ -62,7 +64,7 @@ const categories = [
   {
     id: "indbagt",
     labelKey: "categories.calzone",
-    icon: <Pizza size={18} />,
+    icon: <GiDumpling size={18} />,
   },
   {
     id: "ala-carte",
@@ -87,7 +89,7 @@ const categories = [
   {
     id: "fries",
     labelKey: "categories.fries",
-    icon: <Sandwich size={18} />,
+    icon: <GiFrenchFries size={18} />,
   },
   {
     id: "børn",
@@ -102,7 +104,7 @@ const categories = [
   {
     id: "menuer",
     labelKey: "categories.mealDeals",
-    icon: <Sandwich size={18} />,
+    icon: <BadgePercent size={18} />,
   },
   {
     id: "drikke",
@@ -112,7 +114,7 @@ const categories = [
   {
     id: "dyppelse",
     labelKey: "categories.extraDips",
-    icon: <Cherry size={18} />,
+    icon: <TbBowlSpoon size={18} />,
   },
 ];
 
