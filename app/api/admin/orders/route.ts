@@ -3,6 +3,10 @@ import {
   sendOrderAcceptedEmail,
   sendOrderRejectedEmail,
 } from "@/lib/email/orderEmails";
+import {
+  recordOperationalAlert,
+  resolveOperationalAlert,
+} from "@/lib/monitoring/operationalAlerts";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createFulfillmentTiming } from "@/lib/orders/fulfillmentTiming";
@@ -187,13 +191,25 @@ export async function PATCH(request: NextRequest) {
 
     const { data: currentOrder, error: currentOrderError } = await supabaseAdmin
       .from("orders")
-      .select("id, requested_time")
+      .select("id, requested_time, checkout_session_id")
       .eq("id", orderId)
       .eq("status", "pending")
       .maybeSingle();
 
     if (currentOrderError) {
       console.error("Order timing lookup failed:", currentOrderError);
+
+      await recordOperationalAlert({
+        dedupeKey: `admin-order-lookup-failed:${orderId}`,
+        category: "admin_order_api",
+        severity: "warning",
+        summary: "The admin API could not load an order before updating it.",
+        orderId,
+        context: {
+          stage: "load_pending_order",
+          database_code: currentOrderError.code ?? null,
+        },
+      });
 
       return NextResponse.json(
         { error: "Order timing lookup failed" },
@@ -260,6 +276,19 @@ export async function PATCH(request: NextRequest) {
     if (updateError) {
       console.error("Order update error:", updateError);
 
+      await recordOperationalAlert({
+        dedupeKey: `admin-order-update-failed:${orderId}`,
+        category: "admin_order_api",
+        severity: "warning",
+        summary: "The admin API could not update an order status.",
+        checkoutSessionId: currentOrder.checkout_session_id,
+        orderId,
+        context: {
+          stage: "update_pending_order",
+          database_code: updateError.code ?? null,
+        },
+      });
+
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
@@ -307,8 +336,23 @@ export async function PATCH(request: NextRequest) {
             emailTimestampError,
           );
         }
+
+        await resolveOperationalAlert(
+          `customer-accepted-email-failed:${order.id}`,
+        );
       } catch (emailError: unknown) {
         console.error("Accepted order email failed:", emailError);
+
+        await recordOperationalAlert({
+          dedupeKey: `customer-accepted-email-failed:${order.id}`,
+          category: "customer_order_email",
+          severity: "warning",
+          summary: "The customer order-accepted email was not delivered.",
+          orderId: order.id,
+          context: {
+            stage: "accept_order",
+          },
+        });
       }
     }
     // ==== validate reject order ====
@@ -344,10 +388,32 @@ export async function PATCH(request: NextRequest) {
             emailTimestampError,
           );
         }
+
+        await resolveOperationalAlert(
+          `customer-rejected-email-failed:${order.id}`,
+        );
       } catch (emailError: unknown) {
         console.error("Rejected order email failed:", emailError);
+
+        await recordOperationalAlert({
+          dedupeKey: `customer-rejected-email-failed:${order.id}`,
+          category: "customer_order_email",
+          severity: "warning",
+          summary: "The customer order-rejected email was not delivered.",
+          orderId: order.id,
+          context: {
+            stage: "reject_order",
+          },
+        });
       }
     }
+
+    await resolveOperationalAlert(`pending-order-unhandled:${order.id}`);
+
+    await Promise.all([
+      resolveOperationalAlert(`admin-order-lookup-failed:${order.id}`),
+      resolveOperationalAlert(`admin-order-update-failed:${order.id}`),
+    ]);
 
     return NextResponse.json({ order }, { status: 200 });
   } catch (error) {

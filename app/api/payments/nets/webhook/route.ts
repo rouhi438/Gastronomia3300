@@ -3,6 +3,11 @@ import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 import { netsEasyConfig } from "@/lib/nets/config";
+import { ensureRestaurantNewOrderNotification } from "@/lib/monitoring/newOrderNotification";
+import {
+  recordOperationalAlert,
+  resolveOperationalAlert,
+} from "@/lib/monitoring/operationalAlerts";
 import type { PreparedCheckout } from "@/lib/orders/prepareCheckout";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendOrderReceivedEmail } from "@/lib/email/orderEmails";
@@ -597,6 +602,30 @@ async function handleRefundWebhook(body: NetsWebhook) {
     );
   }
 
+  if (event === "payment.refund.failed") {
+    await recordOperationalAlert({
+      dedupeKey: `refund-failed:${order.id}`,
+      category: "refund_webhook",
+      severity: "critical",
+      summary: "Nets reported that an order refund failed.",
+      checkoutSessionId: order.checkout_session_id,
+      orderId: order.id,
+      context: {
+        stage: "refund_webhook",
+      },
+      notify: true,
+    });
+  } else {
+    await resolveOperationalAlert(`refund-request-failed:${order.id}`);
+  }
+
+  if (event === "payment.refund.completed") {
+    await Promise.all([
+      resolveOperationalAlert(`refund-failed:${order.id}`),
+      resolveOperationalAlert(`refund-state-persistence-failed:${order.id}`),
+    ]);
+  }
+
   return NextResponse.json(
     {
       ok: true,
@@ -682,13 +711,15 @@ export async function POST(request: NextRequest) {
     typeof data.amount?.currency === "string" ? data.amount.currency : null;
 
   const amountMinor = getWebhookAmount(data.amount?.amount);
+  const chargeEventAt = getWebhookTimestamp(body.timestamp);
 
   if (
     !paymentId ||
     !chargeId ||
     !checkoutSessionId ||
     !currency ||
-    amountMinor === null
+    amountMinor === null ||
+    !chargeEventAt
   ) {
     return NextResponse.json(
       {
@@ -736,51 +767,105 @@ export async function POST(request: NextRequest) {
    * Important payment identity checks.
    */
 
+  const webhookValidationAlertKey = `charge-webhook-validation-failed:${checkoutSession.id}`;
+
+  let webhookValidationFailure: {
+    error: string;
+    stage: string;
+  } | null = null;
+
   if (checkoutSession.nets_payment_id !== paymentId) {
-    console.error("Nets webhook payment id mismatch:", {
-      checkoutSessionId,
-      expected: checkoutSession.nets_payment_id,
-      received: paymentId,
+    webhookValidationFailure = {
+      error: "Payment mismatch",
+      stage: "verify_payment_id",
+    };
+  } else if (checkoutSession.currency !== "DKK" || currency !== "DKK") {
+    webhookValidationFailure = {
+      error: "Currency mismatch",
+      stage: "verify_currency",
+    };
+  } else if (checkoutSession.amount_minor !== amountMinor) {
+    webhookValidationFailure = {
+      error: "Amount mismatch",
+      stage: "verify_amount",
+    };
+  }
+
+  if (webhookValidationFailure) {
+    console.error(
+      "Authenticated Nets charge webhook validation failed:",
+      webhookValidationFailure.stage,
+    );
+
+    await recordOperationalAlert({
+      dedupeKey: webhookValidationAlertKey,
+      category: "charge_webhook_validation",
+      severity: "critical",
+      summary:
+        "An authenticated Nets charge webhook did not match its checkout session.",
+      checkoutSessionId: checkoutSession.id,
+      context: {
+        stage: webhookValidationFailure.stage,
+      },
+      notify: true,
     });
 
     return NextResponse.json(
       {
-        error: "Payment mismatch",
+        error: webhookValidationFailure.error,
       },
       { status: 409 },
     );
   }
 
-  if (checkoutSession.currency !== "DKK" || currency !== "DKK") {
-    console.error("Nets webhook currency mismatch:", {
-      checkoutSessionId,
-      expected: checkoutSession.currency,
-      received: currency,
-    });
+  await resolveOperationalAlert(webhookValidationAlertKey);
 
-    return NextResponse.json(
-      {
-        error: "Currency mismatch",
-      },
-      { status: 409 },
-    );
+  /*
+   * Persist the verified charge before creating the restaurant order.
+   * If order creation fails afterward, the database still contains a
+   * durable "paid without order" state for recovery and monitoring.
+   */
+  if (checkoutSession.status !== "completed") {
+    const { data: paidSession, error: paidSessionError } = await supabaseAdmin
+      .from("checkout_sessions")
+      .update({
+        status: "paid",
+        nets_charge_id: chargeId,
+        nets_payment_method: paymentMethod,
+        paid_at: chargeEventAt,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", checkoutSession.id)
+      .neq("status", "completed")
+      .select("id")
+      .maybeSingle();
+
+    if (paidSessionError || !paidSession) {
+      console.error("Paid checkout session tracking failed:", paidSessionError);
+
+      await recordOperationalAlert({
+        dedupeKey: `paid-session-tracking-failed:${checkoutSession.id}`,
+        category: "paid_session_tracking",
+        severity: "critical",
+        summary:
+          "Nets confirmed payment, but the paid checkout state was not saved.",
+        checkoutSessionId: checkoutSession.id,
+        context: {
+          stage: "mark_paid",
+        },
+        notify: true,
+      });
+
+      return NextResponse.json(
+        {
+          error: "Failed to track paid checkout session",
+        },
+        { status: 500 },
+      );
+    }
   }
 
-  if (checkoutSession.amount_minor !== amountMinor) {
-    console.error("Nets webhook amount mismatch:", {
-      checkoutSessionId,
-      expected: checkoutSession.amount_minor,
-      received: amountMinor,
-    });
-
-    return NextResponse.json(
-      {
-        error: "Amount mismatch",
-      },
-      { status: 409 },
-    );
-  }
-
+  const paidOrderAlertKey = `paid-order-missing:${checkoutSession.id}`;
   /*
    * Idempotency:
    * If an order already exists for this checkout session,
@@ -790,13 +875,34 @@ export async function POST(request: NextRequest) {
   const { data: existingOrder, error: existingOrderError } = await supabaseAdmin
     .from("orders")
     .select(
-      "id, public_token, customer_email, customer_name, confirmation_email_sent_at",
+      `
+    id,
+    public_token,
+    customer_email,
+    customer_name,
+    confirmation_email_sent_at,
+    order_items (id)
+  `,
     )
     .eq("checkout_session_id", checkoutSession.id)
     .maybeSingle();
 
   if (existingOrderError) {
     console.error("Existing order lookup failed:", existingOrderError);
+
+    await recordOperationalAlert({
+      dedupeKey: paidOrderAlertKey,
+      category: "paid_order_lookup",
+      severity: "critical",
+      summary:
+        "Nets confirmed payment, but the application could not verify the restaurant order.",
+      checkoutSessionId: checkoutSession.id,
+      context: {
+        stage: "lookup_existing_order",
+        database_code: existingOrderError.code ?? null,
+      },
+      notify: true,
+    });
 
     return NextResponse.json(
       {
@@ -807,6 +913,35 @@ export async function POST(request: NextRequest) {
   }
 
   if (existingOrder) {
+    if (
+      !Array.isArray(existingOrder.order_items) ||
+      existingOrder.order_items.length === 0
+    ) {
+      console.error("Existing paid order has no order items:", {
+        checkoutSessionId: checkoutSession.id,
+        orderId: existingOrder.id,
+      });
+
+      await recordOperationalAlert({
+        dedupeKey: paidOrderAlertKey,
+        category: "paid_order_incomplete",
+        severity: "critical",
+        summary: "A paid order exists without any order items.",
+        checkoutSessionId: checkoutSession.id,
+        orderId: existingOrder.id,
+        context: {
+          stage: "verify_existing_order",
+        },
+        notify: true,
+      });
+
+      return NextResponse.json(
+        {
+          error: "Paid order is incomplete",
+        },
+        { status: 500 },
+      );
+    }
     let confirmationEmailSent =
       existingOrder.confirmation_email_sent_at !== null;
 
@@ -856,13 +991,38 @@ export async function POST(request: NextRequest) {
             emailTimestampError,
           );
         }
+
+        await resolveOperationalAlert(
+          `customer-order-email-failed:${existingOrder.id}`,
+        );
       } catch (emailError: unknown) {
         console.error(
           "Duplicate paid order confirmation email failed:",
           emailError,
         );
+        await recordOperationalAlert({
+          dedupeKey: `customer-order-email-failed:${existingOrder.id}`,
+          category: "customer_order_email",
+          severity: "warning",
+          summary: "The customer order-received email was not delivered.",
+          checkoutSessionId: checkoutSession.id,
+          orderId: existingOrder.id,
+          context: {
+            stage: "duplicate_webhook",
+          },
+        });
       }
     }
+
+    const siteOrigin = (process.env.SITE_URL ?? request.nextUrl.origin).replace(
+      /\/+$/,
+      "",
+    );
+
+    await ensureRestaurantNewOrderNotification({
+      orderId: existingOrder.id,
+      origin: siteOrigin,
+    });
 
     const now = new Date().toISOString();
 
@@ -872,7 +1032,7 @@ export async function POST(request: NextRequest) {
         status: "completed",
         nets_charge_id: chargeId,
         nets_payment_method: paymentMethod,
-        paid_at: now,
+        paid_at: chargeEventAt,
         completed_at: now,
         updated_at: now,
       })
@@ -884,6 +1044,19 @@ export async function POST(request: NextRequest) {
         duplicateSessionUpdateError,
       );
 
+      await recordOperationalAlert({
+        dedupeKey: `checkout-finalization-failed:${checkoutSession.id}`,
+        category: "checkout_finalization",
+        severity: "warning",
+        summary:
+          "The paid order exists, but its checkout session was not finalized.",
+        checkoutSessionId: checkoutSession.id,
+        orderId: existingOrder.id,
+        context: {
+          stage: "duplicate_webhook",
+        },
+      });
+
       return NextResponse.json(
         {
           error: "Failed to finalize checkout session",
@@ -891,6 +1064,16 @@ export async function POST(request: NextRequest) {
         { status: 500 },
       );
     }
+
+    await Promise.all([
+      resolveOperationalAlert(paidOrderAlertKey),
+      resolveOperationalAlert(
+        `paid-session-tracking-failed:${checkoutSession.id}`,
+      ),
+      resolveOperationalAlert(
+        `checkout-finalization-failed:${checkoutSession.id}`,
+      ),
+    ]);
 
     return NextResponse.json(
       {
@@ -905,6 +1088,19 @@ export async function POST(request: NextRequest) {
 
   if (!isPreparedCheckout(checkoutSession.order_payload)) {
     console.error("Invalid stored checkout payload:", checkoutSession.id);
+
+    await recordOperationalAlert({
+      dedupeKey: paidOrderAlertKey,
+      category: "paid_order_creation",
+      severity: "critical",
+      summary:
+        "Nets confirmed payment, but the stored checkout payload is invalid.",
+      checkoutSessionId: checkoutSession.id,
+      context: {
+        stage: "validate_checkout_payload",
+      },
+      notify: true,
+    });
 
     return NextResponse.json(
       {
@@ -1040,6 +1236,20 @@ export async function POST(request: NextRequest) {
 
     console.error("Paid order insert failed:", orderError);
 
+    await recordOperationalAlert({
+      dedupeKey: paidOrderAlertKey,
+      category: "paid_order_creation",
+      severity: "critical",
+      summary:
+        "Nets confirmed payment, but the restaurant order was not created.",
+      checkoutSessionId: checkoutSession.id,
+      context: {
+        stage: "insert_order",
+        database_code: orderError?.code ?? null,
+      },
+      notify: true,
+    });
+
     return NextResponse.json(
       {
         error: "Failed to create paid order",
@@ -1072,6 +1282,23 @@ export async function POST(request: NextRequest) {
     if (rollbackError) {
       console.error("Paid order rollback failed:", rollbackError);
     }
+
+    await recordOperationalAlert({
+      dedupeKey: paidOrderAlertKey,
+      category: "paid_order_incomplete",
+      severity: "critical",
+      summary: rollbackError
+        ? "A paid order has incomplete items and could not be rolled back."
+        : "Paid order items failed; the incomplete order was rolled back for retry.",
+      checkoutSessionId: checkoutSession.id,
+      orderId: rollbackError ? order.id : null,
+      context: {
+        stage: "insert_order_items",
+        database_code: orderItemsError.code ?? null,
+        rollback_failed: Boolean(rollbackError),
+      },
+      notify: true,
+    });
 
     return NextResponse.json(
       {
@@ -1115,9 +1342,33 @@ export async function POST(request: NextRequest) {
         emailTimestampError,
       );
     }
+
+    await resolveOperationalAlert(`customer-order-email-failed:${order.id}`);
   } catch (emailError: unknown) {
     console.error("Paid order confirmation email failed:", emailError);
+
+    await recordOperationalAlert({
+      dedupeKey: `customer-order-email-failed:${order.id}`,
+      category: "customer_order_email",
+      severity: "warning",
+      summary: "The customer order-received email was not delivered.",
+      checkoutSessionId: checkoutSession.id,
+      orderId: order.id,
+      context: {
+        stage: "initial_webhook",
+      },
+    });
   }
+
+  const siteOrigin = (process.env.SITE_URL ?? request.nextUrl.origin).replace(
+    /\/+$/,
+    "",
+  );
+
+  await ensureRestaurantNewOrderNotification({
+    orderId: order.id,
+    origin: siteOrigin,
+  });
 
   const now = new Date().toISOString();
 
@@ -1127,7 +1378,7 @@ export async function POST(request: NextRequest) {
       status: "completed",
       nets_charge_id: chargeId,
       nets_payment_method: paymentMethod,
-      paid_at: now,
+      paid_at: chargeEventAt,
       completed_at: now,
       updated_at: now,
     })
@@ -1135,6 +1386,19 @@ export async function POST(request: NextRequest) {
 
   if (sessionUpdateError) {
     console.error("Paid checkout session update failed:", sessionUpdateError);
+
+    await recordOperationalAlert({
+      dedupeKey: `checkout-finalization-failed:${checkoutSession.id}`,
+      category: "checkout_finalization",
+      severity: "warning",
+      summary:
+        "The paid order exists, but its checkout session was not finalized.",
+      checkoutSessionId: checkoutSession.id,
+      orderId: order.id,
+      context: {
+        stage: "initial_webhook",
+      },
+    });
 
     /*
      * Do not create another order on retry:
@@ -1148,6 +1412,16 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
+
+  await Promise.all([
+    resolveOperationalAlert(paidOrderAlertKey),
+    resolveOperationalAlert(
+      `paid-session-tracking-failed:${checkoutSession.id}`,
+    ),
+    resolveOperationalAlert(
+      `checkout-finalization-failed:${checkoutSession.id}`,
+    ),
+  ]);
 
   /*
    * Nets requires exactly HTTP 200 to acknowledge

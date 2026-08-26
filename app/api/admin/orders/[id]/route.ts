@@ -4,6 +4,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { refundNetsCharge } from "@/lib/nets/refundCharge";
 import { sendOrderRejectedEmail } from "@/lib/email/orderEmails";
 import { createFulfillmentTiming } from "@/lib/orders/fulfillmentTiming";
+import {
+  recordOperationalAlert,
+  resolveOperationalAlert,
+} from "@/lib/monitoring/operationalAlerts";
 
 const VALID_STATUSES = [
   "pending",
@@ -139,6 +143,18 @@ export async function PATCH(
 
     if (currentOrderError) {
       console.error("Order lookup error:", currentOrderError);
+
+      await recordOperationalAlert({
+        dedupeKey: `admin-order-lookup-failed:${orderId}`,
+        category: "admin_order_api",
+        severity: "warning",
+        summary: "The admin API could not load an order before updating it.",
+        orderId,
+        context: {
+          stage: "load_order",
+          database_code: currentOrderError.code ?? null,
+        },
+      });
 
       return NextResponse.json(
         { error: "Failed to load order" },
@@ -611,6 +627,19 @@ export async function PATCH(
                 );
               }
 
+              await recordOperationalAlert({
+                dedupeKey: `refund-request-failed:${orderId}`,
+                category: "refund_request",
+                severity: "critical",
+                summary: "A Nets refund failed or could not be confirmed.",
+                checkoutSessionId: currentOrder.checkout_session_id,
+                orderId,
+                context: {
+                  stage: "request_refund",
+                },
+                notify: true,
+              });
+
               return NextResponse.json(
                 {
                   error:
@@ -654,6 +683,19 @@ export async function PATCH(
                 "Failed to persist refund state:",
                 refundStateError,
               );
+
+              await recordOperationalAlert({
+                dedupeKey: `refund-state-persistence-failed:${orderId}`,
+                category: "refund_state",
+                severity: "critical",
+                summary: "Nets accepted a refund, but its state was not saved.",
+                checkoutSessionId: currentOrder.checkout_session_id,
+                orderId,
+                context: {
+                  stage: "persist_refund",
+                },
+                notify: true,
+              });
 
               return NextResponse.json(
                 {
@@ -791,6 +833,19 @@ export async function PATCH(
     if (updateError) {
       console.error("Order update error:", updateError);
 
+      await recordOperationalAlert({
+        dedupeKey: `admin-order-update-failed:${orderId}`,
+        category: "admin_order_api",
+        severity: "warning",
+        summary: "The admin API could not update an order status.",
+        checkoutSessionId: currentOrder.checkout_session_id,
+        orderId,
+        context: {
+          stage: "update_order",
+          database_code: updateError.code ?? null,
+        },
+      });
+
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
@@ -889,10 +944,36 @@ export async function PATCH(
             emailTimestampError,
           );
         }
+
+        await resolveOperationalAlert(
+          `customer-rejected-email-failed:${updatedOrder.id}`,
+        );
       } catch (emailError: unknown) {
         console.error("Rejected order email failed:", emailError);
+        await recordOperationalAlert({
+          dedupeKey: `customer-rejected-email-failed:${updatedOrder.id}`,
+          category: "customer_order_email",
+          severity: "warning",
+          summary: "The customer order-rejected email was not delivered.",
+          checkoutSessionId: updatedOrder.checkout_session_id,
+          orderId: updatedOrder.id,
+          context: {
+            stage: "cancel_order",
+          },
+        });
       }
     }
+
+    if (updatedOrder.status !== "pending") {
+      await resolveOperationalAlert(
+        `pending-order-unhandled:${updatedOrder.id}`,
+      );
+    }
+
+    await Promise.all([
+      resolveOperationalAlert(`admin-order-lookup-failed:${updatedOrder.id}`),
+      resolveOperationalAlert(`admin-order-update-failed:${updatedOrder.id}`),
+    ]);
 
     return NextResponse.json({ order: updatedOrder }, { status: 200 });
   } catch (error) {
