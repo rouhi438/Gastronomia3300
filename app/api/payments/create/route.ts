@@ -5,6 +5,10 @@ import { prepareCheckout } from "@/lib/orders/prepareCheckout";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { netsEasyConfig } from "@/lib/nets/config";
+import {
+  recordOperationalAlert,
+  resolveOperationalAlert,
+} from "@/lib/monitoring/operationalAlerts";
 
 const VAT_RATE = 2500;
 
@@ -196,6 +200,19 @@ export async function POST(request: NextRequest) {
         })
         .eq("id", checkoutSession.id);
 
+      await recordOperationalAlert({
+        dedupeKey: `payment-amount-mismatch:${checkoutSession.id}`,
+        category: "payment_creation",
+        severity: "critical",
+        summary:
+          "The internal order total did not match the Nets payment item total.",
+        checkoutSessionId: checkoutSession.id,
+        context: {
+          stage: "verify_payment_amount",
+        },
+        notify: true,
+      });
+
       return NextResponse.json(
         {
           error: "Betalingsbeløbet kunne ikke beregnes.",
@@ -330,6 +347,10 @@ export async function POST(request: NextRequest) {
       throw new Error("Failed to persist Nets payment.");
     }
 
+    await resolveOperationalAlert(
+      `payment-creation-failed:${checkoutSession.id}`,
+    );
+
     return NextResponse.json(
       {
         checkout_session_id: checkoutSession.id,
@@ -357,6 +378,18 @@ export async function POST(request: NextRequest) {
           failedStatusError,
         );
       }
+
+      await recordOperationalAlert({
+        dedupeKey: `payment-creation-failed:${checkoutSessionId}`,
+        category: "payment_creation",
+        severity: "warning",
+        summary:
+          "A checkout session could not create or persist a Nets payment.",
+        checkoutSessionId,
+        context: {
+          stage: "create_payment",
+        },
+      });
     }
 
     if (error instanceof SyntaxError) {

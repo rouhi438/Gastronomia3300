@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { recordOperationalAlert } from "@/lib/monitoring/operationalAlerts";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+const UNHANDLED_ORDER_THRESHOLD_MS = 5 * 60 * 1000;
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -41,7 +43,7 @@ export async function GET() {
 
     const { data: order, error } = await supabaseAdmin
       .from("orders")
-      .select("id, created_at")
+      .select("id, created_at, checkout_session_id")
       .eq("status", "pending")
       .order("created_at", {
         ascending: true,
@@ -58,6 +60,29 @@ export async function GET() {
         },
         { status: 500 },
       );
+    }
+
+    if (order) {
+      const createdAt = Date.parse(order.created_at);
+
+      if (
+        Number.isFinite(createdAt) &&
+        Date.now() - createdAt >= UNHANDLED_ORDER_THRESHOLD_MS
+      ) {
+        await recordOperationalAlert({
+          dedupeKey: `pending-order-unhandled:${order.id}`,
+          category: "pending_order",
+          severity: "critical",
+          summary:
+            "A paid order has remained pending for more than five minutes.",
+          checkoutSessionId: order.checkout_session_id,
+          orderId: order.id,
+          context: {
+            threshold_minutes: 5,
+          },
+          notify: true,
+        });
+      }
     }
 
     return NextResponse.json(
