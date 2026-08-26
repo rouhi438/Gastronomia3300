@@ -1,6 +1,6 @@
 # GastronomiaPizzaApp — Project Context
 
-Last updated: 2026-08-25
+Last updated: 2026-08-26
 
 ## Purpose
 
@@ -72,6 +72,7 @@ Based on the current project history, the following areas have already been impl
 - Menu category icon updates
 - Corrections to incorrectly mapped translation IDs/keys
 - General lint-related cleanup completed during the previous work
+- Order-loss prevention, durable operational alerts, and restaurant fallback emails
 
 Before modifying any of these areas, inspect the existing code and confirm the current behavior.
 
@@ -117,19 +118,137 @@ Do not put real customer data into source control, logs, fixtures, screenshots, 
 
 ## Current Agreed Roadmap
 
-The printer feature is temporarily deferred. The current implementation order is:
+The order-monitoring feature has been implemented and verified in Preview. The remaining implementation order is:
 
-1. Order-loss prevention and error monitoring
-2. Structured menu allergens
-3. Most Ordered menu section
-4. Private order feedback
-5. Printer integration after hardware selection
+1. Structured menu allergens
+2. Most Ordered menu section
+3. Private order feedback
+4. Printer integration after hardware selection
 
 Each roadmap item should use a separate branch and pull request.
 
 ---
 
-## 1. Order-Loss Prevention and Error Monitoring
+## 1. Order-Loss Prevention and Error Monitoring — Implemented
+
+Branch:
+
+`feature/order-monitoring`
+
+Status:
+
+Implemented and verified in Preview on 2026-08-26. Production rollout still requires the Production database migration, environment variable, deployment, and smoke test.
+
+### Implemented Coverage
+
+The monitoring system now covers:
+
+- Payment creation and payment-total failures
+- Authenticated Nets webhook validation failures
+- Persistence of a verified payment before restaurant-order creation
+- Paid checkout sessions without a corresponding order
+- Order creation and checkout-finalization failures
+- Duplicate Nets webhook delivery without duplicate order creation
+- Refund request, refund webhook, and refund-state failures
+- Admin order lookup and update failures
+- Failed customer received, accepted, and rejected emails
+- Paid orders remaining pending for more than five minutes
+- Immediate fallback email notification for each new paid order
+
+Customer emails remain separate:
+
+- Order received
+- Order accepted
+- Order rejected
+
+Restaurant emails do not replace customer emails.
+
+### Database
+
+The monitoring schema is created by:
+
+`supabase/migrations/20260825000000_add_operational_alerts.sql`
+
+The migration adds:
+
+- The `public.operational_alerts` table
+- Indexes for unresolved alerts, checkout sessions, and orders
+- RLS enabled without anon or authenticated policies
+- `restaurant_notification_email_claimed_at` on `public.orders`
+- `restaurant_notification_email_sent_at` on `public.orders`
+
+Operational alerts are accessed only by server-side code using the Supabase service role.
+
+Alert context must not contain customer personal data, payment credentials, secrets, tokens, cookies, or complete webhook payloads.
+
+### Restaurant Email Configuration
+
+The server-only environment variable is:
+
+`RESTAURANT_ALERT_EMAIL`
+
+Its value must be configured separately in Vercel Preview and Production and must never be committed.
+
+Restaurant email delivery also requires the existing server-only variables:
+
+- `RESEND_API_KEY`
+- `EMAIL_FROM`
+
+A new paid order triggers a fallback restaurant email. Database claim and sent timestamps prevent concurrent or repeated webhook processing from normally sending duplicate restaurant emails.
+
+Critical operational alerts may also send an email to the restaurant. Warning alerts remain durably recorded in the database unless their call site explicitly requests notification.
+
+### Pending-Order Monitoring
+
+The authenticated admin watcher checks the oldest pending order every five seconds.
+
+When a paid order remains pending for at least five minutes:
+
+- A critical `pending-order-unhandled` alert is recorded.
+- One critical restaurant email is sent for that alert.
+- Repeated polling does not repeatedly send the same alert email.
+- Accepting or rejecting the order resolves the alert automatically.
+
+The immediate new-order restaurant email is sent by the server during webhook processing and does not depend on the admin browser watcher.
+
+### Preview Verification
+
+The following checks passed in Preview on 2026-08-26:
+
+- ESLint completed with no new errors.
+- TypeScript completed with `npx tsc --noEmit`.
+- `git diff --check` completed successfully.
+- The Next.js production build completed successfully.
+- A guest ASAP pickup order completed through Nets.
+- A guest scheduled pickup order completed through Nets.
+- Immediate restaurant new-order emails were delivered.
+- A five-minute pending-order alert was delivered once.
+- Accepting the pending order resolved its alert.
+- Customer received and accepted email timestamps were recorded.
+- Rejecting a second order recorded the rejected-email timestamp.
+- A successful rejected email did not create a false operational alert.
+- Restaurant email claims were released after successful delivery.
+
+### Operational Recovery
+
+When a critical alert is received:
+
+1. Find the unresolved row in `public.operational_alerts`.
+2. Use `order_id` and `checkout_session_id` to inspect the related records.
+3. Verify the payment state directly in Nets Easy.
+4. Check whether an order already exists before retrying or manually creating anything.
+5. Do not treat a browser redirect as proof of payment.
+6. Do not manually replay a webhook until duplicate-order protection and the existing checkout-session relationship have been checked.
+7. For restaurant email failures, verify `RESTAURANT_ALERT_EMAIL`, `RESEND_API_KEY`, `EMAIL_FROM`, and the alert’s `notification_error`.
+8. For a pending order, handle it through the normal Admin accept or reject flow so the alert resolves automatically.
+
+### Known Limitation
+
+There is currently no independent scheduled reconciliation job.
+
+The immediate paid-order restaurant email is server-side, but the five-minute pending-order escalation depends on the authenticated admin watcher calling the pending-order endpoint. A future background reconciliation job may be added if monitoring must continue independently of the admin browser.
+
+---
 
 Suggested branch:
 
@@ -470,6 +589,15 @@ Playwright is a suitable option for browser-level tests if it matches the reposi
 
 The following decisions still require confirmation:
 
+- Whether to add an independent scheduled reconciliation job for paid checkout sessions
+- Verified allergen data for each menu item
+- Final Most Ordered item IDs and order
+- Private feedback thread and editing rules
+- Guest-order feedback authorization
+- Printer hardware and paper width
+
+The following decisions still require confirmation:
+
 - Monitoring/error-reporting provider
 - Fallback channel for unnoticed pending orders
 - Reconciliation strategy for “paid but no order”
@@ -480,6 +608,12 @@ The following decisions still require confirmation:
 - Printer hardware and paper width
 
 ## Next Action
+
+After the order-monitoring feature is deployed and verified in Production, start:
+
+`feature/menu-allergens`
+
+Before implementation, obtain verified allergen information from the restaurant’s actual recipes, ingredient labels, and preparation process. Never infer or guess allergen values from product names or descriptions.
 
 After this documentation is committed and merged, start:
 
