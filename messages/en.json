@@ -39,6 +39,15 @@
       "drinks": "Drinks",
       "extraDips": "Extra dips"
     },
+    "mostOrdered": {
+      "title": "Most ordered",
+      "seeAll": "See all",
+      "showLess": "Show less",
+      "previous": "Show previous most ordered products",
+      "next": "Show next most ordered products",
+      "popular": "Popular",
+      "popularCategory": "Popular"
+    },
     "soldOut": "Sold out",
     "availableAgain": "Available again",
     "items": {

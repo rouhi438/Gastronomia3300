@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 
 import {
   Baby,
@@ -10,7 +10,9 @@ import {
   Plus,
   Pizza,
   Salad,
-  Sandwich,
+  Star,
+  ChevronLeft,
+  ChevronRight,
   Soup,
   UtensilsCrossed,
   BadgePercent,
@@ -49,6 +51,24 @@ type AvailabilityResponse = {
   statuses?: MenuStatusRecord[];
   optionStatuses?: MenuOptionStatusRecord[];
 };
+
+const MOST_ORDERED_ITEM_IDS = [3, 8, 16, 20, 47, 60, 200, 201] as const;
+
+const menuItemsById = new Map(menuData.map((item) => [item.id, item]));
+
+const missingMostOrderedItemIds = MOST_ORDERED_ITEM_IDS.filter(
+  (itemId) => !menuItemsById.has(itemId),
+);
+
+if (process.env.NODE_ENV !== "production" && missingMostOrderedItemIds.length) {
+  console.warn(
+    `Most Ordered contains unknown menu item IDs: ${missingMostOrderedItemIds.join(", ")}`,
+  );
+}
+
+const mostOrderedItems = MOST_ORDERED_ITEM_IDS.map((itemId) =>
+  menuItemsById.get(itemId),
+).filter((item): item is MenuItem => Boolean(item));
 
 const categories = [
   {
@@ -148,6 +168,10 @@ export default function MenuPage() {
 
   const [availabilityReady, setAvailabilityReady] = useState(false);
 
+  const [isMostOrderedExpanded, setIsMostOrderedExpanded] = useState(false);
+
+  const mostOrderedScrollerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const controller = new AbortController();
 
@@ -202,6 +226,10 @@ export default function MenuPage() {
   const filteredItems = useMemo(() => {
     const catalogItems = menuData.filter((item) => item.category !== "ekstra");
 
+    if (activeCategory === "popular") {
+      return mostOrderedItems;
+    }
+
     if (activeCategory === "alle") {
       return catalogItems;
     }
@@ -239,6 +267,129 @@ export default function MenuPage() {
     setSelectedItem(null);
   }
 
+  function scrollMostOrdered(direction: -1 | 1) {
+    const scroller = mostOrderedScrollerRef.current;
+
+    if (!scroller) {
+      return;
+    }
+
+    scroller.scrollBy({
+      left: direction * Math.max(scroller.clientWidth * 0.8, 280),
+      behavior: "smooth",
+    });
+  }
+
+  function renderMenuItemCard(
+    item: MenuItem,
+    variant: "default" | "featured" = "default",
+  ) {
+    const isPopular = MOST_ORDERED_ITEM_IDS.some(
+      (itemId) => itemId === item.id,
+    );
+
+    const isFeaturedPopular = isPopular && variant === "featured";
+
+    const nameKey = `items.${item.id}.name`;
+    const descriptionKey = `items.${item.id}.description`;
+
+    const displayName = t.has(nameKey) ? t(nameKey) : item.name;
+
+    const displayDescription = t.has(descriptionKey)
+      ? t(descriptionKey)
+      : item.description;
+
+    const price = item.prices.normal ?? item.prices.fixed ?? 0;
+    const hidePrice = [60, 61, 62].includes(item.id);
+
+    const availability = statusMap.get(item.id);
+    const unavailable = Boolean(availability);
+    const temporary = availability?.status === "until_next_opening";
+
+    return (
+      <button
+        key={item.id}
+        type="button"
+        className={`${styles.card} ${
+          isPopular ? styles.popularCard : ""
+        } ${isFeaturedPopular ? styles.featuredPopularCard : ""}`}
+        aria-disabled={unavailable || !availabilityReady}
+        aria-busy={!availabilityReady}
+        onClick={() => handleCardClick(item)}
+        style={
+          unavailable
+            ? {
+                opacity: 0.58,
+                cursor: "not-allowed",
+              }
+            : !availabilityReady
+              ? {
+                  cursor: "progress",
+                }
+              : undefined
+        }
+      >
+        <span className={styles.cardContent}>
+          <span className={styles.itemName}>
+            {item.menuNumber ? `${item.menuNumber}. ` : ""}
+            {displayName}
+          </span>
+
+          <span className={styles.itemDesc}>{displayDescription}</span>
+
+          {unavailable && (
+            <span className={styles.availabilityMessage}>
+              <strong className={styles.soldOut}>{t("soldOut")}</strong>
+
+              {temporary && availability?.available_again_at && (
+                <span className={styles.availableAgain}>
+                  {t("availableAgain")}{" "}
+                  {formatAvailableAgain(
+                    availability.available_again_at,
+                    locale,
+                  )}
+                </span>
+              )}
+            </span>
+          )}
+
+          {!hidePrice && !unavailable && (
+            <span className={styles.itemPrice}>{price} kr,-</span>
+          )}
+        </span>
+
+        <span className={styles.imageWrapper}>
+          {isPopular && (
+            <span className={styles.popularBadge}>
+              {t("mostOrdered.popular")}
+            </span>
+          )}
+
+          {item.image ? (
+            <Image
+              src={item.image}
+              alt={displayName}
+              width={480}
+              height={360}
+              sizes="(max-width: 680px) 40vw, (max-width: 1200px) 30vw, 240px"
+              className={styles.image}
+            />
+          ) : (
+            <span className={styles.placeholder} aria-hidden="true">
+              <Pizza size={40} className={styles.placeholderIcon} />
+            </span>
+          )}
+
+          {!unavailable && (
+            <span className={styles.plusIcon} aria-hidden="true">
+              <Plus size={20} strokeWidth={3} />
+            </span>
+          )}
+        </span>
+      </button>
+    );
+  }
+
   return (
     <>
       <div className={styles.menuPage}>
@@ -246,6 +397,17 @@ export default function MenuPage() {
 
         <aside className={styles.sidebar}>
           <nav className={styles.categoryNav}>
+            <button
+              type="button"
+              className={`${styles.categoryBtn} ${
+                styles.popularCategoryBtn
+              } ${activeCategory === "popular" ? styles.active : ""}`}
+              onClick={() => setActiveCategory("popular")}
+            >
+              <Star size={18} fill="currentColor" aria-hidden="true" />
+              <span>{t("mostOrdered.popularCategory")}</span>
+            </button>
+
             {categories.map((cat) => (
               <button
                 key={cat.id}
@@ -266,118 +428,74 @@ export default function MenuPage() {
         {/* ===== CARDS GRID ===== */}
 
         <section className={styles.cardsSection}>
-          <div className={styles.cardsGrid}>
-            {filteredItems.map((item) => {
-              const nameKey = `items.${item.id}.name`;
-              const descriptionKey = `items.${item.id}.description`;
+          {activeCategory === "alle" && (
+            <section
+              className={styles.mostOrderedSection}
+              aria-labelledby="most-ordered-title"
+            >
+              <div className={styles.mostOrderedHeader}>
+                <h1 id="most-ordered-title" className={styles.mostOrderedTitle}>
+                  {t("mostOrdered.title")}
+                </h1>
 
-              const displayName = t.has(nameKey) ? t(nameKey) : item.name;
-
-              const displayDescription = t.has(descriptionKey)
-                ? t(descriptionKey)
-                : item.description;
-              const price = item.prices.normal ?? item.prices.fixed ?? 0;
-
-              const hidePrice = [60, 61, 62].includes(item.id);
-
-              const availability = statusMap.get(item.id);
-
-              const unavailable = Boolean(availability);
-
-              const temporary = availability?.status === "until_next_opening";
-
-              return (
-                <div
-                  key={item.id}
-                  className={styles.card}
-                  aria-disabled={unavailable}
-                  onClick={() => handleCardClick(item)}
-                  style={
-                    unavailable
-                      ? {
-                          opacity: 0.58,
-                          cursor: "not-allowed",
-                        }
-                      : !availabilityReady
-                        ? {
-                            cursor: "progress",
-                          }
-                        : undefined
-                  }
-                >
-                  <div className={styles.cardContent}>
-                    <h3 className={styles.itemName}>
-                      {item.menuNumber ? `${item.menuNumber}. ` : ""}
-
-                      {displayName}
-                    </h3>
-
-                    <p className={styles.itemDesc}>{displayDescription}</p>
-
-                    {unavailable && (
-                      <div
-                        style={{
-                          display: "grid",
-                          gap: "0.15rem",
-                          marginTop: "0.25rem",
-                        }}
+                <div className={styles.mostOrderedControls}>
+                  {!isMostOrderedExpanded && (
+                    <div className={styles.scrollControls}>
+                      <button
+                        type="button"
+                        className={styles.scrollButton}
+                        aria-label={t("mostOrdered.previous")}
+                        onClick={() => scrollMostOrdered(-1)}
                       >
-                        <strong
-                          style={{
-                            color: "var(--red)",
-                            fontSize: "0.8rem",
-                          }}
-                        >
-                          {t("soldOut")}
-                        </strong>
+                        <ChevronLeft size={20} aria-hidden="true" />
+                      </button>
 
-                        {temporary && availability?.available_again_at && (
-                          <span
-                            style={{
-                              color: "var(--text-muted)",
-                              fontSize: "0.68rem",
-                            }}
-                          >
-                            {t("availableAgain")}{" "}
-                            {formatAvailableAgain(
-                              availability.available_again_at,
-                              locale,
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    )}
+                      <button
+                        type="button"
+                        className={styles.scrollButton}
+                        aria-label={t("mostOrdered.next")}
+                        onClick={() => scrollMostOrdered(1)}
+                      >
+                        <ChevronRight size={20} aria-hidden="true" />
+                      </button>
+                    </div>
+                  )}
 
-                    {!hidePrice && !unavailable && (
-                      <p className={styles.itemPrice}>{price} kr,-</p>
+                  <button
+                    type="button"
+                    className={styles.expandButton}
+                    aria-expanded={isMostOrderedExpanded}
+                    aria-controls="most-ordered-items"
+                    onClick={() =>
+                      setIsMostOrderedExpanded((isExpanded) => !isExpanded)
+                    }
+                  >
+                    {t(
+                      isMostOrderedExpanded
+                        ? "mostOrdered.showLess"
+                        : "mostOrdered.seeAll",
                     )}
-                  </div>
-
-                  <div className={styles.imageWrapper}>
-                    {item.image ? (
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        width={480}
-                        height={360}
-                        sizes="(max-width: 680px) 40vw, (max-width: 1200px) 30vw, 240px"
-                        className={styles.image}
-                      />
-                    ) : (
-                      <div className={styles.placeholder}>
-                        <Pizza size={40} className={styles.placeholderIcon} />
-                      </div>
-                    )}
-
-                    {!unavailable && (
-                      <div className={styles.plusIcon}>
-                        <Plus size={20} strokeWidth={3} />
-                      </div>
-                    )}
-                  </div>
+                  </button>
                 </div>
-              );
-            })}
+              </div>
+
+              <div
+                id="most-ordered-items"
+                ref={mostOrderedScrollerRef}
+                className={
+                  isMostOrderedExpanded
+                    ? styles.cardsGrid
+                    : styles.mostOrderedScroller
+                }
+              >
+                {mostOrderedItems.map((item) =>
+                  renderMenuItemCard(item, "featured"),
+                )}
+              </div>
+            </section>
+          )}
+          <div className={styles.cardsGrid}>
+            {filteredItems.map((item) => renderMenuItemCard(item))}
           </div>
         </section>
       </div>
