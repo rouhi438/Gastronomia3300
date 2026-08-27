@@ -39,6 +39,15 @@
       "drinks": "Drikkevarer",
       "extraDips": "Ekstra dyppelse"
     },
+    "mostOrdered": {
+      "title": "Mest bestilte",
+      "seeAll": "Vis alle",
+      "showLess": "Vis mindre",
+      "previous": "Vis tidligere mest bestilte produkter",
+      "next": "Vis næste mest bestilte produkter",
+      "popular": "Populær",
+      "popularCategory": "Populære"
+    },
     "soldOut": "Udsolgt",
     "availableAgain": "Tilgængelig igen",
     "items": {}
