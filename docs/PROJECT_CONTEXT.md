@@ -1,6 +1,6 @@
 # GastronomiaPizzaApp — Project Context
 
-Last updated: 2026-08-26
+Last updated: 2026-08-27
 
 ## Purpose
 
@@ -73,6 +73,9 @@ Based on the current project history, the following areas have already been impl
 - Corrections to incorrectly mapped translation IDs/keys
 - General lint-related cleanup completed during the previous work
 - Order-loss prevention, durable operational alerts, and restaurant fallback emails
+- Production verification of restaurant new-order emails and pending-order alert resolution
+- Curated Most Ordered menu section, popular labeling, and category filtering
+- Production menu price corrections completed on 2026-08-27
 
 Before modifying any of these areas, inspect the existing code and confirm the current behavior.
 
@@ -118,12 +121,13 @@ Do not put real customer data into source control, logs, fixtures, screenshots, 
 
 ## Current Agreed Roadmap
 
-The order-monitoring feature has been implemented and verified in Preview. The remaining implementation order is:
+The order-monitoring and Most Ordered features have been implemented, merged, and verified in Production.
 
-1. Structured menu allergens
-2. Most Ordered menu section
-3. Private order feedback
-4. Printer integration after hardware selection
+Structured menu allergens remain deferred until verified restaurant recipe, ingredient-label, and preparation data is available. The current implementation order is:
+
+1. Private order feedback and public aggregate rating — in progress
+2. Structured menu allergens after verified data is available
+3. Printer integration after hardware and paper-width selection
 
 Each roadmap item should use a separate branch and pull request.
 
@@ -137,7 +141,7 @@ Branch:
 
 Status:
 
-Implemented and verified in Preview on 2026-08-26. Production rollout still requires the Production database migration, environment variable, deployment, and smoke test.
+Implemented and verified in Preview on 2026-08-26, then merged, deployed, and verified in Production on 2026-08-27. The Production database migration and required environment variables are configured.
 
 ### Implemented Coverage
 
@@ -211,7 +215,7 @@ When a paid order remains pending for at least five minutes:
 
 The immediate new-order restaurant email is sent by the server during webhook processing and does not depend on the admin browser watcher.
 
-### Preview Verification
+### Preview and Production Verification
 
 The following checks passed in Preview on 2026-08-26:
 
@@ -228,6 +232,16 @@ The following checks passed in Preview on 2026-08-26:
 - Rejecting a second order recorded the rejected-email timestamp.
 - A successful rejected email did not create a false operational alert.
 - Restaurant email claims were released after successful delivery.
+  Production rollout completed and was verified on 2026-08-27:
+
+- The Production migration created `public.operational_alerts` and the restaurant-notification order columns.
+- `RESTAURANT_ALERT_EMAIL` was configured for Production alongside the existing Resend variables.
+- The merged Production deployment reached `Ready`.
+- Three consecutive real paid orders delivered immediate `[Ny ordre]` restaurant emails.
+- An order handled before the five-minute threshold did not create a pending-order alert.
+- Orders `#14` and `#15` created critical pending-order alerts after the threshold.
+- Both Production pending-order alerts sent notifications without `notification_error`.
+- Handling orders `#14` and `#15` resolved their alerts automatically.
 
 ### Operational Recovery
 
@@ -366,7 +380,28 @@ The restaurant must provide the verified allergen mapping for each relevant menu
 
 ---
 
-## 3. Most Ordered Menu Section
+## 3. Most Ordered Menu Section — Implemented
+
+Branch:
+
+`feature/most-ordered`
+
+Status:
+
+Implemented, merged, deployed, and verified in Production on 2026-08-27.
+
+### Goal
+
+Display a manually curated selection of popular products using the existing menu data.
+
+This is a curated restaurant selection, not a sales-analytics feature.
+
+### Product Selection
+
+The final ordered menu item IDs are:
+
+```tsx
+[3, 8, 16, 20, 47, 60, 200, 201]
 
 Suggested branch:
 
@@ -446,81 +481,141 @@ When selected:
 
 ---
 
-## 4. Private Order Feedback
+## 4. Private Order Feedback and Public Rating — In Progress
 
-Suggested branch:
+Branch:
 
 `feature/private-order-feedback`
 
 ### Goal
 
-Allow a customer to rate a completed order and privately communicate with the restaurant admin.
+Allow a verified customer to rate a completed order, optionally send a private message to the restaurant, and receive one private admin reply.
 
-This is private order support/feedback, not a public review or comment system.
+The restaurant’s aggregate rating is public. Individual written feedback and admin replies remain private.
+
+### Eligibility
+
+- Only an order with `completed` status is eligible.
+- Pending, accepted, ready, cancelled, or rejected orders are not eligible.
+- Each completed order can submit only one rating.
+- Ratings must be integers from 1 to 5.
+- The final submission and editing windows still require confirmation.
 
 ### Customer Experience
 
-After an eligible order is completed, the customer can:
+After an eligible order is completed, the customer can access feedback from the relevant order in the Profile or order-detail flow.
 
-- Select a rating from 1 to 5 stars.
-- Add an optional written message.
-- View the restaurant admin’s reply.
-- Continue the private conversation if threaded replies are included in the final scope.
+The feedback form contains:
 
-The feedback should be accessible from the customer’s order history or the relevant order detail page, following the current application structure.
+- A required 1-to-5 star rating
+- An optional private message to the restaurant
+- An optional consent control for publicly displaying the customer’s first name and star rating
+
+The public-display consent must not be preselected.
+
+The customer must clearly understand that:
+
+- The star rating contributes to the public aggregate.
+- The written message is always private.
+- Only the first name and star rating may be public when explicit consent is given.
+- The surname, photo, order number, email, and private message are never public.
+
+There is no public written-review field in the MVP.
+
+### Public Rating Experience
+
+The public rating system includes:
+
+- The restaurant’s average rating
+- The total number of eligible ratings
+- A verified-order label
+- Consented first names and star ratings without written comments
+
+The full rating summary is displayed on the home page.
+
+A compact aggregate-rating badge is displayed on the menu page.
+
+Public responses must not expose complete feedback rows, customer identifiers, order identifiers, private messages, admin replies, or internal metadata.
+
+The minimum rating count required before displaying the public aggregate still requires confirmation.
 
 ### Admin Experience
 
 An authorized admin can:
 
-- See new customer feedback.
-- Identify the related order.
-- View the rating and private message.
-- Reply to the customer.
-- See whether feedback or replies require attention.
+- See when an order has new feedback
+- Identify the related order
+- View the customer’s rating
+- View the optional private message
+- Send one private reply
+- See whether the feedback has been answered
+
+The admin reply is sent only once. The customer cannot continue a multi-message thread in the MVP.
+
+Admin access and reply authorization must be enforced server-side.
+
+### Notifications
+
+The intended notification flow is:
+
+- An eligible customer receives a feedback invitation after the order is completed.
+- The restaurant receives a notification when new feedback is submitted.
+- The customer receives a notification when the admin sends the private reply.
+
+Email delivery must use deduplication or durable sent timestamps so retries do not normally send duplicate messages.
+
+The rating and reply are completed inside the application. Email is used only for notification and secure navigation.
 
 ### Privacy and Authorization
 
-- Feedback is visible only to the owner of the related order and authorized admins.
-- It must never appear as a public restaurant review.
-- Customers must not access feedback belonging to another customer.
-- Order ownership and admin status must be verified server-side.
-- Supabase RLS must protect the underlying data where applicable.
-- Guessing or changing an order ID must not expose another conversation.
-- Do not expose private feedback through public APIs or search indexing.
-
-### Business Rules to Confirm
-
-Before implementing the final schema, confirm:
-
-- Whether each order can have only one rating.
-- Whether the customer may edit the rating after submission.
-- Whether messages form a full thread or allow only one admin response.
-- Whether notifications are sent for new feedback and replies.
-- How unread states are represented.
-- How long editing or replying remains available.
-- Whether moderation or message deletion is required.
+- Private feedback is visible only to the owner of the related order and authorized admins.
+- Another customer must not read or modify the feedback.
+- Order ownership and admin authorization must be verified server-side.
+- Supabase RLS must protect the underlying private data.
+- Predictable order IDs must never authorize feedback access.
+- Public-name consent must be explicit and independently withdrawable.
+- Withdrawing public-name consent must remove the individual public display without exposing or deleting private order history incorrectly.
+- The Privacy Policy must describe the public aggregate and optional first-name display.
+- Public APIs must return only approved aggregate and consented display data.
 
 ### Guest Orders
 
-Guest feedback access is not yet finalized.
+Guest feedback authorization is not yet finalized.
 
-The safer proposed approach is:
+Before implementation, inspect the existing public order token and order-claim flows.
 
-- Require the guest order to be securely associated with a customer account before enabling private feedback.
+The final design must use either:
 
-Do not implement anonymous feedback access using only a predictable order ID. Decide and document the secure guest-order flow before enabling it.
+- A verified account that owns or has securely claimed the order, or
+- A proven high-entropy, order-specific guest authorization mechanism
+
+Never authorize feedback using only a predictable order ID, email address, or client-provided customer identity.
+
+### Remaining Decisions
+
+Before finalizing the schema, confirm:
+
+- How long after completion a customer may submit feedback
+- How long the customer may edit before the feedback is locked
+- The secure guest-order authorization flow
+- The minimum number of ratings before public display
+- Rating and feedback retention rules
+- Public-name consent withdrawal behavior
 
 ### Definition of Done
 
-- Only completed and eligible orders can receive feedback.
-- Ratings are limited to valid values.
-- Ownership and admin access are enforced at the data/API layer.
+- Only completed orders can receive feedback.
+- Each order can create only one valid 1-to-5 rating.
+- Ownership and admin access are enforced at the database and API layers.
 - Another customer cannot read or modify the feedback.
-- Admin replies are private.
+- The public average and count are calculated correctly.
+- Only consented first names and star ratings are individually public.
+- Private messages and admin replies never appear in public responses.
+- Admin can send only one private reply.
+- Relevant notification emails are deduplicated.
 - Danish and English UI text is complete.
-- Relevant RLS and authorization tests pass.
-- No public review functionality is accidentally introduced.
+- RLS, authorization, aggregate, and duplicate-submission tests pass.
+- ESLint, TypeScript, `git diff --check`, and the production build pass.
 
 ---
 
@@ -591,35 +686,33 @@ The following decisions still require confirmation:
 
 - Whether to add an independent scheduled reconciliation job for paid checkout sessions
 - Verified allergen data for each menu item
-- Final Most Ordered item IDs and order
-- Private feedback thread and editing rules
-- Guest-order feedback authorization
-- Printer hardware and paper width
-
-The following decisions still require confirmation:
-
-- Monitoring/error-reporting provider
-- Fallback channel for unnoticed pending orders
-- Reconciliation strategy for “paid but no order”
-- Verified allergen data for each menu item
-- Final Most Ordered item IDs and order
-- Private feedback thread/editing rules
-- Guest-order feedback authorization
+- Customer feedback submission and editing windows
+- Secure guest-order feedback authorization
+- Minimum rating count before the public aggregate is displayed
+- Feedback retention and withdrawal of public-name consent
 - Printer hardware and paper width
 
 ## Next Action
 
-After the order-monitoring feature is deployed and verified in Production, start:
+Implement and verify:
 
-`feature/menu-allergens`
+`feature/private-order-feedback`
 
-Before implementation, obtain verified allergen information from the restaurant’s actual recipes, ingredient labels, and preparation process. Never infer or guess allergen values from product names or descriptions.
+The agreed MVP scope is:
 
-After this documentation is committed and merged, start:
+- One 1-to-5 rating per completed order
+- An optional private customer message
+- One private admin reply
+- A public aggregate rating and rating count
+- Optional public display of the customer’s first name and star rating with explicit consent
+- No public written reviews
+- No multi-message thread
+- No customer surname, photo, order number, or private message in public responses
+- A full rating summary on the home page
+- A compact aggregate-rating badge on the menu page
+- Customer and admin email notifications for the relevant feedback events
 
-`feature/order-monitoring`
-
-First map the current payment, webhook, order creation, notification, and admin visibility flow. Do not begin by adding a monitoring dependency before understanding the existing failure paths.
+Before creating the database schema, inspect the existing authenticated-order ownership, guest-order token, profile, admin-order, email, and RLS flows. Do not expose individual feedback rows through a public API; public access must return only the approved aggregate and consented display fields.
 
 ## Documentation Update Rule
 
@@ -634,3 +727,4 @@ After every meaningful merged feature:
 7. Update the `Last updated` date.
 
 Never place secrets or real customer data in this document.
+```
