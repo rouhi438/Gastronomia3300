@@ -72,8 +72,8 @@ export const extraGroups = {
     { name: "0.33 L Original", price: 16 },
     { name: "0.33 L Zero", price: 16 },
     { name: "0.5 L Original", price: 25 },
-    { name: "1.5 L Original", price: 38 },
-    { name: "1.5 L Zero", price: 38 },
+    { name: "1.5 L Original", price: 36 },
+    { name: "1.5 L Zero", price: 36 },
   ],
 
   // Faxe Kondi variants
@@ -81,14 +81,14 @@ export const extraGroups = {
     { name: "0.33 L Original", price: 16 },
     { name: "0.33 L Sukkerfri", price: 16 },
     { name: "0.5 L", price: 25 },
-    { name: "1.5 L", price: 38 },
+    { name: "1.5 L", price: 36 },
   ],
 
   // Other drink sizes
   drinkSizes: [
     { name: "0.33 L", price: 16 },
     { name: "0.5 L", price: 25 },
-    { name: "1.5 L", price: 38 },
+    { name: "1.5 L", price: 36 },
   ],
 
   // Fixed size drinks (no extras)
@@ -630,7 +630,7 @@ export const menuData: MenuItem[] = [
     name: "Durum menu",
     description: "Serveres med lille pommes frites, mayonnaise og dåsecola.",
     category: "menuer",
-    prices: { fixed: 119 },
+    prices: { fixed: 114 },
     image: "/images/pizza-44.webp",
     extraGroupId: "proteinChoice",
   },
@@ -640,7 +640,7 @@ export const menuData: MenuItem[] = [
     name: "Burger menu",
     description: "Serveres med lille pommes frites, mayonnaise og dåsecola.",
     category: "menuer",
-    prices: { fixed: 124 },
+    prices: { fixed: 119 },
     image: "/images/pizza-45.webp",
     extraGroupId: "none",
   },
