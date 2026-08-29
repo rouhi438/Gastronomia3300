@@ -1,0 +1,63 @@
+.page {
+    width: 100%;
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+
+    background: var(--bg);
+}
+
+.shell {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.viewOrderLink {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+
+    padding: 0.65rem 1rem;
+
+    color: var(--green);
+    background: var(--bg-card);
+    border: 1px solid color-mix(in srgb, var(--green) 35%, var(--border-color));
+    border-radius: 999px;
+
+    font-size: 0.88rem;
+    font-weight: 750;
+    text-decoration: none;
+
+    transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        transform 160ms ease;
+}
+
+.viewOrderLink:hover {
+    background: color-mix(in srgb, var(--green) 8%, var(--bg-card));
+    border-color: var(--green);
+    transform: translateY(-1px);
+}
+
+.viewOrderLink:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--green) 40%, transparent);
+    outline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+    .page {
+        padding: 1rem 0.65rem 3rem;
+    }
+
+    .viewOrderLink {
+        width: 100%;
+    }
+}

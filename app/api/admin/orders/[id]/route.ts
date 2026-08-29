@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { refundNetsCharge } from "@/lib/nets/refundCharge";
 import { sendOrderRejectedEmail } from "@/lib/email/orderEmails";
+import { ensureFeedbackInvitation } from "@/lib/feedback/feedbackInvitation";
 import { createFulfillmentTiming } from "@/lib/orders/fulfillmentTiming";
 import {
   recordOperationalAlert,
@@ -909,6 +910,18 @@ export async function PATCH(
         },
         { status: 409 },
       );
+    }
+
+    if (updatedOrder.status === "completed") {
+      const origin = (process.env.SITE_URL ?? request.nextUrl.origin).replace(
+        /\/+$/,
+        "",
+      );
+
+      await ensureFeedbackInvitation({
+        orderId: updatedOrder.id,
+        origin,
+      });
     }
 
     if (status === "cancelled" && !updatedOrder.rejected_email_sent_at) {

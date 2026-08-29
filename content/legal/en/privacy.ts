@@ -105,7 +105,18 @@ const privacyDocument: LegalDocumentContent = {
       ],
     },
     {
-      title: "11. Changes to this policy",
+      title: "11. Feedback and public ratings",
+      paragraphs: [
+        "After an order is completed, you may choose to submit a rating from 1 to 5 stars and an optional private message to the restaurant within seven days.",
+        "The rating and private message are processed to improve the restaurant’s service, handle customer enquiries and document feedback from verified orders. This processing is based on our legitimate interest in quality assurance and customer service.",
+        "The star rating may contribute to the restaurant’s public average and total rating count. The public statistics do not display your surname, order number, email address, private message or the restaurant’s private reply.",
+        "You may separately and voluntarily consent to the public display of your first name and star rating. Consent is not preselected and may be withdrawn at any time through the secure order link. When consent is withdrawn, the first name is removed from public display, while the star rating may continue to contribute to the aggregate rating.",
+        "Private messages and the restaurant’s replies are available only through the secure order page and to authorised administrators. Offensive, threatening or discriminatory messages may be removed by the restaurant while the star rating is retained.",
+        "Feedback is generally retained for as long as the related order is retained, unless the information must be deleted or anonymised earlier under applicable rules.",
+      ],
+    },
+    {
+      title: "12. Changes to this policy",
       paragraphs: [
         "We may update this privacy policy if the website, our service providers or our processing of personal data changes. The current version will always be available on this page.",
       ],

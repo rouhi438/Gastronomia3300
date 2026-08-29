@@ -497,13 +497,18 @@ The restaurant’s aggregate rating is public. Individual written feedback and a
 
 - Only an order with `completed` status is eligible.
 - Pending, accepted, ready, cancelled, or rejected orders are not eligible.
+- Feedback may be submitted for seven days after `completed_at`.
 - Each completed order can submit only one rating.
 - Ratings must be integers from 1 to 5.
-- The final submission and editing windows still require confirmation.
+- The customer cannot edit the rating or private message after submission.
+- Submitted feedback and an admin reply remain viewable after the seven-day submission window closes.
+- Public-name consent may be withdrawn independently at any time.
 
 ### Customer Experience
 
 After an eligible order is completed, the customer can access feedback from the relevant order in the Profile or order-detail flow.
+
+Customer feedback is displayed on a dedicated feedback page. The full order receipt is not embedded in that page; a secondary “View order” link provides access to the related order when needed.
 
 The feedback form contains:
 
@@ -522,6 +527,10 @@ The customer must clearly understand that:
 
 There is no public written-review field in the MVP.
 
+The private-message field must display a clear moderation notice in Danish and English. Customers must be told to use respectful language and that offensive, threatening, or discriminatory messages may be removed by the restaurant.
+
+An admin may remove an inappropriate private message but may not rewrite it. Removing the message does not remove the order’s star rating from the aggregate.
+
 ### Public Rating Experience
 
 The public rating system includes:
@@ -537,7 +546,7 @@ A compact aggregate-rating badge is displayed on the menu page.
 
 Public responses must not expose complete feedback rows, customer identifiers, order identifiers, private messages, admin replies, or internal metadata.
 
-The minimum rating count required before displaying the public aggregate still requires confirmation.
+The public aggregate, total count, and consented individual first-name entries are displayed only after at least five eligible ratings exist. Before that threshold, the application must not present an unstable public score.
 
 ### Admin Experience
 
@@ -547,8 +556,13 @@ An authorized admin can:
 - Identify the related order
 - View the customer’s rating
 - View the optional private message
+- Remove an offensive, threatening, or discriminatory private message
+- Never edit or rewrite the customer’s message or rating
+- Preserve the moderation timestamp and responsible admin identity
 - Send one private reply
 - See whether the feedback has been answered
+
+Admin feedback is handled on a dedicated feedback page. The full order receipt, printing controls, refund controls, and unrelated order actions are not embedded there; a secondary “View order” link opens the complete admin order page when needed.
 
 The admin reply is sent only once. The customer cannot continue a multi-message thread in the MVP.
 
@@ -556,15 +570,21 @@ Admin access and reply authorization must be enforced server-side.
 
 ### Notifications
 
-The intended notification flow is:
+The notification flow is:
 
-- An eligible customer receives a feedback invitation after the order is completed.
+- A customer feedback invitation is scheduled three hours after `completed_at` by default.
+- The delay is configurable through the server-only `FEEDBACK_INVITATION_DELAY_HOURS` environment variable.
+- If the calculated delivery time has already passed during a retry, the invitation is sent immediately.
 - The restaurant receives a notification when new feedback is submitted.
 - The customer receives a notification when the admin sends the private reply.
 
-Email delivery must use deduplication or durable sent timestamps so retries do not normally send duplicate messages.
+The seven-day feedback-submission window remains anchored to `completed_at`, not to email delivery time.
+
+Invitation scheduling is recorded in `feedback_invitation_email_scheduled_for`. Email delivery must use database claims, deduplication, or durable sent timestamps so retries do not normally send duplicate messages.
 
 The rating and reply are completed inside the application. Email is used only for notification and secure navigation.
+
+The scheduling column is added by `supabase/migrations/20260829000000_schedule_feedback_invitations.sql`.
 
 ### Privacy and Authorization
 
@@ -580,27 +600,32 @@ The rating and reply are completed inside the application. Email is used only fo
 
 ### Guest Orders
 
-Guest feedback authorization is not yet finalized.
+Guest and authenticated-order feedback use the existing high-entropy, order-specific `public_token`.
 
-Before implementation, inspect the existing public order token and order-claim flows.
+The customer feedback API must:
 
-The final design must use either:
+- Validate that the token has UUID format.
+- Find the order using the token rather than a predictable order ID.
+- Confirm that the order status is `completed`.
+- Confirm that `completed_at` is present.
+- Enforce the seven-day submission window.
+- Enforce one feedback row per order.
+- Return only the feedback belonging to that token’s order.
 
-- A verified account that owns or has securely claimed the order, or
-- A proven high-entropy, order-specific guest authorization mechanism
+A predictable order ID, email address, or client-provided customer identity must never authorize feedback access.
 
-Never authorize feedback using only a predictable order ID, email address, or client-provided customer identity.
+The existing Profile and order-detail flows already navigate through the same secure order token, so guest and authenticated customers can use one feedback experience.
 
-### Remaining Decisions
+### Finalized MVP Decisions
 
-Before finalizing the schema, confirm:
-
-- How long after completion a customer may submit feedback
-- How long the customer may edit before the feedback is locked
-- The secure guest-order authorization flow
-- The minimum number of ratings before public display
-- Rating and feedback retention rules
-- Public-name consent withdrawal behavior
+- Feedback submission remains available for seven days after `completed_at`.
+- The customer cannot edit the rating or private message after submission.
+- Guest and authenticated customers use the existing order-specific `public_token`.
+- Public ratings are displayed after at least five eligible ratings exist.
+- Feedback is retained for as long as the related order is retained and is deleted with that order.
+- Public-name consent may be withdrawn at any time without removing the rating from the aggregate.
+- An admin may remove an inappropriate private message but cannot edit the customer’s message or rating.
+- Message removal records the moderation time and responsible admin identity.
 
 ### Definition of Done
 

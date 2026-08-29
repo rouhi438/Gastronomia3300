@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { CheckCircle2, Clock3, RefreshCw, XCircle } from "lucide-react";
 
 import OrderReceipt from "@/components/OrderReceipt";
-
+import RatingStar from "@/components/RatingStar";
 import styles from "./order.module.css";
 
 type MoneyValue = number | string | null | undefined;
@@ -60,6 +60,7 @@ export default function CustomerOrderPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const t = useTranslations("OrderStatus");
+  const feedbackT = useTranslations("OrderFeedback");
 
   const emailStatus = searchParams.get("email");
   const rawToken = params.token;
@@ -179,6 +180,30 @@ export default function CustomerOrderPage() {
   }
 
   const statusContent = (() => {
+    if (order.status === "completed") {
+      return {
+        icon: CheckCircle2,
+        title:
+          order.delivery_method === "delivery"
+            ? t("completed.deliveredTitle")
+            : t("completed.pickedUpTitle"),
+        description: t("completed.description"),
+        className: styles.accepted,
+      };
+    }
+
+    if (order.status === "ready") {
+      return {
+        icon: CheckCircle2,
+        title: t("ready.title"),
+        description:
+          order.delivery_method === "delivery"
+            ? t("ready.deliveryDescription")
+            : t("ready.pickupDescription"),
+        className: styles.accepted,
+      };
+    }
+
     if (order.status === "accepted") {
       const description =
         order.estimated_time && order.estimated_time > 0
@@ -275,8 +300,19 @@ export default function CustomerOrderPage() {
 
       <OrderReceipt order={order} />
 
-      {order.status === "accepted" && (
+      {(order.status === "accepted" ||
+        order.status === "ready" ||
+        order.status === "completed") && (
         <div className={styles.orderActions}>
+          {order.status === "completed" && token && (
+            <Link
+              href={`/order/${encodeURIComponent(token)}/feedback`}
+              className={styles.feedbackButton}
+            >
+              <RatingStar size={18} />
+              {feedbackT("openFeedback")}
+            </Link>
+          )}
           <Link
             href="/menu"
             className={`btn-primary ${styles.backToMenuButton}`}

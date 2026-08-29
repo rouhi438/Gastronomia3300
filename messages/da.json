@@ -364,6 +364,16 @@
       "requestedPickup": "Din ordre forventes klar til afhentning på det valgte tidspunkt kl. {time}.",
       "processing": "Restauranten er begyndt at behandle din ordre."
     },
+    "ready": {
+      "title": "Din ordre er klar",
+      "deliveryDescription": "Din ordre er klar og bliver leveret hurtigst muligt.",
+      "pickupDescription": "Din ordre er klar til afhentning."
+    },
+    "completed": {
+      "deliveredTitle": "Din ordre er leveret",
+      "pickedUpTitle": "Din ordre er afhentet",
+      "description": "Tak fordi du bestilte hos Gastronomia 3300. Du kan nu bedømme din oplevelse."
+    },
     "cancelled": {
       "title": "Din ordre kunne ikke accepteres",
       "description": "Kontakt restauranten, hvis du har spørgsmål."
@@ -379,6 +389,60 @@
     "refreshingAria": "Opdaterer ordrestatus",
     "backToMenu": "Tilbage til menuen",
     "autoUpdate": "Ordrestatus opdateres automatisk hvert 5. sekund."
+  },
+  "PublicRating": {
+    "eyebrow": "Kundebedømmelser",
+    "title": "Bedømt af vores kunder",
+    "description": "Baseret på bedømmelser fra kunder med en verificeret, afsluttet ordre.",
+    "verifiedOrders": "Verificerede ordrer",
+    "ratingAria": "Gennemsnitlig bedømmelse: {average} ud af 5 stjerner",
+    "compactAria": "Restaurantens kundebedømmelse",
+    "ratingCount": "{count, plural, one {# bedømmelse} other {# bedømmelser}}"
+  },
+  "OrderFeedback": {
+    "eyebrow": "Feedback",
+    "verifiedOrder": "Verificeret ordre",
+    "viewOrder": "Se ordre",
+    "openFeedback": "Giv eller se feedback",
+    "form": {
+      "title": "Hvordan var din ordre?",
+      "description": "Din feedback hjælper Gastronomia 3300 med at forbedre oplevelsen.",
+      "ratingLabel": "Vælg din bedømmelse",
+      "starLabel": "{rating} ud af 5 stjerner",
+      "privateMessageLabel": "Privat besked (valgfri)",
+      "privateMessagePlaceholder": "Skriv eventuelt en privat besked til restauranten...",
+      "moderationNotice": "Hold venligst en respektfuld tone. Beskeder med stødende, truende eller diskriminerende indhold kan fjernes af restauranten.",
+      "publicNameTitle": "Vis mit fornavn offentligt",
+      "publicNameDescription": "Kun dit fornavn og din stjernebedømmelse kan blive vist. Din besked, dit efternavn og dine ordreoplysninger forbliver private.",
+      "aggregateNotice": "Din stjernebedømmelse indgår i restaurantens samlede offentlige bedømmelse. Din skriftlige besked er altid privat.",
+      "submit": "Send feedback",
+      "submitting": "Sender..."
+    },
+    "submitted": {
+      "title": "Tak for din feedback",
+      "description": "Din bedømmelse er gemt og kan ikke redigeres.",
+      "ratingAria": "Du gav {rating} ud af 5 stjerner",
+      "ratingValue": "{rating} ud af 5",
+      "privateMessageTitle": "Din private besked",
+      "removedMessage": "Din private besked blev fjernet af restauranten på grund af upassende indhold.",
+      "adminReplyTitle": "Svar fra Gastronomia 3300"
+    },
+    "publicName": {
+      "active": "Dit fornavn og din stjernebedømmelse må vises offentligt. Du kan til enhver tid trække samtykket tilbage.",
+      "private": "Dit navn vises ikke offentligt. Din stjernebedømmelse indgår stadig i restaurantens samlede bedømmelse.",
+      "withdraw": "Skjul mit navn",
+      "withdrawing": "Gemmer...",
+      "withdrawConfirmation": "Vil du skjule dit fornavn fra den offentlige visning? Din stjernebedømmelse forbliver i den samlede bedømmelse."
+    },
+    "expired": {
+      "title": "Fristen for feedback er udløbet",
+      "description": "Feedback kunne indsendes i syv dage efter, at ordren blev afsluttet."
+    },
+    "errors": {
+      "load": "Feedback kunne ikke hentes. Prøv at genindlæse siden.",
+      "submit": "Feedback kunne ikke sendes. Prøv igen.",
+      "withdraw": "Samtykket kunne ikke opdateres. Prøv igen."
+    }
   },
   "OrderReceipt": {
     "labels": {
