@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import PublicRating from "@/components/PublicRating";
 
 import styles from "./page.module.css";
 
@@ -31,6 +32,7 @@ export default async function Home() {
       <Link href="/menu" className="btn-primary">
         {t("cta")}
       </Link>
+      <PublicRating />
     </main>
   );
 }

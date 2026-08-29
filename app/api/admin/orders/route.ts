@@ -79,15 +79,49 @@ export async function GET() {
       return NextResponse.json({ error: ordersError.message }, { status: 500 });
     }
 
+    const { data: feedbackSummaries, error: feedbackSummariesError } =
+      await supabaseAdmin
+        .from("order_feedback")
+        .select(
+          "order_id, rating, admin_seen_at, admin_replied_at, created_at",
+        );
+
+    if (feedbackSummariesError) {
+      console.error(
+        "Order feedback summaries fetch error:",
+        feedbackSummariesError,
+      );
+
+      return NextResponse.json(
+        { error: feedbackSummariesError.message },
+        { status: 500 },
+      );
+    }
+
+    const feedbackByOrderId = new Map(
+      (feedbackSummaries ?? []).map((feedback) => [
+        feedback.order_id,
+        {
+          rating: feedback.rating,
+          admin_seen_at: feedback.admin_seen_at,
+          admin_replied_at: feedback.admin_replied_at,
+          created_at: feedback.created_at,
+        },
+      ]),
+    );
+
     const previousOrderCounts = new Map<string, number>();
 
     const ordersWithHistory = [...(orders ?? [])]
       .reverse()
       .map((order) => {
+        const feedbackSummary = feedbackByOrderId.get(order.id) ?? null;
+
         if (!order.user_id) {
           return {
             ...order,
             previous_orders_count: null,
+            feedback_summary: feedbackSummary,
           };
         }
 
@@ -98,6 +132,7 @@ export async function GET() {
         return {
           ...order,
           previous_orders_count: previousOrdersCount,
+          feedback_summary: feedbackSummary,
         };
       })
       .reverse();

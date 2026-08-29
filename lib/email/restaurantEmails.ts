@@ -173,3 +173,82 @@ export async function sendOperationalAlertEmail({
 
   return data;
 }
+
+type SendRestaurantFeedbackEmailInput = {
+  orderId: number;
+  rating: number;
+  hasPrivateMessage: boolean;
+  adminUrl: string;
+};
+
+export async function sendRestaurantFeedbackEmail({
+  orderId,
+  rating,
+  hasPrivateMessage,
+  adminUrl,
+}: SendRestaurantFeedbackEmailInput) {
+  const { resend, from, to } = getEmailConfig();
+
+  const safeAdminUrl = escapeHtml(adminUrl);
+  const messageLabel = hasPrivateMessage
+    ? "Kunden har også skrevet en privat besked."
+    : "Kunden har ikke skrevet en privat besked.";
+
+  const { data, error } = await resend.emails.send({
+    from,
+    to,
+    subject: `[Ny feedback] Ordre #${orderId}`,
+    html: `
+      <!doctype html>
+      <html lang="da">
+        <body style="margin:0;background:#f5f5f5;font-family:Arial,sans-serif;color:#1f2937;">
+          <div style="max-width:600px;margin:0 auto;padding:32px 16px;">
+            <div style="background:#ffffff;border-radius:16px;padding:32px;box-shadow:0 8px 24px rgba(0,0,0,0.08);">
+              <p style="margin:0 0 8px;font-size:14px;color:#6b7280;">
+                Gastronomia 3300
+              </p>
+
+              <h1 style="margin:0 0 20px;font-size:26px;color:#b45309;">
+                Ny feedback til ordre #${orderId}
+              </h1>
+
+              <p style="margin:0 0 16px;line-height:1.6;">
+                Kunden har givet ordren
+                <strong>${rating} ud af 5 stjerner</strong>.
+              </p>
+
+              <p style="margin:0 0 24px;line-height:1.6;">
+                ${messageLabel}
+              </p>
+
+              <a
+                href="${safeAdminUrl}"
+                style="
+                  display:inline-block;
+                  padding:14px 22px;
+                  border-radius:10px;
+                  background:#166534;
+                  color:#ffffff;
+                  text-decoration:none;
+                  font-weight:700;
+                "
+              >
+                Se feedback i admin
+              </a>
+
+              <p style="margin:28px 0 0;font-size:13px;color:#6b7280;line-height:1.5;">
+                Kundens private besked vises ikke i denne e-mail.
+              </p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}

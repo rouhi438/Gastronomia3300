@@ -105,7 +105,18 @@ const privacyDocument: LegalDocumentContent = {
       ],
     },
     {
-      title: "11. Ændringer",
+      title: "11. Feedback og offentlige bedømmelser",
+      paragraphs: [
+        "Når en ordre er afsluttet, kan du i syv dage vælge at give en bedømmelse fra 1 til 5 stjerner og sende en valgfri privat besked til restauranten.",
+        "Bedømmelsen og den private besked behandles for at forbedre restaurantens service, håndtere kundehenvendelser og dokumentere feedback fra verificerede ordrer. Behandlingen sker på baggrund af vores legitime interesse i kvalitetssikring og kundeservice.",
+        "Stjernebedømmelsen kan indgå i restaurantens offentlige gennemsnit og samlede antal bedømmelser. Den offentlige statistik viser ikke dit efternavn, ordrenummer, e-mailadresse, private besked eller restaurantens private svar.",
+        "Du kan særskilt og frivilligt give samtykke til, at dit fornavn og din stjernebedømmelse vises offentligt. Samtykket er ikke forudvalgt og kan til enhver tid trækkes tilbage via det sikre link til ordren. Når samtykket trækkes tilbage, fjernes fornavnet fra den offentlige visning, mens stjernebedømmelsen fortsat kan indgå i det samlede gennemsnit.",
+        "Private beskeder og restaurantens svar er kun tilgængelige via den sikre ordreside og for autoriserede administratorer. Stødende, truende eller diskriminerende beskeder kan fjernes af restauranten, mens stjernebedømmelsen bevares.",
+        "Feedback opbevares som udgangspunkt, så længe den tilknyttede ordre opbevares, medmindre oplysningerne skal slettes eller anonymiseres tidligere efter gældende regler.",
+      ],
+    },
+    {
+      title: "12. Ændringer",
       paragraphs: [
         "Privatlivspolitikken kan blive opdateret, hvis hjemmesiden, leverandørerne eller vores behandling af personoplysninger ændres. Den aktuelle version vil altid være tilgængelig på denne side.",
       ],

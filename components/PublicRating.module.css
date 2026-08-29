@@ -1,0 +1,233 @@
+.full {
+    width: 100%;
+    max-width: 760px;
+    margin: 2rem auto 0;
+    padding: 1.4rem;
+
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    text-align: left;
+}
+
+.fullHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.eyebrow {
+    margin: 0 0 0.25rem;
+
+    color: var(--green);
+
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.title {
+    margin: 0;
+
+    color: var(--text-primary);
+
+    font-size: clamp(1.25rem, 4vw, 1.65rem);
+}
+
+.description {
+    margin: 0.45rem 0 0;
+
+    color: var(--text-secondary);
+
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.verifiedBadge {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.35rem;
+
+    padding: 0.45rem 0.65rem;
+
+    color: #075c35;
+    background: #eaf8f0;
+    border: 1px solid #a8dbbe;
+    border-radius: 999px;
+
+    font-size: 0.72rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.summary {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-top: 1.2rem;
+}
+
+.average {
+    color: var(--text-primary);
+
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.stars {
+    display: inline-flex;
+    gap: 0.2rem;
+}
+
+.starBox {
+    position: relative;
+
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+
+    color: #d1d5db;
+}
+
+.starFill {
+    position: absolute;
+    inset: 0 auto 0 0;
+
+    display: flex;
+    height: 100%;
+    overflow: hidden;
+
+    color: var(--green);
+}
+
+.starIcon {
+    display: block;
+    flex: 0 0 auto;
+}
+
+.count {
+    color: var(--text-secondary);
+
+    font-size: 0.82rem;
+}
+
+.entries {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-top: 1.2rem;
+}
+
+.entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+
+    padding: 0.7rem 0.8rem;
+
+    color: var(--text-secondary);
+    background: var(--bg);
+    border: 1px solid var(--border-color);
+    border-radius: 11px;
+
+    font-size: 0.8rem;
+}
+
+.entryName {
+    overflow: hidden;
+
+    color: var(--text-primary);
+
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.entryRating {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--green);
+
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.compact {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 0 1rem auto;
+    padding: 0.55rem 0.75rem;
+
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+}
+
+.compact .starBox {
+    width: 16px;
+    height: 16px;
+}
+
+.compactText {
+    color: var(--text-secondary);
+
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.compactText strong {
+    color: var(--text-primary);
+}
+
+@media (max-width: 680px) {
+    .full {
+        padding: 1rem;
+    }
+
+    .fullHeader {
+        flex-direction: column;
+    }
+
+    .verifiedBadge {
+        align-self: flex-start;
+    }
+
+    .summary {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .entries {
+        grid-template-columns: 1fr;
+    }
+
+    .compact {
+        margin-right: auto;
+    }
+}
+
+:global(.dark) .verifiedBadge {
+    color: #86efac;
+    background: rgba(22, 163, 74, 0.14);
+    border-color: rgba(74, 222, 128, 0.32);
+}
+
+:global(.dark) .starBox {
+    color: #4b5563;
+}

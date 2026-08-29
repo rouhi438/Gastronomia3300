@@ -635,6 +635,7 @@
       "viewMenu": "View menu",
       "orderNumber": "Order #{id}",
       "viewOrder": "View order",
+      "openFeedback": "Leave or view feedback",
       "delivery": "Delivery",
       "pickup": "Pickup",
       "statuses": {
@@ -681,6 +682,16 @@
       "requestedPickup": "Your order is expected to be ready for pickup at your selected time, {time}.",
       "processing": "The restaurant has started processing your order."
     },
+    "ready": {
+      "title": "Your order is ready",
+      "deliveryDescription": "Your order is ready and will be delivered as soon as possible.",
+      "pickupDescription": "Your order is ready for pickup."
+    },
+    "completed": {
+      "deliveredTitle": "Your order has been delivered",
+      "pickedUpTitle": "Your order has been picked up",
+      "description": "Thank you for ordering from Gastronomia 3300. You can now rate your experience."
+    },
     "cancelled": {
       "title": "Your order could not be accepted",
       "description": "Contact the restaurant if you have any questions."
@@ -696,6 +707,59 @@
     "refreshingAria": "Updating order status",
     "backToMenu": "Back to the menu",
     "autoUpdate": "The order status updates automatically every 5 seconds."
+  },
+  "PublicRating": {
+    "eyebrow": "Customer ratings",
+    "title": "Rated by our customers",
+    "description": "Based on ratings from customers with a verified, completed order.",
+    "verifiedOrders": "Verified orders",
+    "ratingAria": "Average rating: {average} out of 5 stars",
+    "compactAria": "Restaurant customer rating",
+    "ratingCount": "{count, plural, one {# rating} other {# ratings}}"
+  },
+  "OrderFeedback": {
+    "eyebrow": "Feedback",
+    "verifiedOrder": "Verified order",
+    "viewOrder": "View order",
+    "form": {
+      "title": "How was your order?",
+      "description": "Your feedback helps Gastronomia 3300 improve the experience.",
+      "ratingLabel": "Choose your rating",
+      "starLabel": "{rating} out of 5 stars",
+      "privateMessageLabel": "Private message (optional)",
+      "privateMessagePlaceholder": "You may write a private message to the restaurant...",
+      "moderationNotice": "Please keep your message respectful. Messages containing offensive, threatening, or discriminatory content may be removed by the restaurant.",
+      "publicNameTitle": "Display my first name publicly",
+      "publicNameDescription": "Only your first name and star rating may be displayed. Your message, surname, and order information remain private.",
+      "aggregateNotice": "Your star rating contributes to the restaurant’s public aggregate rating. Your written message is always private.",
+      "submit": "Send feedback",
+      "submitting": "Sending..."
+    },
+    "submitted": {
+      "title": "Thank you for your feedback",
+      "description": "Your rating has been saved and cannot be edited.",
+      "ratingAria": "You gave {rating} out of 5 stars",
+      "ratingValue": "{rating} out of 5",
+      "privateMessageTitle": "Your private message",
+      "removedMessage": "Your private message was removed by the restaurant because it contained inappropriate content.",
+      "adminReplyTitle": "Reply from Gastronomia 3300"
+    },
+    "publicName": {
+      "active": "Your first name and star rating may be displayed publicly. You can withdraw your consent at any time.",
+      "private": "Your name is not displayed publicly. Your star rating still contributes to the restaurant’s aggregate rating.",
+      "withdraw": "Hide my name",
+      "withdrawing": "Saving...",
+      "withdrawConfirmation": "Do you want to hide your first name from public display? Your star rating will remain part of the aggregate rating."
+    },
+    "expired": {
+      "title": "The feedback period has ended",
+      "description": "Feedback could be submitted for seven days after the order was completed."
+    },
+    "errors": {
+      "load": "Feedback could not be loaded. Please reload the page.",
+      "submit": "Feedback could not be submitted. Please try again.",
+      "withdraw": "Your consent could not be updated. Please try again."
+    }
   },
   "OrderReceipt": {
     "labels": {

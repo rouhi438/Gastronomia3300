@@ -24,6 +24,8 @@ import { menuData, type MenuItem } from "@/data/menu";
 
 import ItemModal from "@/components/ItemModal";
 
+import PublicRating from "@/components/PublicRating";
+
 import { useLocale, useTranslations } from "next-intl";
 
 import Image from "next/image";
@@ -428,6 +430,8 @@ export default function MenuPage() {
         {/* ===== CARDS GRID ===== */}
 
         <section className={styles.cardsSection}>
+          <PublicRating variant="compact" />
+
           {activeCategory === "alle" && (
             <section
               className={styles.mostOrderedSection}

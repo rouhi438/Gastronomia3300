@@ -146,6 +146,8 @@
 .orderActions {
     display: flex;
     justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 
     width: 100%;
     max-width: 760px;
@@ -157,6 +159,44 @@
 
     text-align: center;
     text-decoration: none;
+}
+
+.feedbackButton {
+    display: inline-flex;
+    min-width: 220px;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+
+    padding: 0.7rem 1rem;
+
+    color: var(--green);
+    background: var(--bg-card);
+    border: 1px solid color-mix(in srgb, var(--green) 35%, var(--border-color));
+    border-radius: 999px;
+
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 750;
+    text-align: center;
+    text-decoration: none;
+
+    transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        transform 160ms ease;
+}
+
+.feedbackButton:hover {
+    background: color-mix(in srgb, var(--green) 8%, var(--bg-card));
+    border-color: var(--green);
+    transform: translateY(-1px);
+}
+
+.feedbackButton:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--green) 40%, transparent);
+    outline-offset: 3px;
 }
 
 @keyframes spin {
@@ -191,7 +231,8 @@
         margin-top: 1rem;
     }
 
-    .backToMenuButton {
+    .backToMenuButton,
+    .feedbackButton {
         width: 100%;
         min-width: 0;
     }

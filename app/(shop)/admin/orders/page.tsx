@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import OrderCountdown from "@/components/OrderCountdown";
+import RatingStar from "@/components/RatingStar";
 import styles from "./admin.module.css";
 
 type OrderStatus = "pending" | "accepted" | "ready" | "completed" | "cancelled";
@@ -10,6 +11,12 @@ type OrderStatus = "pending" | "accepted" | "ready" | "completed" | "cancelled";
 type RefundStatus = "pending" | "completed" | "failed";
 
 type DateFilter = "today" | "yesterday" | "lastWeek" | "lastMonth";
+interface OrderFeedbackSummary {
+  rating: number;
+  admin_seen_at: string | null;
+  admin_replied_at: string | null;
+  created_at: string;
+}
 
 interface OrderItem {
   id: number;
@@ -39,6 +46,7 @@ interface Order {
   accepted_at: string | null;
   fulfillment_due_at: string | null;
   completed_at: string | null;
+  feedback_summary: OrderFeedbackSummary | null;
 }
 
 const filters: Array<{
@@ -322,6 +330,29 @@ export default function AdminOrdersPage() {
                   className={styles.orderCardMain}
                   onClick={() => openOrder(order.id)}
                 >
+                  {order.feedback_summary && (
+                    <button
+                      type="button"
+                      className={`${styles.feedbackAction} ${
+                        order.feedback_summary.admin_seen_at
+                          ? ""
+                          : styles.feedbackActionNew
+                      }`}
+                      onClick={() => router.push(`/admin/feedback/${order.id}`)}
+                    >
+                      <RatingStar size={15} />
+
+                      <span>
+                        {!order.feedback_summary.admin_seen_at
+                          ? "Ny feedback"
+                          : order.feedback_summary.admin_replied_at
+                            ? "Feedback besvaret"
+                            : "Se feedback"}
+                      </span>
+
+                      <strong>{order.feedback_summary.rating}/5</strong>
+                    </button>
+                  )}
                   <span
                     className={`${styles.statusIcon} ${
                       styles[`status_${order.status}`]
@@ -368,6 +399,25 @@ export default function AdminOrdersPage() {
                             : "Afhentet"
                           : statusLabels[order.status]}{" "}
                       </span>
+
+                      {order.feedback_summary && (
+                        <span
+                          className={`${styles.statusBadge} ${
+                            order.feedback_summary.admin_seen_at
+                              ? styles.feedbackBadge
+                              : styles.feedbackBadgeNew
+                          }`}
+                        >
+                          ★{" "}
+                          {!order.feedback_summary.admin_seen_at
+                            ? "Ny feedback"
+                            : order.feedback_summary.admin_replied_at
+                              ? "Feedback besvaret"
+                              : "Feedback set"}
+                          {" · "}
+                          {order.feedback_summary.rating}/5
+                        </span>
+                      )}
 
                       {order.refund_status && (
                         <span
