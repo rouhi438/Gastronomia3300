@@ -471,18 +471,27 @@
     }
 }
 
+.printItems {
+    display: none;
+}
+
+.printTotals {
+    display: none;
+}
+
 /* ===== PRINT ===== */
 
 @page {
-    size: A4;
-    margin: 10mm;
+    size: auto;
+    margin: 0;
 }
 
 @media print {
 
     :global(html),
     :global(body) {
-        width: 100% !important;
+        width: 58mm !important;
+        max-width: 58mm !important;
         min-height: 0 !important;
         margin: 0 !important;
         padding: 0 !important;
@@ -504,46 +513,83 @@
         top: 0;
         left: 0;
 
-        width: 100% !important;
-        max-width: none !important;
+        box-sizing: border-box;
+        width: 58mm !important;
+        max-width: 58mm !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 2mm 2mm 4mm !important;
         overflow: visible !important;
 
-        color: #111111 !important;
+        color: #000000 !important;
         background: #ffffff !important;
         border: 0 !important;
         border-radius: 0 !important;
         box-shadow: none !important;
 
-        font-size: 10px;
+        font-family:
+            system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            Arial,
+            sans-serif;
+
+        font-size: 9px;
+        line-height: 1.25;
 
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
     }
 
     .header {
-        flex-direction: row;
-        align-items: flex-start;
-        justify-content: space-between;
+        display: block;
 
-        text-align: left;
+        margin: 0;
+
+        text-align: center;
     }
 
     .orderInfo {
-        min-width: 180px;
+        min-width: 0;
+        margin-top: 2mm;
+        padding: 1.5mm;
 
-        color: #111111 !important;
+        border: 1px solid #000000;
+        border-radius: 1.5mm;
+        color: #000000 !important;
 
-        text-align: right;
+        font-size: 9px;
+        text-align: center;
     }
 
     .orderTypeRow {
-        justify-content: flex-end;
+        justify-content: center;
+        gap: 1mm;
     }
 
     .brand h1 {
-        color: #009246 !important;
+        margin: 0 0 1mm;
+
+        color: #000000 !important;
+
+        font-size: 15px;
+        line-height: 1.1;
+    }
+
+    .brand p {
+        margin: 0 0 0.4mm;
+
+        font-size: 8px;
+        line-height: 1.2;
+    }
+
+    .orderInfo p {
+        margin: 0 0 0.5mm;
+    }
+
+    .orderInfo p:first-child {
+        font-size: 14px;
+        font-weight: 900;
     }
 
     .brand p,
@@ -552,94 +598,108 @@
     .customer,
     .customer p,
     .customer strong,
-    .totalRow,
-    .footer {
+    .totalRow {
         color: #111111 !important;
-    }
-
-    .itemsTable {
-        table-layout: fixed;
-    }
-
-    .itemsTable th,
-    .itemsTable td {
-        color: #111111 !important;
-    }
-
-    .itemsTable th {
-        border-bottom: 1px solid #777777 !important;
-    }
-
-    .itemsTable td {
-        border-bottom: 1px solid #dddddd !important;
-    }
-
-    .itemsTable th:nth-child(2),
-    .itemsTable td:nth-child(2),
-    .itemsTable th:nth-child(4),
-    .itemsTable td:nth-child(4) {
-        display: table-cell;
     }
 
     .divider {
-        border-top-color: #888888 !important;
+        margin: 2mm 0;
+
+        border: 0 !important;
+        border-top: 1px dashed #000000 !important;
+    }
+
+    .totals {
+        width: 100%;
+        margin: 1mm 0 0;
+    }
+
+    .totalRow {
+        gap: 2mm;
+
+        padding: 0.6mm 0;
+
+        color: #000000 !important;
+
+        font-size: 8.5px;
     }
 
     .grandTotal {
-        border-top-color: #009246 !important;
+        margin-top: 1.2mm;
+        padding: 1.5mm;
+
+        border: 1px solid #000000 !important;
+        border-radius: 1.5mm;
+
+        font-size: 13px;
+        font-weight: 900;
     }
 
-    .badge {
-        color: #444444 !important;
-        background: #f0f0f0 !important;
-        border-color: #cccccc !important;
-    }
+    .orderTypeBadge,
+    .pickupBadge,
+    .deliveryBadge {
+        color: #000000 !important;
+        background: #ffffff !important;
+        border: 1px solid #000000 !important;
+        border-radius: 1mm;
 
-    .proteinBadge {
-        color: #333333 !important;
-        background: #eeeeee !important;
-        border-color: #cccccc !important;
-    }
-
-    .orderTypeBadge {
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
     }
 
-    .pickupBadge {
-        color: #007d41 !important;
-        background: #e9f7ef !important;
-        border-color: #a8d9bd !important;
-    }
-
-    .deliveryBadge {
-        color: #1d5fc4 !important;
-        background: #edf3ff !important;
-        border-color: #b8cdf5 !important;
-    }
-
-    .extraItem,
-    .extraPrice,
-    .extraPlus {
-        color: #007d41 !important;
-    }
 
     .orderNote {
-        color: #9f1c14 !important;
-        background: #fff4f2 !important;
-        border-left-color: #d32f2f !important;
+        margin: 2mm 0 0 !important;
+        padding: 2mm !important;
+
+        color: #000000 !important;
+        background: #ffffff !important;
+        border: 1px solid #000000 !important;
+        border-radius: 2mm !important;
+
+        font-weight: 700;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 
-    .acceptTime {
-        color: #007d41 !important;
-    }
-
-    .itemsTable tr,
     .totals,
     .customer,
     .footer {
         break-inside: avoid;
         page-break-inside: avoid;
+    }
+
+    .footer {
+        gap: 0.7mm;
+
+        margin-top: 2mm;
+        padding-top: 1.5mm;
+
+        color: #000000 !important;
+        border-top: 1px dashed #000000 !important;
+
+        text-align: center;
+        font-size: 7.5px;
+        line-height: 1.2;
+    }
+
+    .footer p {
+        margin: 0;
+    }
+
+    .acceptTime {
+        color: #000000 !important;
+
+        font-weight: 800;
+    }
+
+    .powered {
+        color: #000000 !important;
+
+        font-size: 7px;
     }
 
     .noPrint {
@@ -648,5 +708,116 @@
 
     .previousOrders {
         display: block;
+    }
+
+    .customerEmail {
+        display: none !important;
+    }
+
+    .itemsTable {
+        display: none !important;
+    }
+
+    .printItems {
+        display: block !important;
+    }
+
+    .printItem {
+        padding: 1.5mm 0;
+
+        border-bottom: 1px dashed #777777;
+
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .printItem:first-child {
+        border-top: 1px dashed #777777;
+    }
+
+    .printItemLine,
+    .printExtraLine {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+        column-gap: 2mm;
+    }
+
+    .printItemDescription {
+        min-width: 0;
+
+        font-size: 9px;
+        font-weight: 800;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+    }
+
+    .printExtraLine {
+        margin-top: 0.8mm;
+        padding-left: 4mm;
+    }
+
+    .printExtraName {
+        min-width: 0;
+
+        font-size: 8px;
+        font-weight: 600;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    .printPrice {
+        color: #000000 !important;
+
+        font-size: 8.5px;
+        font-weight: 800;
+        line-height: 1.25;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .screenTotals {
+        display: none !important;
+    }
+
+    .printTotals {
+        display: block !important;
+    }
+
+    .customer {
+        gap: 0.7mm;
+
+        margin-top: 0;
+
+        color: #000000 !important;
+
+        font-size: 8.5px;
+        line-height: 1.25;
+    }
+
+    .customer p {
+        margin: 0;
+    }
+
+    .customer strong {
+        color: #000000 !important;
+
+        font-weight: 800;
+    }
+
+    .requestedTime {
+        margin-top: 1.5mm !important;
+        padding: 1.5mm !important;
+
+        border: 1px solid #000000;
+        border-radius: 1.5mm;
+
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .paymentInfo,
+    .orderStatus {
+        font-weight: 700;
     }
 }
