@@ -324,35 +324,18 @@ export default function AdminOrdersPage() {
         <section className={styles.orderList}>
           {filteredOrders.map((order) => {
             return (
-              <article key={order.id} className={styles.orderCard}>
+              <article
+                key={order.id}
+                className={`${styles.orderCard} ${
+                  order.feedback_summary ? styles.orderCardWithFeedback : ""
+                }`}
+              >
+                {" "}
                 <button
                   type="button"
                   className={styles.orderCardMain}
                   onClick={() => openOrder(order.id)}
                 >
-                  {order.feedback_summary && (
-                    <button
-                      type="button"
-                      className={`${styles.feedbackAction} ${
-                        order.feedback_summary.admin_seen_at
-                          ? ""
-                          : styles.feedbackActionNew
-                      }`}
-                      onClick={() => router.push(`/admin/feedback/${order.id}`)}
-                    >
-                      <RatingStar size={15} />
-
-                      <span>
-                        {!order.feedback_summary.admin_seen_at
-                          ? "Ny feedback"
-                          : order.feedback_summary.admin_replied_at
-                            ? "Feedback besvaret"
-                            : "Se feedback"}
-                      </span>
-
-                      <strong>{order.feedback_summary.rating}/5</strong>
-                    </button>
-                  )}
                   <span
                     className={`${styles.statusIcon} ${
                       styles[`status_${order.status}`]
@@ -397,27 +380,8 @@ export default function AdminOrdersPage() {
                           ? order.delivery_method === "delivery"
                             ? "Leveret"
                             : "Afhentet"
-                          : statusLabels[order.status]}{" "}
+                          : statusLabels[order.status]}
                       </span>
-
-                      {order.feedback_summary && (
-                        <span
-                          className={`${styles.statusBadge} ${
-                            order.feedback_summary.admin_seen_at
-                              ? styles.feedbackBadge
-                              : styles.feedbackBadgeNew
-                          }`}
-                        >
-                          ★{" "}
-                          {!order.feedback_summary.admin_seen_at
-                            ? "Ny feedback"
-                            : order.feedback_summary.admin_replied_at
-                              ? "Feedback besvaret"
-                              : "Feedback set"}
-                          {" · "}
-                          {order.feedback_summary.rating}/5
-                        </span>
-                      )}
 
                       {order.refund_status && (
                         <span
@@ -473,7 +437,29 @@ export default function AdminOrdersPage() {
                     ›
                   </span>
                 </button>
+                {order.feedback_summary && (
+                  <button
+                    type="button"
+                    className={`${styles.feedbackAction} ${
+                      order.feedback_summary.admin_seen_at
+                        ? ""
+                        : styles.feedbackActionNew
+                    }`}
+                    onClick={() => router.push(`/admin/feedback/${order.id}`)}
+                  >
+                    <RatingStar size={15} />
 
+                    <span>
+                      {!order.feedback_summary.admin_seen_at
+                        ? "Ny feedback"
+                        : order.feedback_summary.admin_replied_at
+                          ? "Feedback besvaret"
+                          : "Se feedback"}
+                    </span>
+
+                    <strong>{order.feedback_summary.rating}/5</strong>
+                  </button>
+                )}
                 {(order.status === "accepted" || order.status === "ready") &&
                   order.accepted_at !== null &&
                   order.fulfillment_due_at !== null && (
