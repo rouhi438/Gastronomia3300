@@ -1,6 +1,6 @@
 # GastronomiaPizzaApp — Project Context
 
-Last updated: 2026-08-27
+Last updated: 2026-08-30
 
 ## Purpose
 
@@ -121,13 +121,12 @@ Do not put real customer data into source control, logs, fixtures, screenshots, 
 
 ## Current Agreed Roadmap
 
-The order-monitoring and Most Ordered features have been implemented, merged, and verified in Production.
+The order-monitoring, Most Ordered, and private order feedback features have been implemented, merged, and verified in Production.
 
-Structured menu allergens remain deferred until verified restaurant recipe, ingredient-label, and preparation data is available. The current implementation order is:
+Structured menu allergens remain deferred until verified restaurant recipe, ingredient-label, and preparation data is available. The remaining implementation order is:
 
-1. Private order feedback and public aggregate rating — in progress
-2. Structured menu allergens after verified data is available
-3. Printer integration after hardware and paper-width selection
+1. Structured menu allergens after verified data is available
+2. Printer integration after hardware and paper-width selection
 
 Each roadmap item should use a separate branch and pull request.
 
@@ -319,6 +318,21 @@ A fallback alert should be selected after reviewing the current architecture. Po
 
 Sentry is a possible monitoring provider, but it is not yet a confirmed dependency. Compare the existing infrastructure and project needs before selecting a service.
 
+### Production Rollout
+
+The feature was merged and deployed to Production on 2026-08-30.
+
+Verification included:
+
+- The feedback schema, scheduling column, and rating-summary function migrations were applied to Preview and Production.
+- The rating-summary function is executable only by `postgres` and `service_role`.
+- Dedicated customer and admin feedback pages were verified in light and dark modes without embedding the full order receipt.
+- Customer invitation scheduling was verified end to end with an accelerated three-minute test.
+- Restaurant and customer notification retries and deduplication were verified.
+- Public-name consent withdrawal and no-store public-rating responses were verified.
+- The Production `/api/ratings` endpoint returned `200` with the expected privacy threshold and no-store headers.
+- ESLint, TypeScript, `git diff --check`, and the production build passed.
+
 ### Definition of Done
 
 - Critical failures are recorded with actionable context.
@@ -481,7 +495,7 @@ When selected:
 
 ---
 
-## 4. Private Order Feedback and Public Rating — In Progress
+## 4. Private Order Feedback and Public Rating — Implemented
 
 Branch:
 
@@ -711,33 +725,19 @@ The following decisions still require confirmation:
 
 - Whether to add an independent scheduled reconciliation job for paid checkout sessions
 - Verified allergen data for each menu item
-- Customer feedback submission and editing windows
-- Secure guest-order feedback authorization
-- Minimum rating count before the public aggregate is displayed
-- Feedback retention and withdrawal of public-name consent
 - Printer hardware and paper width
 
 ## Next Action
 
-Implement and verify:
+Monitor the first real Production feedback cycle after deployment:
 
-`feature/private-order-feedback`
+- Confirm that a completed order records an invitation time approximately three hours after `completed_at`.
+- Confirm that the customer invitation is delivered once.
+- Confirm that submitted feedback notifies the restaurant once.
+- Confirm that an admin reply notifies the customer once.
+- Confirm that notification claims are released and no notification error remains.
 
-The agreed MVP scope is:
-
-- One 1-to-5 rating per completed order
-- An optional private customer message
-- One private admin reply
-- A public aggregate rating and rating count
-- Optional public display of the customer’s first name and star rating with explicit consent
-- No public written reviews
-- No multi-message thread
-- No customer surname, photo, order number, or private message in public responses
-- A full rating summary on the home page
-- A compact aggregate-rating badge on the menu page
-- Customer and admin email notifications for the relevant feedback events
-
-Before creating the database schema, inspect the existing authenticated-order ownership, guest-order token, profile, admin-order, email, and RLS flows. Do not expose individual feedback rows through a public API; public access must return only the approved aggregate and consented display fields.
+After this Production observation, begin another roadmap feature only when its required restaurant data or hardware decision is available.
 
 ## Documentation Update Rule
 
