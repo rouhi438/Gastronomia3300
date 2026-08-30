@@ -116,8 +116,8 @@ body {
 
 @media print {
     @page {
-        size: A4;
-        margin: 10mm;
+        size: auto;
+        margin: 0;
     }
 
     html,

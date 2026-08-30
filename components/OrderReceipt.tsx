@@ -101,6 +101,34 @@ function formatMoney(value: MoneyValue, locale: string): string {
   }).format(amount)} kr.`;
 }
 
+function formatPrintMoney(value: MoneyValue): string {
+  const amount = toNumber(value);
+
+  return `${new Intl.NumberFormat("da-DK", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)} DKK`;
+}
+
+function getPrintSizeLabel(size?: string | null): string | null {
+  switch (size) {
+    case "normal":
+      return "ALM.";
+
+    case "family":
+      return "FAM.";
+
+    case "children":
+      return "BØRN";
+
+    case "deepPan":
+      return "DEEP PAN";
+
+    default:
+      return null;
+  }
+}
+
 function getMenuItemByName(itemName: string) {
   return menuData.find(
     (menuItem) => normalizeName(menuItem.name) === normalizeName(itemName),
@@ -514,9 +542,80 @@ export default function OrderReceipt({
         </tbody>
       </table>
 
+      <div className={styles.printItems}>
+        {order.order_items.map((item, index) => {
+          const itemName =
+            item.item_name || item.name || t("table.unknownItem");
+
+          const menuItem = getMenuItemByName(itemName);
+          const displayItemName = getItemDisplayName(itemName);
+
+          const selectedExtras = Array.isArray(item.extras) ? item.extras : [];
+
+          const primaryChoices = getSelectedPrimaryChoices(
+            itemName,
+            selectedExtras,
+            item.size,
+          );
+
+          const paidExtras = getPaidExtras(itemName, selectedExtras, item.size);
+
+          const printExtras = [...primaryChoices, ...paidExtras];
+
+          const extrasUnitTotal = printExtras.reduce(
+            (total, extra) => total + extra.price,
+            0,
+          );
+
+          const unitPrice = toNumber(item.unit_price);
+          const baseUnitPrice = Math.max(0, unitPrice - extrasUnitTotal);
+          const baseTotal = baseUnitPrice * item.quantity;
+
+          const printSizeLabel =
+            menuItem && typeof menuItem.prices.fixed !== "number"
+              ? getPrintSizeLabel(item.size)
+              : null;
+
+          return (
+            <div
+              key={`print-${itemName}-${index}`}
+              className={styles.printItem}
+            >
+              <div className={styles.printItemLine}>
+                <span className={styles.printItemDescription}>
+                  {item.quantity} × Nr. {menuItem?.id ?? "–"} {displayItemName}
+                  {printSizeLabel ? ` (${printSizeLabel})` : ""}.
+                </span>
+
+                <span className={styles.printPrice}>
+                  {formatPrintMoney(baseTotal)}
+                </span>
+              </div>
+
+              {printExtras.map((extra, extraIndex) => (
+                <div
+                  key={`${extra.name}-${extraIndex}`}
+                  className={styles.printExtraLine}
+                >
+                  <span className={styles.printExtraName}>
+                    + {getExtraDisplayName(itemName, extra.name)}
+                  </span>
+
+                  {extra.price > 0 && (
+                    <span className={styles.printPrice}>
+                      {formatPrintMoney(extra.price * item.quantity)}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+
       <hr className={styles.divider} />
 
-      <div className={styles.totals}>
+      <div className={`${styles.totals} ${styles.screenTotals}`}>
         <div className={styles.totalRow}>
           <span>{t("totals.items")}:</span>
 
@@ -550,6 +649,35 @@ export default function OrderReceipt({
         </div>
       </div>
 
+      <div className={`${styles.totals} ${styles.printTotals}`}>
+        <div className={styles.totalRow}>
+          <span>{t("totals.items")}:</span>
+          <span>{formatPrintMoney(subtotal)}</span>
+        </div>
+
+        <div className={styles.totalRow}>
+          <span>{t("totals.bag")}:</span>
+          <span>{formatPrintMoney(bagFee)}</span>
+        </div>
+
+        <div className={styles.totalRow}>
+          <span>{t("totals.serviceFee")}:</span>
+          <span>{formatPrintMoney(serviceFee)}</span>
+        </div>
+
+        {order.delivery_method === "delivery" && (
+          <div className={styles.totalRow}>
+            <span>{t("totals.delivery")}:</span>
+            <span>{formatPrintMoney(deliveryFee)}</span>
+          </div>
+        )}
+
+        <div className={`${styles.totalRow} ${styles.grandTotal}`}>
+          <strong>{t("totals.total")}:</strong>
+          <strong>{formatPrintMoney(order.total_price)}</strong>
+        </div>
+      </div>
+
       <hr className={styles.divider} />
 
       <div className={styles.customer}>
@@ -568,7 +696,7 @@ export default function OrderReceipt({
           </p>
         )}
         {order.customer_email && (
-          <p>
+          <p className={styles.customerEmail}>
             <strong>{t("customer.email")}:</strong> {order.customer_email}
           </p>
         )}
@@ -579,15 +707,15 @@ export default function OrderReceipt({
           </p>
         )}
 
-        <p>
+        <p className={styles.requestedTime}>
           <strong>{t("customer.requestedTime")}:</strong> {customerTime}
         </p>
 
-        <p>
+        <p className={styles.paymentInfo}>
           <strong>{t("customer.payment")}:</strong> {paymentLabel}
         </p>
 
-        <p>
+        <p className={styles.orderStatus}>
           <strong>{t("customer.status")}:</strong> {statusLabel}
         </p>
 
