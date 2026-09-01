@@ -851,7 +851,37 @@
     "descriptionFirst": "We make authentic Italian pizza in a traditional stone oven.",
     "descriptionSecond": "Freshly baked, crispy and made with love every single day.",
     "subDescription": "Explore our menu and experience the taste of Italy right here in Frederiksværk.",
-    "cta": "View the menu"
+    "cta": "View the menu",
+    "hero": {
+      "location": "Frederiksværk",
+      "titleLead": "Authentic Italian pizza –",
+      "titleAccent": "baked in a stone oven",
+      "description": "Freshly baked, crispy and made with love – right here in Frederiksværk.",
+      "viewMenu": "View menu",
+      "orderNow": "Order now",
+      "eyebrow": "Stone-oven baked in Frederiksværk",
+      "imageAlt": "Freshly baked Italian pizza from Gastronomia 3300",
+      "ovenTitle": "Traditional stone oven",
+      "ovenText": "Freshly baked every day"
+    },
+    "trust": {
+      "ingredientsTitle": "Fresh ingredients",
+      "ingredientsText": "Quality ingredients carefully selected",
+      "ovenTitle": "Stone-oven baked",
+      "ovenText": "Authentic flavour and a perfectly crisp crust",
+      "orderingTitle": "Fast pickup",
+      "orderingText": "Ready when you are – without the wait"
+    },
+    "popular": {
+      "eyebrow": "Most ordered",
+      "title": "Popular right now",
+      "description": "A rotating selection of the dishes our customers order most.",
+      "next": "Show more popular items",
+      "seeMenu": "View full menu",
+      "badge": "Popular",
+      "fromPrice": "{price} kr.",
+      "chooseOptions": "Choose options"
+    }
   },
   "Footer": {
     "description": "Wood-fired stone-oven pizza made with quality ingredients in the heart of Frederiksværk.",

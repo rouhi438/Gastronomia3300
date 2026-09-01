@@ -397,7 +397,9 @@
     "verifiedOrders": "Verificerede ordrer",
     "ratingAria": "Gennemsnitlig bedømmelse: {average} ud af 5 stjerner",
     "compactAria": "Restaurantens kundebedømmelse",
-    "ratingCount": "{count, plural, one {# bedømmelse} other {# bedømmelser}}"
+    "ratingCount": "{count, plural, one {# bedømmelse} other {# bedømmelser}}",
+    "minimumTitle": "Bedømmelsen vises snart",
+    "minimumDescription": "Den samlede bedømmelse vises efter mindst {count} verificerede ordrer."
   },
   "OrderFeedback": {
     "eyebrow": "Feedback",
@@ -534,7 +536,37 @@
     "descriptionFirst": "Hos os laver vi autentisk italiensk pizza i en ægte stenovn.",
     "descriptionSecond": "Friskbagt, sprød og fyldt med kærlighed – hver eneste dag.",
     "subDescription": "Prøv vores menu og oplev smagen af Italien – lige her i Frederiksværk.",
-    "cta": "Kom i gang"
+    "cta": "Kom i gang",
+    "hero": {
+      "location": "Frederiksværk",
+      "titleLead": "Ægte italiensk pizza –",
+      "titleAccent": "bagt i stenovn",
+      "description": "Friskbagt, sprød og fyldt med kærlighed – lige her i Frederiksværk.",
+      "viewMenu": "Se menu",
+      "orderNow": "Bestil nu",
+      "eyebrow": "Stenovnsbagt i Frederiksværk",
+      "imageAlt": "Friskbagt italiensk pizza fra Gastronomia 3300",
+      "ovenTitle": "Ægte stenovn",
+      "ovenText": "Friskbagt hver dag"
+    },
+    "trust": {
+      "ingredientsTitle": "Friske råvarer",
+      "ingredientsText": "Udvalgte ingredienser af høj kvalitet",
+      "ovenTitle": "Bagt i stenovn",
+      "ovenText": "Autentisk smag og perfekt sprødhed",
+      "orderingTitle": "Hurtig afhentning",
+      "orderingText": "Klar når du har tid – uden ventetid"
+    },
+    "popular": {
+      "eyebrow": "Mest bestilt",
+      "title": "Populære lige nu",
+      "description": "Et udvalg af vores mest bestilte retter, som automatisk skifter undervejs.",
+      "next": "Vis nye populære retter",
+      "seeMenu": "Se hele menuen",
+      "badge": "Populær",
+      "fromPrice": "{price} kr.",
+      "chooseOptions": "Vælg muligheder"
+    }
   },
   "Footer": {
     "description": "Brændefyret stenovnspizza og gode råvarer i hjertet af Frederiksværk.",
