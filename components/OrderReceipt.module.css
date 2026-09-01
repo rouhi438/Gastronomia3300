@@ -482,7 +482,7 @@
 /* ===== PRINT ===== */
 
 @page {
-    size: auto;
+    size: 58mm 200mm;
     margin: 0;
 }
 
@@ -492,7 +492,7 @@
     :global(body) {
         width: 58mm !important;
         max-width: 58mm !important;
-        min-height: 0 !important;
+        min-height: 200mm !important;
         margin: 0 !important;
         padding: 0 !important;
 
@@ -514,10 +514,10 @@
         left: 0;
 
         box-sizing: border-box;
-        width: 58mm !important;
-        max-width: 58mm !important;
+        width: 52mm !important;
+        max-width: 52mm !important;
         margin: 0 !important;
-        padding: 2mm 2mm 4mm !important;
+        padding: 2.5mm 0.75mm 5mm !important;
         overflow: visible !important;
 
         color: #000000 !important;
@@ -526,20 +526,15 @@
         border-radius: 0 !important;
         box-shadow: none !important;
 
-        font-family:
-            system-ui,
-            -apple-system,
-            BlinkMacSystemFont,
-            "Segoe UI",
-            Arial,
-            sans-serif;
-
-        font-size: 9px;
-        line-height: 1.25;
+        font-family: Arial, "Helvetica Neue", sans-serif;
+        font-size: 11px;
+        line-height: 1.35;
 
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
     }
+
+    /* ===== RESTAURANT ===== */
 
     .header {
         display: block;
@@ -549,170 +544,93 @@
         text-align: center;
     }
 
-    .orderInfo {
-        min-width: 0;
-        margin-top: 2mm;
-        padding: 1.5mm;
-
-        border: 1px solid #000000;
-        border-radius: 1.5mm;
-        color: #000000 !important;
-
-        font-size: 9px;
-        text-align: center;
-    }
-
-    .orderTypeRow {
-        justify-content: center;
-        gap: 1mm;
-    }
-
     .brand h1 {
-        margin: 0 0 1mm;
+        margin: 0 0 1.2mm;
 
         color: #000000 !important;
 
-        font-size: 15px;
+        font-size: 18px;
+        font-weight: 900;
         line-height: 1.1;
     }
 
     .brand p {
-        margin: 0 0 0.4mm;
-
-        font-size: 8px;
-        line-height: 1.2;
-    }
-
-    .orderInfo p {
-        margin: 0 0 0.5mm;
-    }
-
-    .orderInfo p:first-child {
-        font-size: 14px;
-        font-weight: 900;
-    }
-
-    .brand p,
-    .orderInfo,
-    .orderInfo p,
-    .customer,
-    .customer p,
-    .customer strong,
-    .totalRow {
-        color: #111111 !important;
-    }
-
-    .divider {
-        margin: 2mm 0;
-
-        border: 0 !important;
-        border-top: 1px dashed #000000 !important;
-    }
-
-    .totals {
-        width: 100%;
-        margin: 1mm 0 0;
-    }
-
-    .totalRow {
-        gap: 2mm;
-
-        padding: 0.6mm 0;
+        margin: 0 0 0.6mm;
 
         color: #000000 !important;
 
-        font-size: 8.5px;
+        font-size: 9.5px;
+        font-weight: 600;
+        line-height: 1.25;
     }
 
-    .grandTotal {
-        margin-top: 1.2mm;
-        padding: 1.5mm;
+    /* ===== ORDER HEADER ===== */
 
-        border: 1px solid #000000 !important;
+    .orderInfo {
+        min-width: 0;
+        margin-top: 3mm;
+        padding: 2mm 1.5mm;
+
+        color: #000000 !important;
+        border: 1px solid #000000;
         border-radius: 1.5mm;
 
-        font-size: 13px;
+        font-size: 10.5px;
+        line-height: 1.35;
+        text-align: center;
+
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .orderInfo p {
+        margin: 0 0 0.8mm;
+    }
+
+    .orderInfo p:last-child {
+        margin-bottom: 0;
+    }
+
+    .orderInfo p:first-child {
+        font-size: 17px;
         font-weight: 900;
+        line-height: 1.15;
+    }
+
+    .orderTypeRow {
+        justify-content: center;
+        gap: 1.2mm;
+
+        margin-top: 1mm;
     }
 
     .orderTypeBadge,
     .pickupBadge,
     .deliveryBadge {
+        padding: 0.6mm 1.4mm;
+
         color: #000000 !important;
         background: #ffffff !important;
         border: 1px solid #000000 !important;
         border-radius: 1mm;
 
+        font-size: 10px;
+        font-weight: 800;
+
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
     }
 
+    /* ===== DIVIDERS ===== */
 
-    .orderNote {
-        margin: 2mm 0 0 !important;
-        padding: 2mm !important;
+    .divider {
+        margin: 2.7mm 0;
 
-        color: #000000 !important;
-        background: #ffffff !important;
-        border: 1px solid #000000 !important;
-        border-radius: 2mm !important;
-
-        font-weight: 700;
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-
-        break-inside: avoid;
-        page-break-inside: avoid;
-    }
-
-    .totals,
-    .customer,
-    .footer {
-        break-inside: avoid;
-        page-break-inside: avoid;
-    }
-
-    .footer {
-        gap: 0.7mm;
-
-        margin-top: 2mm;
-        padding-top: 1.5mm;
-
-        color: #000000 !important;
+        border: 0 !important;
         border-top: 1px dashed #000000 !important;
-
-        text-align: center;
-        font-size: 7.5px;
-        line-height: 1.2;
     }
 
-    .footer p {
-        margin: 0;
-    }
-
-    .acceptTime {
-        color: #000000 !important;
-
-        font-weight: 800;
-    }
-
-    .powered {
-        color: #000000 !important;
-
-        font-size: 7px;
-    }
-
-    .noPrint {
-        display: none !important;
-    }
-
-    .previousOrders {
-        display: block;
-    }
-
-    .customerEmail {
-        display: none !important;
-    }
+    /* ===== ITEMS ===== */
 
     .itemsTable {
         display: none !important;
@@ -723,7 +641,7 @@
     }
 
     .printItem {
-        padding: 1.5mm 0;
+        padding: 2.2mm 0;
 
         border-bottom: 1px dashed #777777;
 
@@ -740,41 +658,48 @@
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
         align-items: start;
-        column-gap: 2mm;
+        column-gap: 1.5mm;
     }
 
     .printItemDescription {
         min-width: 0;
 
-        font-size: 9px;
-        font-weight: 800;
-        line-height: 1.25;
-        overflow-wrap: anywhere;
+        color: #000000 !important;
+
+        font-size: 11.5px;
+        font-weight: 900;
+        line-height: 1.3;
+        overflow-wrap: break-word;
     }
 
     .printExtraLine {
-        margin-top: 0.8mm;
-        padding-left: 4mm;
+        margin-top: 1.2mm;
+        padding-left: 3mm;
     }
 
     .printExtraName {
         min-width: 0;
 
-        font-size: 8px;
-        font-weight: 600;
-        line-height: 1.2;
-        overflow-wrap: anywhere;
+        color: #000000 !important;
+
+        font-size: 10px;
+        font-weight: 650;
+        line-height: 1.3;
+        overflow-wrap: break-word;
     }
 
     .printPrice {
         color: #000000 !important;
 
-        font-size: 8.5px;
-        font-weight: 800;
-        line-height: 1.25;
+        font-size: 10.5px;
+        font-weight: 900;
+        line-height: 1.3;
         text-align: right;
         white-space: nowrap;
+        font-variant-numeric: tabular-nums;
     }
+
+    /* ===== TOTALS ===== */
 
     .screenTotals {
         display: none !important;
@@ -784,40 +709,156 @@
         display: block !important;
     }
 
+    .totals {
+        width: 100%;
+        margin: 1.5mm 0 0;
+
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .totalRow {
+        gap: 1.5mm;
+
+        padding: 0.9mm 0;
+
+        color: #000000 !important;
+
+        font-size: 10.5px;
+        line-height: 1.3;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .grandTotal {
+        margin-top: 1.8mm;
+        padding: 2mm 1.5mm;
+
+        border: 1px solid #000000 !important;
+        border-radius: 1.5mm;
+
+        font-size: 16px;
+        font-weight: 900;
+        line-height: 1.15;
+    }
+
+    /* ===== CUSTOMER ===== */
+
     .customer {
-        gap: 0.7mm;
+        gap: 1.1mm;
 
         margin-top: 0;
 
         color: #000000 !important;
 
-        font-size: 8.5px;
-        line-height: 1.25;
+        font-size: 10.5px;
+        line-height: 1.35;
+
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 
     .customer p {
         margin: 0;
+
+        color: #000000 !important;
+        overflow-wrap: anywhere;
     }
 
     .customer strong {
         color: #000000 !important;
 
-        font-weight: 800;
+        font-weight: 900;
+    }
+
+    .customerEmail {
+        display: none !important;
+    }
+
+    .previousOrders {
+        display: block;
     }
 
     .requestedTime {
-        margin-top: 1.5mm !important;
-        padding: 1.5mm !important;
+        margin-top: 2mm !important;
+        padding: 2mm 1.5mm !important;
 
         border: 1px solid #000000;
         border-radius: 1.5mm;
 
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 900;
+        line-height: 1.25;
+
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 
     .paymentInfo,
     .orderStatus {
-        font-weight: 700;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    /* ===== ORDER COMMENT ===== */
+
+    .orderNote {
+        margin: 2.5mm 0 0 !important;
+        padding: 2.5mm 2mm !important;
+
+        color: #000000 !important;
+        background: #ffffff !important;
+        border: 1px solid #000000 !important;
+        border-radius: 2mm !important;
+
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.4;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    /* ===== FOOTER ===== */
+
+    .footer {
+        gap: 1mm;
+
+        margin-top: 3mm;
+        padding-top: 2.5mm;
+
+        color: #000000 !important;
+        border-top: 1px dashed #000000 !important;
+
+        text-align: center;
+        font-size: 9.5px;
+        line-height: 1.3;
+
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .footer p {
+        margin: 0;
+
+        color: #000000 !important;
+    }
+
+    .acceptTime {
+        color: #000000 !important;
+
+        font-size: 10.5px;
+        font-weight: 900;
+    }
+
+    .powered {
+        color: #000000 !important;
+
+        font-size: 8.5px;
+    }
+
+    .noPrint {
+        display: none !important;
     }
 }

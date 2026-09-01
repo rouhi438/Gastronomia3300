@@ -385,6 +385,10 @@
         var(--bg);
 }
 
+:global(.dark) .trustItem+.trustItem::before {
+    background: rgba(255, 255, 255, 0.16);
+}
+
 :global(.dark) .heroCopy {
     background:
         radial-gradient(circle at 20% 15%,
