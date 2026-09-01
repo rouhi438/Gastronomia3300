@@ -515,10 +515,10 @@
         left: 0;
 
         box-sizing: border-box;
-        width: 52mm !important;
-        max-width: 52mm !important;
+        width: 48mm !important;
+        max-width: 48mm !important;
         margin: 0 !important;
-        padding: 2.5mm 0.75mm 5mm !important;
+        padding: 2.5mm 0.5mm 5mm !important;
         overflow: visible !important;
 
         color: #000000 !important;
