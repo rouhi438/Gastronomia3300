@@ -515,8 +515,8 @@
         left: 0;
 
         box-sizing: border-box;
-        width: 48mm !important;
-        max-width: 48mm !important;
+        width: 45mm !important;
+        max-width: 45mm !important;
         margin: 0 !important;
         padding: 2.5mm 0.5mm 5mm !important;
         overflow: visible !important;
@@ -668,8 +668,8 @@
 
         color: #000000 !important;
 
-        font-size: 12.5px;
-        font-weight: 900;
+        font-size: 11.5px;
+        font-weight: 800;
         line-height: 1.35;
         overflow-wrap: break-word;
     }
@@ -822,6 +822,11 @@
 
         break-inside: avoid;
         page-break-inside: avoid;
+    }
+
+    .requestedTimeLabel {
+        font-size: 11.5px;
+        font-weight: 800;
     }
 
     /* ===== FOOTER ===== */
