@@ -88,11 +88,55 @@ export default function PublicRating({ variant = "full" }: PublicRatingProps) {
   );
 
   if (
-    !ratingData?.available ||
+    ratingData?.available !== true ||
     typeof ratingData.averageRating !== "number" ||
     typeof ratingData.totalRatings !== "number"
   ) {
-    return null;
+    if (variant === "compact") {
+      return null;
+    }
+
+    const minimumRatings = ratingData?.minimumRatings ?? 5;
+
+    return (
+      <section
+        className={`${styles.full} ${styles.unavailable}`}
+        aria-labelledby="public-rating-title"
+      >
+        <div className={styles.fullHeader}>
+          <div>
+            <p className={styles.eyebrow}>{t("eyebrow")}</p>
+
+            <h2 id="public-rating-title" className={styles.title}>
+              {t("title")}
+            </h2>
+
+            <p className={styles.description}>{t("description")}</p>
+          </div>
+
+          <span className={styles.verifiedBadge}>
+            <BadgeCheck size={16} aria-hidden="true" />
+            {t("verifiedOrders")}
+          </span>
+        </div>
+
+        <div className={styles.unavailableState}>
+          <span className={styles.unavailableIcon} aria-hidden="true">
+            <RatingStar size={28} />
+          </span>
+
+          <span>
+            <strong>{t("minimumTitle")}</strong>
+
+            <small>
+              {t("minimumDescription", {
+                count: minimumRatings,
+              })}
+            </small>
+          </span>
+        </div>
+      </section>
+    );
   }
 
   const averageRating = ratingData.averageRating;
