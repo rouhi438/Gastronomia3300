@@ -667,10 +667,12 @@ export default function OrderReceipt({
           <span>{formatPrintMoney(subtotal)}</span>
         </div>
 
-        <div className={styles.totalRow}>
-          <span>{t("totals.bag")}:</span>
-          <span>{formatPrintMoney(bagFee)}</span>
-        </div>
+        {bagFee > 0 && (
+          <div className={styles.totalRow}>
+            <span>{t("totals.bag")}:</span>
+            <span>{formatPrintMoney(bagFee)}</span>
+          </div>
+        )}
 
         <div className={styles.totalRow}>
           <span>{t("totals.serviceFee")}:</span>
@@ -720,7 +722,10 @@ export default function OrderReceipt({
         )}
 
         <p className={styles.requestedTime}>
-          <strong>{t("customer.requestedTime")}:</strong> {customerTime}
+          <strong className={styles.requestedTimeLabel}>
+            {t("customer.requestedTime")}:
+          </strong>{" "}
+          {customerTime}
         </p>
 
         <p className={styles.paymentInfo}>
