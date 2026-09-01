@@ -482,7 +482,7 @@
 /* ===== PRINT ===== */
 
 @page {
-    size: 58mm 200mm;
+    size: auto;
     margin: 0;
 }
 
@@ -492,7 +492,8 @@
     :global(body) {
         width: 58mm !important;
         max-width: 58mm !important;
-        min-height: 200mm !important;
+        min-height: 0 !important;
+        height: auto !important;
         margin: 0 !important;
         padding: 0 !important;
 
@@ -527,8 +528,9 @@
         box-shadow: none !important;
 
         font-family: Arial, "Helvetica Neue", sans-serif;
-        font-size: 11px;
-        line-height: 1.35;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.4;
 
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
@@ -559,8 +561,8 @@
 
         color: #000000 !important;
 
-        font-size: 9.5px;
-        font-weight: 600;
+        font-size: 10.5px;
+        font-weight: 700;
         line-height: 1.25;
     }
 
@@ -575,7 +577,7 @@
         border: 1px solid #000000;
         border-radius: 1.5mm;
 
-        font-size: 10.5px;
+        font-size: 11.5px;
         line-height: 1.35;
         text-align: center;
 
@@ -592,7 +594,7 @@
     }
 
     .orderInfo p:first-child {
-        font-size: 17px;
+        font-size: 18px;
         font-weight: 900;
         line-height: 1.15;
     }
@@ -614,7 +616,7 @@
         border: 1px solid #000000 !important;
         border-radius: 1mm;
 
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 800;
 
         print-color-adjust: exact;
@@ -666,9 +668,9 @@
 
         color: #000000 !important;
 
-        font-size: 11.5px;
+        font-size: 12.5px;
         font-weight: 900;
-        line-height: 1.3;
+        line-height: 1.35;
         overflow-wrap: break-word;
     }
 
@@ -682,8 +684,8 @@
 
         color: #000000 !important;
 
-        font-size: 10px;
-        font-weight: 650;
+        font-size: 11.5px;
+        font-weight: 700;
         line-height: 1.3;
         overflow-wrap: break-word;
     }
@@ -691,7 +693,7 @@
     .printPrice {
         color: #000000 !important;
 
-        font-size: 10.5px;
+        font-size: 11.5px;
         font-weight: 900;
         line-height: 1.3;
         text-align: right;
@@ -724,7 +726,8 @@
 
         color: #000000 !important;
 
-        font-size: 10.5px;
+        font-size: 11.5px;
+        font-weight: 650;
         line-height: 1.3;
         font-variant-numeric: tabular-nums;
     }
@@ -750,7 +753,8 @@
 
         color: #000000 !important;
 
-        font-size: 10.5px;
+        font-size: 11.5px;
+        font-weight: 650;
         line-height: 1.35;
 
         break-inside: avoid;
@@ -785,7 +789,7 @@
         border: 1px solid #000000;
         border-radius: 1.5mm;
 
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 900;
         line-height: 1.25;
 
@@ -795,7 +799,7 @@
 
     .paymentInfo,
     .orderStatus {
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 800;
     }
 
@@ -810,7 +814,7 @@
         border: 1px solid #000000 !important;
         border-radius: 2mm !important;
 
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 800;
         line-height: 1.4;
         white-space: pre-wrap;
@@ -832,7 +836,7 @@
         border-top: 1px dashed #000000 !important;
 
         text-align: center;
-        font-size: 9.5px;
+        font-size: 11px;
         line-height: 1.3;
 
         break-inside: avoid;
@@ -848,14 +852,14 @@
     .acceptTime {
         color: #000000 !important;
 
-        font-size: 10.5px;
+        font-size: 11.5px;
         font-weight: 900;
     }
 
     .powered {
         color: #000000 !important;
 
-        font-size: 8.5px;
+        font-size: 9.5px;
     }
 
     .noPrint {
