@@ -116,14 +116,15 @@ body {
 
 @media print {
     @page {
-        size: 58mm 200mm;
+        size: auto;
         margin: 0;
     }
 
     html,
     body {
         width: 58mm !important;
-        min-height: 200mm !important;
+        min-height: 0 !important;
+        height: auto !important;
         margin: 0 !important;
         padding: 0 !important;
 
