@@ -116,20 +116,24 @@ body {
 
 @media print {
     @page {
-        size: auto;
+        size: 58mm 200mm;
         margin: 0;
     }
 
     html,
     body {
+        width: 58mm !important;
+        min-height: 200mm !important;
         margin: 0 !important;
         padding: 0 !important;
+
         background: #ffffff !important;
     }
 
     .shop-layout {
         min-height: 0 !important;
         padding-top: 0 !important;
+
         background: #ffffff !important;
     }
 }

@@ -560,9 +560,9 @@ export default function OrderReceipt({
 
           const paidExtras = getPaidExtras(itemName, selectedExtras, item.size);
 
-          const printExtras = [...primaryChoices, ...paidExtras];
+          const printExtras = paidExtras;
 
-          const extrasUnitTotal = printExtras.reduce(
+          const extrasUnitTotal = paidExtras.reduce(
             (total, extra) => total + extra.price,
             0,
           );
@@ -576,6 +576,18 @@ export default function OrderReceipt({
               ? getPrintSizeLabel(item.size)
               : null;
 
+          const printOptionLabels = [
+            printSizeLabel,
+            ...primaryChoices.map((choice) =>
+              getExtraDisplayName(itemName, choice.name),
+            ),
+          ].filter((label): label is string => Boolean(label));
+
+          const printOptions =
+            printOptionLabels.length > 0
+              ? ` (${printOptionLabels.join(", ")})`
+              : "";
+
           return (
             <div
               key={`print-${itemName}-${index}`}
@@ -584,7 +596,7 @@ export default function OrderReceipt({
               <div className={styles.printItemLine}>
                 <span className={styles.printItemDescription}>
                   {item.quantity} × Nr. {menuItem?.id ?? "–"} {displayItemName}
-                  {printSizeLabel ? ` (${printSizeLabel})` : ""}.
+                  {printOptions}.
                 </span>
 
                 <span className={styles.printPrice}>
