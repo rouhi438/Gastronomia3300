@@ -44,6 +44,108 @@
     font-size: 1.15rem;
 }
 
+.accountingPanel {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+
+    background: color-mix(in srgb, var(--green) 5%, var(--bg-card));
+    border: 1px solid var(--border-color);
+    border-radius: 13px;
+    box-shadow: var(--shadow);
+}
+
+.accountingIntro {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.accountingEyebrow {
+    color: var(--green);
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.accountingTitle {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.05rem;
+}
+
+.accountingDescription {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+.accountingForm {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+    align-items: end;
+    gap: 0.65rem;
+}
+
+.accountingField {
+    display: grid;
+    gap: 0.35rem;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 750;
+}
+
+.accountingInput {
+    width: 100%;
+    min-height: 42px;
+    padding: 0.55rem 0.65rem;
+
+    color: var(--text-primary);
+    font: inherit;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+}
+
+.accountingInput:focus {
+    border-color: var(--green);
+    outline: 3px solid color-mix(in srgb, var(--green) 22%, transparent);
+}
+
+.accountingButton {
+    min-height: 42px;
+    padding: 0.6rem 1rem;
+
+    color: #ffffff;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+    white-space: nowrap;
+
+    cursor: pointer;
+    background: var(--green);
+    border: 0;
+    border-radius: 9px;
+}
+
+.accountingButton:hover {
+    opacity: 0.9;
+}
+
+.accountingButton:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--green) 40%, transparent);
+    outline-offset: 2px;
+}
+
+.accountingError {
+    margin: 0;
+    color: var(--red);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
 .tabs {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -469,6 +571,14 @@
     .tabs {
         grid-template-columns: repeat(4, max-content);
         justify-content: start;
+    }
+
+    .accountingForm {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .accountingButton {
+        width: 100%;
     }
 
     .tab {

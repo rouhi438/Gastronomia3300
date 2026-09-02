@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
 import OrderCountdown from "@/components/OrderCountdown";
 import RatingStar from "@/components/RatingStar";
@@ -147,6 +153,10 @@ export default function AdminOrdersPage() {
   );
   const [actionError, setActionError] = useState("");
 
+  const [reportFrom, setReportFrom] = useState("");
+  const [reportTo, setReportTo] = useState("");
+  const [reportError, setReportError] = useState("");
+
   const fetchOrders = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/orders", {
@@ -265,6 +275,29 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const openAccountingReport = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!reportFrom || !reportTo) {
+      setReportError("Vælg både startdato og slutdato.");
+      return;
+    }
+
+    if (reportFrom > reportTo) {
+      setReportError("Startdatoen skal være før eller lig med slutdatoen.");
+      return;
+    }
+
+    setReportError("");
+
+    const searchParams = new URLSearchParams({
+      from: reportFrom,
+      to: reportTo,
+    });
+
+    router.push(`/admin/accounting-report?${searchParams.toString()}`);
+  };
+
   const openOrder = (orderId: number) => {
     router.push(`/admin/order-accepted/${orderId}?view=1`);
   };
@@ -292,6 +325,67 @@ export default function AdminOrdersPage() {
           <strong className={styles.summaryPrice}>{filteredTotal} kr.</strong>
         </div>
       </div>
+
+      <section
+        className={styles.accountingPanel}
+        aria-labelledby="accounting-report-title"
+      >
+        <div className={styles.accountingIntro}>
+          <span className={styles.accountingEyebrow}>Regnskab</span>
+
+          <h2 id="accounting-report-title" className={styles.accountingTitle}>
+            Omsætningsrapport
+          </h2>
+
+          <p className={styles.accountingDescription}>
+            Vælg en periode og opret en samlet rapport over betalte ordrer.
+          </p>
+        </div>
+
+        <form className={styles.accountingForm} onSubmit={openAccountingReport}>
+          <label className={styles.accountingField}>
+            <span>Fra dato</span>
+
+            <input
+              type="date"
+              value={reportFrom}
+              max={reportTo || undefined}
+              required
+              className={styles.accountingInput}
+              onChange={(event) => {
+                setReportFrom(event.target.value);
+                setReportError("");
+              }}
+            />
+          </label>
+
+          <label className={styles.accountingField}>
+            <span>Til dato</span>
+
+            <input
+              type="date"
+              value={reportTo}
+              min={reportFrom || undefined}
+              required
+              className={styles.accountingInput}
+              onChange={(event) => {
+                setReportTo(event.target.value);
+                setReportError("");
+              }}
+            />
+          </label>
+
+          <button type="submit" className={styles.accountingButton}>
+            Opret rapport
+          </button>
+        </form>
+
+        {reportError && (
+          <p className={styles.accountingError} role="alert">
+            {reportError}
+          </p>
+        )}
+      </section>
 
       <nav className={styles.tabs} aria-label="Filtrer ordrer efter dato">
         {filters.map((filter) => (
