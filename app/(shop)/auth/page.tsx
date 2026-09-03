@@ -172,7 +172,14 @@ export default function AuthPage() {
       }
 
       if (isLogin) {
-        router.replace("/menu");
+        const redirectTo =
+          typeof data?.redirectTo === "string" &&
+          data.redirectTo.startsWith("/") &&
+          !data.redirectTo.startsWith("//")
+            ? data.redirectTo
+            : "/menu";
+
+        router.replace(redirectTo);
         router.refresh();
         return;
       }

@@ -519,12 +519,6 @@ export default function AdminOrdersPage() {
                       Ønsket tidspunkt:{" "}
                       {formatRequestedTime(order.requested_time)}
                     </span>
-
-                    {order.order_note && (
-                      <span className={styles.orderNote}>
-                        Kommentar: {order.order_note}
-                      </span>
-                    )}
                   </span>
 
                   <span className={styles.arrow} aria-hidden="true">

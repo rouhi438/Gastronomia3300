@@ -1,0 +1,32 @@
+.portal {
+    min-height: 100vh;
+    min-height: 100svh;
+
+    color: var(--text-primary);
+    background: var(--bg);
+
+    transition:
+        color 0.3s ease,
+        background-color 0.3s ease;
+}
+
+.content {
+    min-height: calc(100vh - 78px);
+    min-height: calc(100svh - 78px);
+}
+
+@media (max-width: 940px) {
+    .content {
+        min-height: calc(100vh - 72px);
+        min-height: calc(100svh - 72px);
+    }
+}
+
+@media print {
+
+    .portal,
+    .content {
+        min-height: 0 !important;
+        background: #ffffff !important;
+    }
+}

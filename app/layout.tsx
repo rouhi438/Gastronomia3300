@@ -3,8 +3,6 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 
 import { Providers } from "./providers";
-import { CartProvider } from "@/context/CartContext";
-import { CartUIProvider } from "@/context/CartUIContext";
 
 import "./globals.css";
 
@@ -34,11 +32,7 @@ export default async function RootLayout({
     <html lang={locale} suppressHydrationWarning>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <Providers>
-            <CartProvider>
-              <CartUIProvider>{children}</CartUIProvider>
-            </CartProvider>
-          </Providers>
+          <Providers>{children}</Providers>
         </NextIntlClientProvider>
       </body>
     </html>

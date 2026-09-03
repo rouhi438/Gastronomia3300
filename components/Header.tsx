@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -14,10 +14,6 @@ import {
   Moon,
   Sun,
   SquareMenu,
-  ChevronDown,
-  ClipboardList,
-  UtensilsCrossed,
-  Clock3,
 } from "lucide-react";
 
 import StoreStatusBadge from "./StoreStatusBadge";
@@ -48,12 +44,10 @@ export default function Header() {
   );
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
-  const [userRole, setUserRole] = useState<string | null>(null);
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [profileHref, setProfileHref] = useState("/complete-profile");
-  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
-  const adminMenuRef = useRef<HTMLDivElement>(null);
-  const mobileAdminMenuRef = useRef<HTMLDivElement>(null);
+
   const locale = useLocale();
   const t = useTranslations("Header");
 
@@ -67,7 +61,6 @@ export default function Header() {
       if (error || !user) {
         setIsLoggedIn(false);
         setUserName("");
-        setUserRole(null);
         return;
       }
 
@@ -95,8 +88,6 @@ export default function Header() {
           user.email ||
           "",
       );
-
-      setUserRole(user.app_metadata?.role ?? user.user_metadata?.role ?? null);
       setProfileHref(getProfileDestination(isComplete));
     };
 
@@ -110,7 +101,6 @@ export default function Header() {
       if (!user) {
         setIsLoggedIn(false);
         setUserName("");
-        setUserRole(null);
         setProfileHref("/complete-profile");
         return;
       }
@@ -138,8 +128,6 @@ export default function Header() {
           user.email ||
           "",
       );
-
-      setUserRole(user.app_metadata?.role ?? user.user_metadata?.role ?? null);
       setProfileHref(getProfileDestination(isComplete));
     });
 
@@ -147,26 +135,6 @@ export default function Header() {
       subscription.unsubscribe();
     };
   }, [supabase]);
-
-  useEffect(() => {
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node;
-
-      const clickedDesktopAdmin = adminMenuRef.current?.contains(target);
-
-      const clickedMobileAdmin = mobileAdminMenuRef.current?.contains(target);
-
-      if (!clickedDesktopAdmin && !clickedMobileAdmin) {
-        setIsAdminMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("pointerdown", handlePointerDown);
-
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-    };
-  }, []);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -178,7 +146,6 @@ export default function Header() {
 
     setIsLoggedIn(false);
     setUserName("");
-    setUserRole(null);
     setIsMenuOpen(false);
     setProfileHref("/complete-profile");
 
@@ -216,7 +183,6 @@ export default function Header() {
 
   const closeMenu = () => {
     setIsMenuOpen(false);
-    setIsAdminMenuOpen(false);
   };
 
   const getInitials = (name: string) => {
@@ -290,58 +256,6 @@ export default function Header() {
 
             <span>{t("cart")}</span>
           </button>
-
-          {isLoggedIn && userRole === "admin" && (
-            <div className={styles.adminMenu} ref={adminMenuRef}>
-              <button
-                type="button"
-                className={styles.navLink}
-                onClick={() => setIsAdminMenuOpen((prev) => !prev)}
-                aria-haspopup="menu"
-                aria-expanded={isAdminMenuOpen}
-              >
-                <span>{t("admin")}</span>
-
-                <ChevronDown
-                  size={16}
-                  className={`${styles.adminChevron} ${
-                    isAdminMenuOpen ? styles.adminChevronOpen : ""
-                  }`}
-                />
-              </button>
-
-              {isAdminMenuOpen && (
-                <div className={styles.adminDropdown} role="menu">
-                  <Link
-                    href="/admin/orders"
-                    className={styles.adminDropdownLink}
-                    onClick={() => setIsAdminMenuOpen(false)}
-                  >
-                    <ClipboardList size={17} />
-                    <span>{t("orders")}</span>
-                  </Link>
-
-                  <Link
-                    href="/admin/menu"
-                    className={styles.adminDropdownLink}
-                    onClick={() => setIsAdminMenuOpen(false)}
-                  >
-                    <UtensilsCrossed size={17} />
-                    <span>{t("menu")}</span>
-                  </Link>
-
-                  <Link
-                    href="/admin/opening-hours"
-                    className={styles.adminDropdownLink}
-                    onClick={() => setIsAdminMenuOpen(false)}
-                  >
-                    <Clock3 size={17} />
-                    <span>{t("openingHours")}</span>
-                  </Link>
-                </div>
-              )}
-            </div>
-          )}
 
           {isLoggedIn ? (
             <>
@@ -466,60 +380,6 @@ export default function Header() {
 
               <span>Kurv</span>
             </button>
-
-            {isLoggedIn && userRole === "admin" && (
-              <div
-                className={styles.mobileAdminSection}
-                ref={mobileAdminMenuRef}
-              >
-                <button
-                  type="button"
-                  className={`${styles.mobileNavLink} ${styles.mobileAdminButton}`}
-                  onClick={() => setIsAdminMenuOpen((prev) => !prev)}
-                  aria-expanded={isAdminMenuOpen}
-                >
-                  <span>Admin</span>
-
-                  <ChevronDown
-                    size={18}
-                    className={`${styles.adminChevron} ${
-                      isAdminMenuOpen ? styles.adminChevronOpen : ""
-                    }`}
-                  />
-                </button>
-
-                {isAdminMenuOpen && (
-                  <div className={styles.mobileAdminSubmenu}>
-                    <Link
-                      href="/admin/orders"
-                      className={styles.mobileAdminLink}
-                      onClick={closeMenu}
-                    >
-                      <ClipboardList size={18} />
-                      <span>Ordrer</span>
-                    </Link>
-
-                    <Link
-                      href="/admin/menu"
-                      className={styles.mobileAdminLink}
-                      onClick={closeMenu}
-                    >
-                      <UtensilsCrossed size={18} />
-                      <span>Menu</span>
-                    </Link>
-
-                    <Link
-                      href="/admin/opening-hours"
-                      className={styles.mobileAdminLink}
-                      onClick={closeMenu}
-                    >
-                      <Clock3 size={18} />
-                      <span>Åbningstider</span>
-                    </Link>
-                  </div>
-                )}
-              </div>
-            )}
 
             {isLoggedIn ? (
               <>
