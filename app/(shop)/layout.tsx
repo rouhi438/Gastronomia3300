@@ -1,7 +1,8 @@
-import AdminOrderWatcher from "@/components/AdminOrderWatcher";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BottomCartBar from "@/components/BottomCartBar";
+import { CartProvider } from "@/context/CartContext";
+import { CartUIProvider } from "@/context/CartUIContext";
 import "@/app/globals.css";
 
 export default function ShopLayout({
@@ -10,26 +11,28 @@ export default function ShopLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      className="shop-layout"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "100vh",
-        paddingTop: "90px",
-        backgroundColor: "var(--bg)",
-        transition: "background-color 0.3s ease",
-      }}
-    >
-      <AdminOrderWatcher />
+    <CartProvider>
+      <CartUIProvider>
+        <div
+          className="shop-layout"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            minHeight: "100vh",
+            paddingTop: "90px",
+            backgroundColor: "var(--bg)",
+            transition: "background-color 0.3s ease",
+          }}
+        >
+          <Header />
 
-      <Header />
+          <main style={{ flex: 1 }}>{children}</main>
 
-      <main style={{ flex: 1 }}>{children}</main>
+          <Footer />
 
-      <Footer />
-
-      <BottomCartBar />
-    </div>
+          <BottomCartBar />
+        </div>
+      </CartUIProvider>
+    </CartProvider>
   );
 }

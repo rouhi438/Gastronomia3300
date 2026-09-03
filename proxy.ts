@@ -41,7 +41,43 @@ export async function proxy(request: NextRequest) {
    * Calling getUser() allows Supabase to use the refresh token
    * and write updated cookies when the access token has expired.
    */
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const pathname = request.nextUrl.pathname;
+
+  const isAdminArea = pathname === "/admin" || pathname.startsWith("/admin/");
+
+  const isApiRoute = pathname === "/api" || pathname.startsWith("/api/");
+
+  const isAuthCallback = pathname === "/auth/callback";
+
+  const isPasswordReset = pathname === "/auth/reset-password";
+
+  const isFileRequest = pathname.includes(".");
+
+  if (
+    user?.app_metadata?.role === "admin" &&
+    !isAdminArea &&
+    !isApiRoute &&
+    !isAuthCallback &&
+    !isPasswordReset &&
+    !isFileRequest
+  ) {
+    const redirectUrl = request.nextUrl.clone();
+
+    redirectUrl.pathname = "/admin/orders";
+    redirectUrl.search = "";
+
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie);
+    });
+
+    return redirectResponse;
+  }
 
   return response;
 }

@@ -62,6 +62,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         message: "Login successful",
+        redirectTo:
+          data.user.app_metadata?.role === "admin" ? "/admin/orders" : "/menu",
         user: {
           id: data.user.id,
           email: data.user.email,

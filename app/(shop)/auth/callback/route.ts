@@ -41,5 +41,13 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/auth?error=oauth`);
   }
 
-  return NextResponse.redirect(new URL(nextPath, origin));
+  const isPasswordReset = nextPath === "/auth/reset-password";
+
+  const destination = isPasswordReset
+    ? nextPath
+    : user.app_metadata?.role === "admin"
+      ? "/admin/orders"
+      : nextPath;
+
+  return NextResponse.redirect(new URL(destination, origin));
 }
