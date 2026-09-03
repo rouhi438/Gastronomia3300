@@ -41,6 +41,34 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/auth?error=oauth`);
   }
 
+  if (user.app_metadata?.role !== "admin") {
+    const fullName =
+      typeof user.user_metadata?.full_name === "string"
+        ? user.user_metadata.full_name.trim()
+        : typeof user.user_metadata?.name === "string"
+          ? user.user_metadata.name.trim()
+          : "";
+
+    const email = user.email?.trim().toLowerCase() ?? "";
+
+    const { error: profileError } = await supabase.from("profiles").upsert(
+      {
+        id: user.id,
+        full_name: fullName,
+        email,
+        phone: "",
+      },
+      {
+        onConflict: "id",
+        ignoreDuplicates: true,
+      },
+    );
+
+    if (profileError) {
+      console.error("OAuth profile creation failed:", profileError);
+    }
+  }
+
   const isPasswordReset = nextPath === "/auth/reset-password";
 
   const destination = isPasswordReset

@@ -1112,6 +1112,51 @@ export async function POST(request: NextRequest) {
 
   const checkout = checkoutSession.order_payload;
 
+  let orderUserId = checkoutSession.user_id;
+
+  if (orderUserId) {
+    const profileAlertKey = `paid-order-profile-link-failed:${checkoutSession.id}`;
+
+    const { error: profileEnsureError } = await supabaseAdmin
+      .from("profiles")
+      .upsert(
+        {
+          id: orderUserId,
+          full_name: checkout.customerName,
+          email: checkout.customerEmail,
+          phone: checkout.customerPhone,
+        },
+        {
+          onConflict: "id",
+          ignoreDuplicates: true,
+        },
+      );
+
+    if (profileEnsureError) {
+      console.error(
+        "Paid order customer profile could not be ensured:",
+        profileEnsureError,
+      );
+
+      await recordOperationalAlert({
+        dedupeKey: profileAlertKey,
+        category: "paid_order_profile_link",
+        severity: "warning",
+        summary:
+          "The customer profile could not be ensured; the paid order will be created without an account link.",
+        checkoutSessionId: checkoutSession.id,
+        context: {
+          stage: "ensure_customer_profile",
+          database_code: profileEnsureError.code ?? null,
+        },
+      });
+
+      orderUserId = null;
+    } else {
+      await resolveOperationalAlert(profileAlertKey);
+    }
+  }
+
   /*
    * The money is now verified as fully charged.
    * Only now do we create the real restaurant order.
@@ -1120,7 +1165,7 @@ export async function POST(request: NextRequest) {
   const { data: order, error: orderError } = await supabaseAdmin
     .from("orders")
     .insert({
-      user_id: checkoutSession.user_id,
+      user_id: orderUserId,
 
       subtotal: checkout.pricing.subtotal,
       bag_included: checkout.bagIncluded,
