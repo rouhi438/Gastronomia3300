@@ -242,8 +242,7 @@
     right: 3.5rem;
 }
 
-.orderCardWithFeedback .itemsSummary,
-.orderCardWithFeedback .orderNote {
+.orderCardWithFeedback .itemsSummary {
     padding-right: 13rem;
 }
 
@@ -399,15 +398,6 @@
     gap: 0.4rem 0.65rem;
     color: var(--text-muted);
     font-size: 0.76rem;
-}
-
-.orderNote {
-    display: block;
-    margin-top: 6px;
-    color: #d32f2f;
-    font-weight: 700;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
 }
 
 .statusBadge {
@@ -602,8 +592,7 @@
         justify-self: stretch;
     }
 
-    .orderCardWithFeedback .itemsSummary,
-    .orderCardWithFeedback .orderNote {
+    .orderCardWithFeedback .itemsSummary {
         padding-right: 0;
     }
 

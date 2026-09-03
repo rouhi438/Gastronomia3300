@@ -1,755 +1,658 @@
-# GastronomiaPizzaApp — Project Context
+# GastronomiaPizzaApp â€” Project Context
 
-Last updated: 2026-08-30
+Last updated: 2026-09-03
 
 ## Purpose
 
-GastronomiaPizzaApp is the online ordering application for Gastronomia3300.
+GastronomiaPizzaApp is the online ordering application for Gastronomia 3300.
 
-Production website:
+Production website: `https://gastronomia3300.dk`
 
-`https://gastronomia3300.dk`
+This document preserves project context, completed work, important decisions,
+operational procedures, known risks, and the agreed roadmap. Update it whenever
+a meaningful feature is merged.
 
-This document preserves project context, completed work, important decisions, known risks, and the agreed roadmap. It must be updated as meaningful features are merged.
+The repository remains the technical source of truth. Verify exact file names,
+routes, database objects, environment variables, and script behavior in the
+repository before making changes.
 
-The repository implementation remains the technical source of truth. Verify exact file names, routes, database table names, environment variables, and scripts in the repository before changing them.
-
-## Known Technology Stack
-
-The project uses:
+## Technology Stack
 
 - Next.js
 - React
 - TypeScript
-- Supabase for authentication and application data
-- Nets for online payment processing
-- Vercel for Preview and Production deployments
-- Danish and English localization
-- `lucide-react` and `react-icons` for icons
+- Supabase Authentication and Postgres
+- Nets Easy payments
+- Vercel Preview and Production deployments
+- Danish and English localization for customer-facing pages
+- `lucide-react` and `react-icons`
 
-The project has separate Preview and Production concerns. Environment-specific URLs, Supabase projects, OAuth callbacks, and secrets must not be mixed.
+## Environment Separation
+
+Preview and Production are separate operational environments. Do not mix their:
+
+- Supabase projects or credentials
+- OAuth callback and redirect URLs
+- Vercel environment variables
+- Nets test and live credentials
+- admin accounts or role changes
+- order, payment, or operational-alert data
+
+Never commit environment-variable values, OAuth secrets, service-role keys,
+payment credentials, webhook authorization values, or real customer data.
 
 ## Product Scope
 
-The application supports the main restaurant ordering flow, including:
+The application supports:
 
-- Customer menu browsing
-- Product details and modifiers
-- Shopping cart
-- Pickup orders
-- Delivery orders
-- ASAP orders
-- Scheduled orders
-- Guest ordering
-- Authenticated customer ordering
-- Online payment
-- Order management
-- Customer emails
-- Customer profile functionality
+- Customer menu browsing and product modifiers
+- Shopping cart and checkout
+- Pickup and delivery
+- ASAP and scheduled orders
+- Guest and authenticated ordering
+- Online card and MobilePay payment flows where configured
+- Customer accounts, profiles, OAuth, and password recovery
+- Customer order pages and email notifications
 - Danish and English customer-facing pages
-- Legal/information pages
-- Admin handling of incoming orders
+- Admin order handling, menu availability, and opening hours
+- Admin accounting reports
+- Private order feedback and public aggregate ratings
+- Operational monitoring and restaurant fallback notifications
+- Legal and informational pages
 
-## Completed Work
+## Completed Work Summary
 
-Based on the current project history, the following areas have already been implemented or corrected:
+The following features have been implemented or corrected:
 
 - Main customer ordering flow
-- Menu and category presentation
-- Cart and checkout
-- Pickup and delivery choices
-- ASAP and scheduled order choices
-- Guest order flow
-- Customer account and profile flow
-- Password recovery
-- Google OAuth
-- Facebook OAuth
+- Guest and authenticated checkout
+- Pickup, delivery, ASAP, and scheduled ordering
 - Nets payment integration
-- Admin order handling
-- Order/customer email behavior
-- Danish and English localization of customer pages
+- Customer account, profile, password recovery, Google OAuth, and Facebook OAuth
+- Customer and restaurant order emails
+- Admin order management
+- Menu availability and opening-hours management
+- Danish and English customer localization
 - Legal and informational pages
-- Menu category icon updates
-- Corrections to incorrectly mapped translation IDs/keys
-- General lint-related cleanup completed during the previous work
-- Order-loss prevention, durable operational alerts, and restaurant fallback emails
-- Production verification of restaurant new-order emails and pending-order alert resolution
-- Curated Most Ordered menu section, popular labeling, and category filtering
+- Curated Most Ordered menu section
+- Private order feedback and public aggregate ratings
+- Order-loss prevention and durable operational alerts
+- Admin accounting report
+- Admin portal isolation in the current feature branch
+- OAuth profile continuity and paid-order fallback in the current feature branch
+- Missing English public-rating threshold messages
+- Removal of customer comments from the compact admin order list only
+- Menu category icon and translation-key corrections
 - Production menu price corrections completed on 2026-08-27
 
-Before modifying any of these areas, inspect the existing code and confirm the current behavior.
+Before changing any completed area, inspect the current code and verify existing
+behavior.
 
-## Important Operational Notes
+## Current Branch and Deployment State
 
-### OAuth
+### Main
 
-Google and Facebook authentication use Supabase providers.
+The accounting-report feature has been merged and its deployment reached Ready.
 
-For any future OAuth credential rotation:
+### Admin portal isolation rollout
 
-1. Create the new secret without disabling the old one.
-2. Update and test Preview.
-3. Update and test Production.
-4. Only after both environments work, disable or delete the old secret.
-5. Never commit an OAuth secret to Git or paste it into project documentation.
+Branch: `feature/admin-portal-isolation`
 
-OAuth callback URLs must remain correct for each Supabase environment.
+Status at the time of this update:
 
-### Payments and Orders
+- Implementation completed
+- Preview deployment tested
+- Preview operational alerts reviewed and resolved
+- ESLint passed
+- TypeScript passed with `npx tsc --noEmit`
+- `git diff --check` passed
+- Next.js production build passed
+- Final admin-list and translation cleanup verified locally
+- Production deployment and admin-account migration pending
 
-Nets payment and order creation are business-critical.
+## Security and Privacy Rules
 
-The application must prevent these failures from becoming silent:
+### Authorization
 
-- Payment creation fails.
-- A Nets webhook fails.
-- Payment succeeds but the order is not created or not visible.
-- A webhook is delivered more than once.
-- An order email fails.
-- An admin order API operation fails.
-- A paid or pending order remains unnoticed by the restaurant.
+- UI visibility is never sufficient authorization.
+- Admin pages and APIs must enforce the admin role server-side.
+- The trusted admin role is `user.app_metadata.role === "admin"`.
+- Do not authorize admin access from client-controlled `user_metadata`.
+- Supabase RLS must protect private tables where applicable.
+- Service-role credentials must remain server-only.
 
-Webhook and order handling must remain idempotent and authorized.
+### Customer data
 
-### Customer Data
+Customer orders, profiles, addresses, messages, feedback, and replies are private.
 
-Customer orders, profiles, messages, and feedback are private.
+Do not place real customer data in:
 
-Authorization must be enforced through server-side checks and Supabase RLS where applicable. UI visibility alone must never be treated as authorization.
+- source control
+- fixtures
+- screenshots committed to the repository
+- operational-alert context
+- application logs unless strictly necessary and appropriately protected
+- this document
 
-Do not put real customer data into source control, logs, fixtures, screenshots, or documentation.
+### Payment data
 
-## Current Agreed Roadmap
-
-The order-monitoring, Most Ordered, and private order feedback features have been implemented, merged, and verified in Production.
-
-Structured menu allergens remain deferred until verified restaurant recipe, ingredient-label, and preparation data is available. The remaining implementation order is:
-
-1. Structured menu allergens after verified data is available
-2. Printer integration after hardware and paper-width selection
-
-Each roadmap item should use a separate branch and pull request.
+- Never store or log card credentials.
+- Do not treat a browser redirect as proof of payment.
+- Only authenticated and validated Nets events may confirm a charge.
+- Webhook processing must remain idempotent.
+- Always check whether an order already exists before replaying a webhook or
+  manually recovering an order.
 
 ---
 
-## 1. Order-Loss Prevention and Error Monitoring — Implemented
+## 1. Order-Loss Prevention and Error Monitoring â€” Implemented
 
-Branch:
+Branch: `feature/order-monitoring`
 
-`feature/order-monitoring`
+Status: verified in Preview on 2026-08-26, then merged, deployed, and verified
+in Production on 2026-08-27.
 
-Status:
+### Coverage
 
-Implemented and verified in Preview on 2026-08-26, then merged, deployed, and verified in Production on 2026-08-27. The Production database migration and required environment variables are configured.
-
-### Implemented Coverage
-
-The monitoring system now covers:
+The monitoring system covers:
 
 - Payment creation and payment-total failures
 - Authenticated Nets webhook validation failures
 - Persistence of a verified payment before restaurant-order creation
 - Paid checkout sessions without a corresponding order
 - Order creation and checkout-finalization failures
-- Duplicate Nets webhook delivery without duplicate order creation
-- Refund request, refund webhook, and refund-state failures
+- Duplicate webhook delivery without duplicate order creation
+- Refund request, webhook, and persistence failures
 - Admin order lookup and update failures
 - Failed customer received, accepted, and rejected emails
-- Paid orders remaining pending for more than five minutes
-- Immediate fallback email notification for each new paid order
+- Paid orders remaining pending beyond the accepted threshold
+- Immediate restaurant fallback email for each new paid order
 
-Customer emails remain separate:
+Customer emails remain separate from restaurant notifications:
 
 - Order received
 - Order accepted
 - Order rejected
 
-Restaurant emails do not replace customer emails.
-
 ### Database
 
-The monitoring schema is created by:
+Migration:
 
 `supabase/migrations/20260825000000_add_operational_alerts.sql`
 
-The migration adds:
+It adds:
 
-- The `public.operational_alerts` table
-- Indexes for unresolved alerts, checkout sessions, and orders
-- RLS enabled without anon or authenticated policies
-- `restaurant_notification_email_claimed_at` on `public.orders`
-- `restaurant_notification_email_sent_at` on `public.orders`
+- `public.operational_alerts`
+- indexes for unresolved alerts, checkout sessions, and orders
+- RLS without anon or authenticated access policies
+- restaurant notification claim and sent timestamps on `public.orders`
 
-Operational alerts are accessed only by server-side code using the Supabase service role.
+Operational alerts are accessed only by trusted server-side code using the
+Supabase service role.
 
-Alert context must not contain customer personal data, payment credentials, secrets, tokens, cookies, or complete webhook payloads.
+Alert context must not contain personal data, payment credentials, secrets,
+tokens, cookies, or complete webhook payloads.
 
-### Restaurant Email Configuration
+### Restaurant email configuration
 
-The server-only environment variable is:
+Server-only variables:
 
-`RESTAURANT_ALERT_EMAIL`
-
-Its value must be configured separately in Vercel Preview and Production and must never be committed.
-
-Restaurant email delivery also requires the existing server-only variables:
-
+- `RESTAURANT_ALERT_EMAIL`
 - `RESEND_API_KEY`
 - `EMAIL_FROM`
 
-A new paid order triggers a fallback restaurant email. Database claim and sent timestamps prevent concurrent or repeated webhook processing from normally sending duplicate restaurant emails.
+Configure them separately in Preview and Production. Never document their values.
 
-Critical operational alerts may also send an email to the restaurant. Warning alerts remain durably recorded in the database unless their call site explicitly requests notification.
+Database claim and sent timestamps prevent normal concurrent or duplicate
+webhook processing from sending repeated restaurant notifications.
 
-### Pending-Order Monitoring
+### Pending-order monitoring
 
-The authenticated admin watcher checks the oldest pending order every five seconds.
+The authenticated admin watcher checks for pending paid orders.
 
-When a paid order remains pending for at least five minutes:
+When an order remains pending beyond the configured operational threshold:
 
-- A critical `pending-order-unhandled` alert is recorded.
-- One critical restaurant email is sent for that alert.
-- Repeated polling does not repeatedly send the same alert email.
-- Accepting or rejecting the order resolves the alert automatically.
+- a durable critical alert is recorded
+- one restaurant notification is sent for that alert
+- repeated polling does not repeatedly send the same alert
+- accepting or rejecting the order resolves the alert
 
-The immediate new-order restaurant email is sent by the server during webhook processing and does not depend on the admin browser watcher.
+The immediate new-order email is sent server-side during webhook processing and
+does not depend on the admin browser watcher.
 
-### Preview and Production Verification
+### Operational recovery
 
-The following checks passed in Preview on 2026-08-26:
-
-- ESLint completed with no new errors.
-- TypeScript completed with `npx tsc --noEmit`.
-- `git diff --check` completed successfully.
-- The Next.js production build completed successfully.
-- A guest ASAP pickup order completed through Nets.
-- A guest scheduled pickup order completed through Nets.
-- Immediate restaurant new-order emails were delivered.
-- A five-minute pending-order alert was delivered once.
-- Accepting the pending order resolved its alert.
-- Customer received and accepted email timestamps were recorded.
-- Rejecting a second order recorded the rejected-email timestamp.
-- A successful rejected email did not create a false operational alert.
-- Restaurant email claims were released after successful delivery.
-  Production rollout completed and was verified on 2026-08-27:
-
-- The Production migration created `public.operational_alerts` and the restaurant-notification order columns.
-- `RESTAURANT_ALERT_EMAIL` was configured for Production alongside the existing Resend variables.
-- The merged Production deployment reached `Ready`.
-- Three consecutive real paid orders delivered immediate `[Ny ordre]` restaurant emails.
-- An order handled before the five-minute threshold did not create a pending-order alert.
-- Orders `#14` and `#15` created critical pending-order alerts after the threshold.
-- Both Production pending-order alerts sent notifications without `notification_error`.
-- Handling orders `#14` and `#15` resolved their alerts automatically.
-
-### Operational Recovery
-
-When a critical alert is received:
+When a critical payment or order alert is received:
 
 1. Find the unresolved row in `public.operational_alerts`.
-2. Use `order_id` and `checkout_session_id` to inspect the related records.
-3. Verify the payment state directly in Nets Easy.
-4. Check whether an order already exists before retrying or manually creating anything.
-5. Do not treat a browser redirect as proof of payment.
-6. Do not manually replay a webhook until duplicate-order protection and the existing checkout-session relationship have been checked.
-7. For restaurant email failures, verify `RESTAURANT_ALERT_EMAIL`, `RESEND_API_KEY`, `EMAIL_FROM`, and the alert’s `notification_error`.
-8. For a pending order, handle it through the normal Admin accept or reject flow so the alert resolves automatically.
+2. Use its `order_id` and `checkout_session_id` to inspect related records.
+3. Verify the payment directly in Nets Easy.
+4. Check whether an order already exists.
+5. Confirm the webhook URL and authorization configuration.
+6. Do not replay a webhook until idempotency and the existing checkout-session
+   relationship have been checked.
+7. For email failures, verify the relevant server-only email configuration and
+   inspect `notification_error`.
+8. Handle pending orders through the normal admin flow so their alerts resolve.
+9. Mark historical alerts resolved rather than deleting them, preserving the
+   audit history.
 
-### Known Limitation
+### Known limitation
 
-There is currently no independent scheduled reconciliation job.
-
-The immediate paid-order restaurant email is server-side, but the five-minute pending-order escalation depends on the authenticated admin watcher calling the pending-order endpoint. A future background reconciliation job may be added if monitoring must continue independently of the admin browser.
-
----
-
-Suggested branch:
-
-`feature/order-monitoring`
-
-### Goal
-
-Make sure a paid or unhandled order cannot fail silently or remain unnoticed without an actionable alert.
-
-### Required Investigation
-
-Before implementation, map the existing flow for:
-
-- Payment initialization
-- Nets payment completion
-- Nets webhook processing
-- Order creation
-- Admin order visibility
-- Pending order alerts
-- Customer and restaurant emails
-- Admin order status updates
-
-Document where errors are currently caught, logged, retried, or ignored.
-
-### Expected Coverage
-
-Monitoring should cover at least:
-
-- Payment initialization failures
-- Invalid or failed Nets webhooks
-- Paid transactions without a corresponding order
-- Duplicate webhook delivery
-- Order creation failures
-- Failed order/customer emails
-- Failed admin order API operations
-- Orders remaining pending or unconfirmed beyond an acceptable time
-
-### Alerting
-
-The application already has browser-based order alert behavior, but browser audio alone is not sufficient because:
-
-- The restaurant device may sleep.
-- The browser may block sound.
-- The internet connection may be interrupted.
-- The page may be closed or suspended.
-
-A fallback alert should be selected after reviewing the current architecture. Possible options include:
-
-- Restaurant email alert
-- Push notification
-- Repeated pending-order alert
-- External error monitoring
-- A reconciliation job that detects paid transactions without orders
-
-Sentry is a possible monitoring provider, but it is not yet a confirmed dependency. Compare the existing infrastructure and project needs before selecting a service.
-
-### Production Rollout
-
-The feature was merged and deployed to Production on 2026-08-30.
-
-Verification included:
-
-- The feedback schema, scheduling column, and rating-summary function migrations were applied to Preview and Production.
-- The rating-summary function is executable only by `postgres` and `service_role`.
-- Dedicated customer and admin feedback pages were verified in light and dark modes without embedding the full order receipt.
-- Customer invitation scheduling was verified end to end with an accelerated three-minute test.
-- Restaurant and customer notification retries and deduplication were verified.
-- Public-name consent withdrawal and no-store public-rating responses were verified.
-- The Production `/api/ratings` endpoint returned `200` with the expected privacy threshold and no-store headers.
-- ESLint, TypeScript, `git diff --check`, and the production build passed.
-
-### Definition of Done
-
-- Critical failures are recorded with actionable context.
-- Secrets and unnecessary personal data are not logged.
-- Duplicate events do not create duplicate orders.
-- There is a detectable path for “paid but no order.”
-- Long-pending orders trigger an appropriate fallback.
-- The relevant failure scenarios are tested.
-- Operational recovery steps are documented.
+There is no independent scheduled reconciliation job. The immediate restaurant
+notification is server-side, but delayed pending-order escalation depends on the
+authenticated admin watcher. Consider a scheduled reconciliation job if monitoring
+must operate independently of an open admin browser.
 
 ---
 
-## 2. Structured Menu Allergens
+## 2. Most Ordered Menu Section â€” Implemented
 
-Suggested branch:
+Branch: `feature/most-ordered`
 
-`feature/menu-allergens`
+Status: merged, deployed, and verified in Production on 2026-08-27.
 
-### Goal
+### Design
 
-Allow customers to see accurate allergen information before ordering.
+The section is a manually curated restaurant selection, not sales analytics.
+It resolves stable menu item IDs from the existing menu data, so product names,
+prices, images, modifiers, translations, and availability remain sourced from one
+place.
 
-### Business Rule
+The configured item order controls presentation. Invalid or removed IDs must fail
+safely and remain detectable during development.
 
-Allergen values must come from the restaurant’s real recipes, ingredient labels, and preparation process.
+Current curated item order:
 
-Never infer or guess allergens from:
+`[3, 8, 16, 20, 47, 60, 200, 201]`
 
-- Product names
-- Product descriptions
-- Common recipes
-- Images
-- Similar restaurant products
+### Behavior
 
-Cross-contamination information must also come from the restaurant’s actual kitchen process.
-
-### Expected Behavior
-
-- Store allergens as structured product data.
-- Keep allergen identifiers stable and language-independent.
-- Provide Danish and English labels.
-- Show allergen information in the relevant menu/product interface.
-- Show it clearly inside the existing `ItemModal`.
-- Preserve current product data, prices, modifiers, and sold-out behavior.
-- Ensure missing allergen data is distinguishable from “contains no allergens.”
-
-### Required Input Before Completion
-
-The restaurant must provide the verified allergen mapping for each relevant menu product. Implementation can prepare the data structure and UI, but production allergen values must not be fabricated.
-
-### Definition of Done
-
-- The data model is structured and maintainable.
-- Verified allergen values can be assigned to menu items.
-- Danish and English displays are complete.
-- The information is visible before purchase.
-- Mobile and desktop layouts are verified.
-- No allergen value has been guessed.
+- Appears above standard menu categories
+- Horizontal scrolling on mobile
+- Desktop navigation controls where appropriate
+- Localized `See all / Vis alle` and `Show less / Vis mindre`
+- Expanded full-width grid
+- Existing item modal and add-to-cart behavior
+- Existing sold-out rules
+- Danish and English UI
 
 ---
 
-## 3. Most Ordered Menu Section — Implemented
+## 3. Private Order Feedback and Public Rating â€” Implemented
 
-Branch:
+Branch: `feature/private-order-feedback`
 
-`feature/most-ordered`
-
-Status:
-
-Implemented, merged, deployed, and verified in Production on 2026-08-27.
-
-### Goal
-
-Display a manually curated selection of popular products using the existing menu data.
-
-This is a curated restaurant selection, not a sales-analytics feature.
-
-### Product Selection
-
-The final ordered menu item IDs are:
-
-```tsx
-[3, 8, 16, 20, 47, 60, 200, 201]
-
-Suggested branch:
-
-`feature/most-ordered`
-
-### Goal
-
-Display a manually curated selection of popular products above the normal menu categories.
-
-This is not a sales analytics feature.
-
-### Product Selection
-
-The restaurant already knows which products sell most frequently. The list will therefore be maintained manually as an ordered list of stable menu item IDs.
-
-Possible product types discussed include:
-
-- Popular pizzas such as pepperoni and salad pizza
-- French fries
-- Cola or other popular drinks
-- Mayonnaise and chili dips
-
-The final item IDs and display order must be confirmed from the real menu data before implementation.
-
-### Data Rules
-
-- Do not copy complete product objects into the Most Ordered configuration.
-- Do not duplicate product names, prices, images, modifiers, or availability.
-- Resolve the selected IDs from the existing menu data.
-- The configured ID order controls the display order.
-- Invalid or removed IDs must fail safely and should be detectable during development.
-- Price, translation, image, and sold-out changes must automatically appear in this section.
-
-### Initial Layout
-
-The section appears above all standard menu categories.
-
-On both mobile and desktop:
-
-- The initial layout is a horizontal row.
-- Only this section scrolls horizontally.
-- Normal menu sections keep their current layout.
-- Mobile supports touch/swipe scrolling.
-- Desktop may include previous and next navigation buttons.
-
-### Expanded Layout
-
-The section has a localized `See all / Vis alle` control.
-
-When selected:
-
-- Horizontal scrolling is removed.
-- All curated items appear in a full-width grid.
-- The grid follows the same visual behavior as normal menu item cards.
-- The section remains above normal categories.
-- The control changes to localized `Show less / Vis mindre`.
-- Selecting it restores the horizontal layout.
-
-### Product Interaction
-
-- Selecting a product opens the existing `ItemModal`.
-- Existing modifiers and add-to-cart behavior are reused.
-- Sold-out products follow the existing sold-out rules.
-- Accessibility and keyboard behavior must be preserved.
-- Danish and English titles and controls must be supported.
-
-### Definition of Done
-
-- The list is manually configurable through stable IDs.
-- No sales tracking or analytics has been introduced.
-- Mobile horizontal scrolling works correctly.
-- Desktop horizontal navigation works correctly.
-- Expand and collapse behavior works correctly.
-- Products use the existing source data and modal.
-- Sold-out behavior is correct.
-- Danish and English are complete.
-
----
-
-## 4. Private Order Feedback and Public Rating — Implemented
-
-Branch:
-
-`feature/private-order-feedback`
-
-### Goal
-
-Allow a verified customer to rate a completed order, optionally send a private message to the restaurant, and receive one private admin reply.
-
-The restaurant’s aggregate rating is public. Individual written feedback and admin replies remain private.
+Status: merged, deployed, and verified in Production on 2026-08-30.
 
 ### Eligibility
 
-- Only an order with `completed` status is eligible.
-- Pending, accepted, ready, cancelled, or rejected orders are not eligible.
+- Only completed orders are eligible.
 - Feedback may be submitted for seven days after `completed_at`.
-- Each completed order can submit only one rating.
-- Ratings must be integers from 1 to 5.
-- The customer cannot edit the rating or private message after submission.
-- Submitted feedback and an admin reply remain viewable after the seven-day submission window closes.
-- Public-name consent may be withdrawn independently at any time.
+- Each order may create only one integer rating from 1 to 5.
+- The customer cannot edit the submitted rating or private message.
+- Submitted feedback and an admin reply remain viewable after the submission
+  window closes.
+- Public-name consent can be withdrawn independently.
 
-### Customer Experience
+### Customer experience
 
-After an eligible order is completed, the customer can access feedback from the relevant order in the Profile or order-detail flow.
+The dedicated feedback page contains:
 
-Customer feedback is displayed on a dedicated feedback page. The full order receipt is not embedded in that page; a secondary “View order” link provides access to the related order when needed.
+- required 1-to-5 star rating
+- optional private message to the restaurant
+- optional consent to display the customer's first name and rating publicly
+- Danish and English moderation guidance
+- a secondary link to the complete order page
 
-The feedback form contains:
+The written message is always private. There is no public written-review field in
+the MVP.
 
-- A required 1-to-5 star rating
-- An optional private message to the restaurant
-- An optional consent control for publicly displaying the customer’s first name and star rating
+### Public rating
 
-The public-display consent must not be preselected.
+The public response may expose only approved aggregate data and consented first
+names with star ratings.
 
-The customer must clearly understand that:
+It must never expose:
 
-- The star rating contributes to the public aggregate.
-- The written message is always private.
-- Only the first name and star rating may be public when explicit consent is given.
-- The surname, photo, order number, email, and private message are never public.
+- customer or order identifiers
+- surnames
+- email addresses
+- private messages
+- admin replies
+- internal metadata
 
-There is no public written-review field in the MVP.
+The public aggregate and consented names are displayed only after at least five
+eligible ratings exist. English threshold messages are present in
+`messages/en.json`.
 
-The private-message field must display a clear moderation notice in Danish and English. Customers must be told to use respectful language and that offensive, threatening, or discriminatory messages may be removed by the restaurant.
-
-An admin may remove an inappropriate private message but may not rewrite it. Removing the message does not remove the order’s star rating from the aggregate.
-
-### Public Rating Experience
-
-The public rating system includes:
-
-- The restaurant’s average rating
-- The total number of eligible ratings
-- A verified-order label
-- Consented first names and star ratings without written comments
-
-The full rating summary is displayed on the home page.
-
-A compact aggregate-rating badge is displayed on the menu page.
-
-Public responses must not expose complete feedback rows, customer identifiers, order identifiers, private messages, admin replies, or internal metadata.
-
-The public aggregate, total count, and consented individual first-name entries are displayed only after at least five eligible ratings exist. Before that threshold, the application must not present an unstable public score.
-
-### Admin Experience
+### Admin experience
 
 An authorized admin can:
 
-- See when an order has new feedback
-- Identify the related order
-- View the customer’s rating
-- View the optional private message
-- Remove an offensive, threatening, or discriminatory private message
-- Never edit or rewrite the customer’s message or rating
-- Preserve the moderation timestamp and responsible admin identity
-- Send one private reply
-- See whether the feedback has been answered
+- identify orders with new feedback
+- view ratings and private messages
+- remove an inappropriate private message without rewriting it
+- preserve moderation time and responsible admin identity
+- send one private reply
+- see whether the feedback has been answered
 
-Admin feedback is handled on a dedicated feedback page. The full order receipt, printing controls, refund controls, and unrelated order actions are not embedded there; a secondary “View order” link opens the complete admin order page when needed.
-
-The admin reply is sent only once. The customer cannot continue a multi-message thread in the MVP.
-
-Admin access and reply authorization must be enforced server-side.
+Admin authorization is enforced server-side.
 
 ### Notifications
 
-The notification flow is:
+- Customer feedback invitation is scheduled after completion.
+- The default delay is three hours.
+- `FEEDBACK_INVITATION_DELAY_HOURS` can configure the server-side delay.
+- Restaurant notification is sent for new feedback.
+- Customer notification is sent for the one admin reply.
+- Claims and sent timestamps prevent normal duplicate notifications.
 
-- A customer feedback invitation is scheduled three hours after `completed_at` by default.
-- The delay is configurable through the server-only `FEEDBACK_INVITATION_DELAY_HOURS` environment variable.
-- If the calculated delivery time has already passed during a retry, the invitation is sent immediately.
-- The restaurant receives a notification when new feedback is submitted.
-- The customer receives a notification when the admin sends the private reply.
+Migration:
 
-The seven-day feedback-submission window remains anchored to `completed_at`, not to email delivery time.
+`supabase/migrations/20260829000000_schedule_feedback_invitations.sql`
 
-Invitation scheduling is recorded in `feedback_invitation_email_scheduled_for`. Email delivery must use database claims, deduplication, or durable sent timestamps so retries do not normally send duplicate messages.
+### Guest-order authorization
 
-The rating and reply are completed inside the application. Email is used only for notification and secure navigation.
-
-The scheduling column is added by `supabase/migrations/20260829000000_schedule_feedback_invitations.sql`.
-
-### Privacy and Authorization
-
-- Private feedback is visible only to the owner of the related order and authorized admins.
-- Another customer must not read or modify the feedback.
-- Order ownership and admin authorization must be verified server-side.
-- Supabase RLS must protect the underlying private data.
-- Predictable order IDs must never authorize feedback access.
-- Public-name consent must be explicit and independently withdrawable.
-- Withdrawing public-name consent must remove the individual public display without exposing or deleting private order history incorrectly.
-- The Privacy Policy must describe the public aggregate and optional first-name display.
-- Public APIs must return only approved aggregate and consented display data.
-
-### Guest Orders
-
-Guest and authenticated-order feedback use the existing high-entropy, order-specific `public_token`.
-
-The customer feedback API must:
-
-- Validate that the token has UUID format.
-- Find the order using the token rather than a predictable order ID.
-- Confirm that the order status is `completed`.
-- Confirm that `completed_at` is present.
-- Enforce the seven-day submission window.
-- Enforce one feedback row per order.
-- Return only the feedback belonging to that token’s order.
-
-A predictable order ID, email address, or client-provided customer identity must never authorize feedback access.
-
-The existing Profile and order-detail flows already navigate through the same secure order token, so guest and authenticated customers can use one feedback experience.
-
-### Finalized MVP Decisions
-
-- Feedback submission remains available for seven days after `completed_at`.
-- The customer cannot edit the rating or private message after submission.
-- Guest and authenticated customers use the existing order-specific `public_token`.
-- Public ratings are displayed after at least five eligible ratings exist.
-- Feedback is retained for as long as the related order is retained and is deleted with that order.
-- Public-name consent may be withdrawn at any time without removing the rating from the aggregate.
-- An admin may remove an inappropriate private message but cannot edit the customer’s message or rating.
-- Message removal records the moderation time and responsible admin identity.
-
-### Definition of Done
-
-- Only completed orders can receive feedback.
-- Each order can create only one valid 1-to-5 rating.
-- Ownership and admin access are enforced at the database and API layers.
-- Another customer cannot read or modify the feedback.
-- The public average and count are calculated correctly.
-- Only consented first names and star ratings are individually public.
-- Private messages and admin replies never appear in public responses.
-- Admin can send only one private reply.
-- Relevant notification emails are deduplicated.
-- Danish and English UI text is complete.
-- RLS, authorization, aggregate, and duplicate-submission tests pass.
-- ESLint, TypeScript, `git diff --check`, and the production build pass.
+Guest and authenticated feedback use the existing high-entropy order
+`public_token`. Predictable order IDs, email addresses, or client-provided customer
+identity must never authorize access.
 
 ---
 
-## 5. Printer Integration — Deferred
+## 4. Admin Accounting Report â€” Implemented
 
-Suggested future branch:
+Branch: `feature/admin-accounting-report`
 
-`feature/order-printing`
+Status: merged and deployed.
 
-Printer work is paused until the restaurant selects the actual hardware.
+### Purpose
 
-The following details are currently unknown:
+Allow an authorized admin to create a financial summary for a selected date range
+without exposing the report publicly.
 
-- Printer model
-- Paper width
-- Connection method
-- ESC/POS compatibility
-- Browser, network, Bluetooth, USB, or local bridge requirements
-- Restaurant tablet/device platform
+### Main implementation
 
-Do not design the final receipt around an assumed 50 mm, 58 mm, 70 mm, or 80 mm printer.
+- Page: `app/(admin)/admin/accounting-report/`
+- API: `app/api/admin/accounting-report/route.ts`
+- Copenhagen date-range utilities: `lib/time/copenhagenDateRange.ts`
+- Entry form on the admin orders page
 
-When hardware is selected, first confirm:
+### Behavior
 
-1. Printer model and technical documentation
+- Admin selects a start and end date.
+- Date boundaries are interpreted in `Europe/Copenhagen`.
+- The API enforces the admin role server-side.
+- The report summarizes order count, gross sales, completed refunds, and net sales.
+- It includes payment-method, refund-status, and order-status breakdowns.
+- Orders requiring accounting attention are listed separately.
+- Responsive light and dark layouts are supported.
+- Browser print styles produce a compact printable report suitable for saving as
+  PDF.
+
+Browser-generated page URL, date, and page-number headers and footers are controlled
+by the browser print dialog. They are not HTML or CSS elements in the application.
+Disable `Headers and footers` in the browser print dialog when a clean PDF is
+required.
+
+No database migration or new secret is required for this feature.
+
+---
+
+## 5. Admin Portal Isolation â€” Preview Verified, Production Pending
+
+Branch: `feature/admin-portal-isolation`
+
+### Goal
+
+Keep restaurant administration separate from the customer storefront while
+preserving secure authentication, order monitoring, payment recovery, and password
+reset behavior.
+
+### Route and layout separation
+
+- Admin pages live under the `(admin)` route group while retaining `/admin/...`
+  public paths.
+- Customer pages remain under the `(shop)` route group.
+- The admin layout uses a dedicated `AdminHeader`.
+- Customer Header, Footer, cart bar, and customer navigation are not rendered in
+  the admin portal.
+- Admin order monitoring remains available in the admin environment.
+- Customer cart providers remain scoped to customer pages where required.
+
+### Admin interface
+
+- Dedicated desktop navigation for orders, menu management, and opening hours
+- Responsive mobile hamburger navigation
+- Theme control and logout
+- Admin identity indicator
+- Danish-only admin UI; the customer storefront remains Danish and English
+- Customer comments removed from the compact admin orders list
+- Customer comments remain available in the detailed order view and printable
+  order view
+
+### Authentication and routing
+
+- Admin layout performs a server-side user and role check.
+- Unauthenticated admin requests redirect to `/auth`.
+- Authenticated non-admin users cannot access admin pages.
+- Password login returns a role-aware destination.
+- OAuth callback returns admins to `/admin/orders` and customers to customer pages.
+- Password-reset callback keeps `/auth/reset-password` as its destination.
+- Session refresh remains handled through `proxy.ts`.
+- Customer Header no longer exposes admin navigation.
+
+### Admin provisioning
+
+- The public `app/api/auth/admin-register/route.ts` endpoint was removed.
+- Admin roles are managed through the server-side
+  `scripts/manage-admin-role.mjs` maintenance script.
+- The script must use the intended environment's Supabase URL and service-role key.
+- It displays the target project, account, current role, and requested action before
+  requiring explicit confirmation.
+- Preview and Production role changes must be performed independently.
+- Never grant admin through `user_metadata` or a public registration endpoint.
+
+### OAuth profile continuity
+
+The OAuth callback creates the initial `profiles` row for a non-admin OAuth user
+when it does not already exist. The operation is idempotent and does not overwrite
+an existing profile.
+
+This prevents authenticated OAuth customers from reaching checkout without the
+profile row required by the order relationship.
+
+### Paid-order resilience
+
+The Nets charge webhook also handles a missing OAuth profile defensively:
+
+1. It attempts an idempotent profile insert from the stored checkout identity.
+2. If the profile association still cannot be created, it records an operational
+   warning.
+3. It creates the paid restaurant order without the optional user association
+   rather than losing an already-paid order.
+4. Existing checkout-session uniqueness continues to prevent duplicate orders.
+
+The payment remains the source of truth for payment status. This fallback must not
+bypass charge, amount, currency, payment ID, authorization, or idempotency checks.
+
+### Preview OAuth configuration
+
+Supabase Preview must allow:
+
+- the local callback URL
+- the relevant Preview deployment callback pattern
+
+A wildcard may be used for the project's Vercel Preview deployment callback URLs.
+Production should use its exact production callback URL.
+
+Supabase `Site URL` and redirect allowlists are environment configuration, not
+source code.
+
+### Vercel Preview protection and webhooks
+
+Vercel Preview Deployment Protection can reject external webhooks with HTTP 401.
+For Preview only, the payment creation flow adds the configured automation-bypass
+secret to the webhook URL when both of these conditions are true:
+
+- `VERCEL_ENV === "preview"`
+- `VERCEL_AUTOMATION_BYPASS_SECRET` is configured
+
+Never print or document the bypass-secret value. A manual replay that omits the
+bypass parameter may be rejected even when the original Nets webhook can succeed.
+
+### Preview verification completed
+
+The following end-to-end behavior was verified:
+
+- First Google OAuth login completed in one attempt after redirect configuration.
+- Customer session and user icon updated correctly.
+- Store-status badges stayed consistent before and after login.
+- OAuth customer received a profile row.
+- A previously paid checkout was recovered by an authenticated Nets retry.
+- The checkout became completed and created exactly one order.
+- Customer and restaurant received their new-order emails.
+- A fresh paid order was created normally after the fix.
+- The cart was cleared after successful payment.
+- The admin saw and accepted the order.
+- The customer received the accepted-order email.
+- The admin marked the order delivered.
+- The Preview unresolved operational-alert query returned no rows after historical
+  test warnings were reviewed and marked resolved.
+
+### Production rollout checklist
+
+Do not revoke the existing Production admin until every earlier step passes.
+
+1. Merge the feature branch and wait for the Production deployment to reach Ready.
+2. Confirm Production Vercel variables point only to Production services.
+3. Confirm the Production Supabase Site URL and exact auth callback URL.
+4. Create or verify the intended Production admin authentication account.
+5. Run `scripts/manage-admin-role.mjs` with Production credentials and grant the
+   trusted `app_metadata` admin role.
+6. Log out and start a clean browser session.
+7. Verify password login routes directly to `/admin/orders`.
+8. Verify password recovery and the new password.
+9. Verify customer storefront chrome is absent from admin pages.
+10. Verify desktop and mobile admin navigation.
+11. Verify orders, menu management, opening hours, feedback, and accounting report.
+12. Complete a controlled Production order test and verify the customer and
+    restaurant notification flow.
+13. Check for unresolved operational alerts.
+14. Only after all checks pass, revoke the old account's admin role in Production.
+15. Verify the old account can no longer access admin pages or APIs.
+
+Keep a recoverable administrator until the new Production account has been fully
+verified. Prefer revoking the old role before deleting the old authentication
+account.
+
+---
+
+## 6. Structured Menu Allergens â€” Deferred
+
+Suggested branch: `feature/menu-allergens`
+
+### Business rule
+
+Allergen values must come from the restaurant's verified recipes, ingredient
+labels, and preparation process. Never infer allergens from names, descriptions,
+common recipes, images, or similar products.
+
+Cross-contamination information must come from the restaurant's actual kitchen
+process.
+
+### Expected behavior
+
+- Structured, language-independent allergen identifiers
+- Danish and English labels
+- Display before purchase, including the item modal
+- Existing product prices, modifiers, and availability preserved
+- Missing data distinguishable from â€œcontains no allergensâ€
+
+Production values must not be entered until the restaurant supplies verified data.
+
+---
+
+## 7. Printer Integration â€” Deferred
+
+Suggested branch: `feature/order-printing`
+
+Printer work remains paused until the restaurant selects the hardware.
+
+Confirm before implementation:
+
+1. Printer model and documentation
 2. Paper width
-3. Supported character encoding
-4. Danish character support
-5. Image/logo support
-6. Connection method
+3. Connection method
+4. ESC/POS or other protocol support
+5. Character encoding and Danish characters
+6. Logo/image support
 7. Auto-cut support
-8. Cash drawer requirements, if any
-9. Browser/device restrictions
-10. Whether automatic printing requires a local print bridge
+8. Cash-drawer requirements
+9. Restaurant device and browser restrictions
+10. Whether automatic printing requires a local bridge
 
-Receipt data should eventually be separated from printer-specific layout and transport.
+Do not design a final receipt around an assumed paper width. Keep receipt data
+separate from printer-specific layout and transport.
 
 ## Testing Priorities
 
-Critical automated or manual scenarios should include:
+Critical automated or manual scenarios include:
 
-- Guest pickup order
-- Guest delivery order
-- Authenticated pickup order
-- Authenticated delivery order
-- ASAP order
-- Scheduled order
+- Guest pickup and delivery
+- Authenticated pickup and delivery
+- ASAP and scheduled orders
 - Payment initialization
-- Successful payment/webhook
+- Successful payment and webhook
 - Duplicate webhook
-- Payment success with simulated order creation failure
-- Admin order visibility
-- Admin accept/reject/completion flow
+- Paid checkout with simulated order-creation failure
+- Missing OAuth profile during checkout completion
+- Admin order visibility and authorization
+- Admin accept, reject, and completion
+- Cart clearing after successful payment
+- Customer and restaurant notification emails
 - Password recovery
-- Google OAuth
-- Facebook OAuth
-- Danish customer flow
-- English customer flow
-- Sold-out menu product
+- Google and Facebook OAuth
+- Danish and English customer flows
+- Public rating below and above its display threshold
+- Admin accounting date boundaries around Copenhagen daylight-saving changes
+- Mobile and desktop admin navigation
+- Sold-out products
 - Mobile menu and checkout
-- Desktop menu and checkout
 
-Playwright is a suitable option for browser-level tests if it matches the repository’s existing tooling. Do not add it without first inspecting the current test setup.
+Playwright is a possible browser-level testing option if it matches the repository's
+existing tooling. Inspect the test setup before adding a new dependency.
 
-## Open Decisions
+## Open Decisions and Risks
 
-The following decisions still require confirmation:
-
-- Whether to add an independent scheduled reconciliation job for paid checkout sessions
-- Verified allergen data for each menu item
+- Whether to add an independent scheduled reconciliation job
+- Verified allergen data for every applicable menu item
 - Printer hardware and paper width
+- Production migration to the new dedicated admin account
 
-## Next Action
+## Next Actions
 
-Monitor the first real Production feedback cycle after deployment:
-
-- Confirm that a completed order records an invitation time approximately three hours after `completed_at`.
-- Confirm that the customer invitation is delivered once.
-- Confirm that submitted feedback notifies the restaurant once.
-- Confirm that an admin reply notifies the customer once.
-- Confirm that notification claims are released and no notification error remains.
-
-After this Production observation, begin another roadmap feature only when its required restaurant data or hardware decision is available.
+1. Commit and push the final documentation, admin-list cleanup, and English
+   translation fix.
+2. Wait for the latest Preview deployment.
+3. Smoke-test the English public-rating threshold state.
+4. Confirm comments are absent from the compact admin list but present in order
+   details.
+5. Merge the admin-isolation branch.
+6. Complete the Production rollout checklist above.
+7. Monitor the first real Production order and feedback cycle after rollout.
 
 ## Documentation Update Rule
 
 After every meaningful merged feature:
 
-1. Update the completed-work section.
-2. Update the roadmap status.
+1. Update the completed-work summary.
+2. Update branch and deployment status.
 3. Record new database migrations and RLS policies.
-4. Record new environment variable names without their values.
+4. Record environment-variable names without values.
 5. Record operational recovery procedures.
 6. Record unresolved risks and decisions.
-7. Update the `Last updated` date.
+7. Update `Last updated`.
 
-Never place secrets or real customer data in this document.
-```
+Never place secrets, real customer data, deployment bypass values, account emails,
+project identifiers, payment identifiers, or access tokens in this document.

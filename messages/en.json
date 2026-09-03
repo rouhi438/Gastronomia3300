@@ -715,7 +715,9 @@
     "verifiedOrders": "Verified orders",
     "ratingAria": "Average rating: {average} out of 5 stars",
     "compactAria": "Restaurant customer rating",
-    "ratingCount": "{count, plural, one {# rating} other {# ratings}}"
+    "ratingCount": "{count, plural, one {# rating} other {# ratings}}",
+    "minimumTitle": "Rating coming soon",
+    "minimumDescription": "The overall rating will be shown after at least {count} verified orders."
   },
   "OrderFeedback": {
     "eyebrow": "Feedback",
