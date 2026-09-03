@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 import { FcGoogle } from "react-icons/fc";
@@ -14,7 +13,6 @@ import styles from "./auth.module.css";
 type AuthMode = "login" | "register";
 
 export default function AuthPage() {
-  const router = useRouter();
   const supabase = createClient();
 
   const [mode, setMode] = useState<AuthMode>("login");
@@ -179,8 +177,7 @@ export default function AuthPage() {
             ? data.redirectTo
             : "/menu";
 
-        router.replace(redirectTo);
-        router.refresh();
+        window.location.replace(redirectTo);
         return;
       }
 

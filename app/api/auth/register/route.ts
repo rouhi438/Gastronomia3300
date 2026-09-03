@@ -37,15 +37,20 @@ export async function POST(request: NextRequest) {
     if (data.user) {
       const { error: profileError } = await supabaseAdmin
         .from("profiles")
-        .insert({
-          id: data.user.id,
-          full_name: full_name || "",
-          phone: phone || "",
-          address: address || "",
-        });
+        .upsert(
+          {
+            id: data.user.id,
+            full_name: full_name || "",
+            phone: phone || "",
+            address: address || "",
+          },
+          {
+            onConflict: "id",
+          },
+        );
 
       if (profileError) {
-        console.error("Profile insert error:", profileError);
+        console.error("Profile upsert error:", profileError);
 
         return NextResponse.json(
           { error: profileError.message },

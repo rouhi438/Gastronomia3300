@@ -462,6 +462,10 @@ an existing profile.
 This prevents authenticated OAuth customers from reaching checkout without the
 profile row required by the order relationship.
 
+Password registration also uses an idempotent `profiles` upsert. This allows
+registration to work both when an environment has an existing `auth.users`
+profile trigger and when profile creation is handled only by the application.
+
 ### Paid-order resilience
 
 The Nets charge webhook also handles a missing OAuth profile defensively:
@@ -629,6 +633,9 @@ existing tooling. Inspect the test setup before adding a new dependency.
 - Verified allergen data for every applicable menu item
 - Printer hardware and paper width
 - Production migration to the new dedicated admin account
+- The Production `on_auth_user_created` trigger is not represented in repository
+  migrations. Preview and Production schema parity should be reconciled through
+  a dedicated, reviewed migration after the trigger function is verified.
 
 ## Next Actions
 
