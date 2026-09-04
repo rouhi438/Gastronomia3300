@@ -10,14 +10,15 @@ import {
   Clock3,
   LogOut,
   Menu,
+  MonitorCog,
   Moon,
-  ShieldCheck,
   Sun,
   UtensilsCrossed,
   X,
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
+import AdminStoreStatus from "./AdminStoreStatus";
 
 import styles from "./AdminHeader.module.css";
 
@@ -131,6 +132,7 @@ export default function AdminHeader({ userLabel }: AdminHeaderProps) {
         </nav>
 
         <div className={styles.actions}>
+          <AdminStoreStatus />
           <button
             type="button"
             className={styles.iconButton}
@@ -148,8 +150,14 @@ export default function AdminHeader({ userLabel }: AdminHeaderProps) {
           </button>
 
           <span className={styles.adminIdentity}>
-            <ShieldCheck size={18} aria-hidden="true" />
-            <span>{userLabel}</span>
+            <span className={styles.adminAvatar} aria-hidden="true">
+              <MonitorCog size={28} />
+            </span>
+
+            <span className={styles.adminIdentityText}>
+              <small>Admin</small>
+              <strong>{userLabel}</strong>
+            </span>
           </span>
 
           <button
@@ -207,8 +215,14 @@ export default function AdminHeader({ userLabel }: AdminHeaderProps) {
 
           <div className={styles.mobileFooter}>
             <span className={styles.mobileIdentity}>
-              <ShieldCheck size={18} aria-hidden="true" />
-              {userLabel}
+              <span className={styles.adminAvatar} aria-hidden="true">
+                <MonitorCog size={28} />
+              </span>
+
+              <span className={styles.adminIdentityText}>
+                <small>Admin</small>
+                <strong>{userLabel}</strong>
+              </span>
             </span>
 
             <button

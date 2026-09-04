@@ -1,6 +1,6 @@
 # GastronomiaPizzaApp â€” Project Context
 
-Last updated: 2026-09-03
+Last updated: 2026-09-04
 
 ## Purpose
 
@@ -78,9 +78,10 @@ The following features have been implemented or corrected:
 - Private order feedback and public aggregate ratings
 - Order-loss prevention and durable operational alerts
 - Admin accounting report
-- Admin portal isolation in the current feature branch
-- OAuth profile continuity and paid-order fallback in the current feature branch
-- Missing English public-rating threshold messages
+- Admin portal isolation deployed to Production
+- OAuth profile continuity and paid-order fallback deployed to Production
+- Icon-based admin Store Status control in the current feature branch
+- English public-rating threshold messages
 - Removal of customer comments from the compact admin order list only
 - Menu category icon and translation-key corrections
 - Production menu price corrections completed on 2026-08-27
@@ -92,23 +93,30 @@ behavior.
 
 ### Main
 
-The accounting-report feature has been merged and its deployment reached Ready.
+Admin accounting, admin portal isolation, and the registration-profile conflict
+fix have been merged. Their Production deployments reached Ready.
 
-### Admin portal isolation rollout
+The dedicated Production administrator has been verified. The previous account's
+admin role was revoked on 2026-09-04, and a clean-session access test confirmed
+that it can no longer reach `/admin/...` routes. The previous authentication
+account was retained without administrator privileges.
 
-Branch: `feature/admin-portal-isolation`
+### Admin store status
+
+Branch: `feature/admin-store-status`
 
 Status at the time of this update:
 
-- Implementation completed
-- Preview deployment tested
-- Preview operational alerts reviewed and resolved
+- Dedicated icon-based Store Status control implemented in the admin header
+- Pickup and delivery status sourced from `/api/store/service-status`
+- Compact status popover linked to `/admin/opening-hours`
+- Distinct monitor-and-settings administrator identity indicator
+- Desktop, mobile, Light mode, and Dark mode verified locally
+- `git diff --check` passed
 - ESLint passed
 - TypeScript passed with `npx tsc --noEmit`
-- `git diff --check` passed
 - Next.js production build passed
-- Final admin-list and translation cleanup verified locally
-- Production deployment and admin-account migration pending
+- Preview and Production deployment pending
 
 ## Security and Privacy Rules
 
@@ -399,7 +407,7 @@ No database migration or new secret is required for this feature.
 
 ---
 
-## 5. Admin Portal Isolation â€” Preview Verified, Production Pending
+## 5. Admin Portal Isolation - Production Verified
 
 Branch: `feature/admin-portal-isolation`
 
@@ -425,11 +433,25 @@ reset behavior.
 - Dedicated desktop navigation for orders, menu management, and opening hours
 - Responsive mobile hamburger navigation
 - Theme control and logout
-- Admin identity indicator
+- Distinct monitor-and-settings administrator identity indicator
+- Icon-based Store Status control with separate pickup and delivery details
 - Danish-only admin UI; the customer storefront remains Danish and English
 - Customer comments removed from the compact admin orders list
 - Customer comments remain available in the detailed order view and printable
   order view
+
+### Admin Store Status control
+
+- `components/AdminStoreStatus.tsx` provides an admin-specific visual treatment.
+- The control uses the existing `/api/store/service-status` endpoint and does not
+  duplicate server-side opening-hours business rules.
+- The indicator refreshes every 30 seconds and when the browser regains focus or
+  becomes visible.
+- Its compact popover shows pickup and delivery independently.
+- The management link opens `/admin/opening-hours`.
+- Loading and unavailable states remain visible without exposing internal errors.
+- The public Store Status badge and admin control have separate presentation
+  components while sharing the same source of truth.
 
 ### Authentication and routing
 
@@ -524,31 +546,32 @@ The following end-to-end behavior was verified:
 - The Preview unresolved operational-alert query returned no rows after historical
   test warnings were reviewed and marked resolved.
 
-### Production rollout checklist
+### Production rollout record
 
-Do not revoke the existing Production admin until every earlier step passes.
+The administrator access migration was completed on 2026-09-04.
 
-1. Merge the feature branch and wait for the Production deployment to reach Ready.
-2. Confirm Production Vercel variables point only to Production services.
-3. Confirm the Production Supabase Site URL and exact auth callback URL.
-4. Create or verify the intended Production admin authentication account.
-5. Run `scripts/manage-admin-role.mjs` with Production credentials and grant the
-   trusted `app_metadata` admin role.
-6. Log out and start a clean browser session.
-7. Verify password login routes directly to `/admin/orders`.
-8. Verify password recovery and the new password.
-9. Verify customer storefront chrome is absent from admin pages.
-10. Verify desktop and mobile admin navigation.
-11. Verify orders, menu management, opening hours, feedback, and accounting report.
-12. Complete a controlled Production order test and verify the customer and
-    restaurant notification flow.
-13. Check for unresolved operational alerts.
-14. Only after all checks pass, revoke the old account's admin role in Production.
-15. Verify the old account can no longer access admin pages or APIs.
+Completed verification:
 
-Keep a recoverable administrator until the new Production account has been fully
-verified. Prefer revoking the old role before deleting the old authentication
-account.
+- Admin-isolation changes were merged and the Production deployment reached Ready.
+- The dedicated Production administrator received the trusted
+  `app_metadata.role === "admin"` role.
+- Password login routes the dedicated administrator directly to `/admin/orders`.
+- Customer storefront chrome is absent from admin pages.
+- Orders, menu management, opening hours, feedback, and accounting pages were
+  smoke-tested with the dedicated administrator.
+- Authenticated administrators are redirected away from customer-only pages.
+- The previous account's admin role was revoked without deleting the
+  authentication account.
+- A clean-session test confirmed that the previous account is redirected away
+  from `/admin/...` routes.
+- A clean-session test confirmed that the dedicated administrator retains access
+  to the admin portal.
+
+Remaining operational follow-up:
+
+- Monitor the first real Production payment and restaurant-order lifecycle.
+- Review unresolved Production operational alerts after that order.
+- Continue monitoring the first real Production feedback cycle.
 
 ---
 
@@ -639,15 +662,17 @@ existing tooling. Inspect the test setup before adding a new dependency.
 
 ## Next Actions
 
-1. Commit and push the final documentation, admin-list cleanup, and English
-   translation fix.
-2. Wait for the latest Preview deployment.
-3. Smoke-test the English public-rating threshold state.
-4. Confirm comments are absent from the compact admin list but present in order
-   details.
-5. Merge the admin-isolation branch.
-6. Complete the Production rollout checklist above.
-7. Monitor the first real Production order and feedback cycle after rollout.
+1. Commit and push `feature/admin-store-status`.
+2. Wait for the Preview deployment to reach Ready.
+3. Verify the admin status icon and popover in desktop, mobile, Light mode, and
+   Dark mode.
+4. Verify pickup and delivery states against `/admin/opening-hours`.
+5. Merge the feature branch and wait for the Production deployment.
+6. Smoke-test the Store Status control with the dedicated Production
+   administrator.
+7. Monitor the first real Production payment, order, alert, and feedback cycle.
+8. Reconcile the Production `on_auth_user_created` trigger with reviewed database
+   migrations before making related schema changes.
 
 ## Documentation Update Rule
 
