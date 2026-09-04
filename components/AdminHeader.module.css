@@ -138,28 +138,60 @@
 .adminIdentity {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.55rem;
 
-    max-width: 180px;
-    min-height: 42px;
-    padding: 0.5rem 0.7rem;
+    max-width: 230px;
+    min-height: 52px;
+    padding: 0.2rem 0.7rem 0.2rem 0.2rem;
 
     color: var(--text-secondary);
     background: var(--bg);
     border: 1px solid var(--border-color);
-    border-radius: 9px;
-
-    font-size: 0.75rem;
-    font-weight: 750;
+    border-radius: 12px;
 }
 
-.adminIdentity svg {
-    flex: 0 0 auto;
+.adminAvatar {
+    display: inline-grid;
+    flex: 0 0 48px;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+
     color: var(--green);
+    background: #151918;
+    border: 1px solid color-mix(in srgb, var(--green) 65%, transparent);
+    border-radius: 50%;
+    box-shadow:
+        inset 0 0 14px color-mix(in srgb, var(--green) 9%, transparent),
+        0 0 10px color-mix(in srgb, var(--green) 14%, transparent);
 }
 
-.adminIdentity span {
+.adminAvatar svg {
+    stroke-width: 1.8;
+}
+
+.adminIdentityText {
+    display: grid;
+    gap: 0.08rem;
+    min-width: 0;
+}
+
+.adminIdentityText small {
+    color: var(--green);
+    font-size: 0.58rem;
+    font-weight: 850;
+    line-height: 1;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.adminIdentityText strong {
     overflow: hidden;
+
+    color: var(--text-secondary);
+    font-size: 0.73rem;
+    font-weight: 800;
+    line-height: 1.2;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -307,19 +339,18 @@
 
         display: flex;
         align-items: center;
-        gap: 0.45rem;
+        gap: 0.65rem;
 
         min-width: 0;
+        padding: 0.45rem;
 
-        color: var(--text-muted);
-        font-size: 0.76rem;
-        font-weight: 750;
-        overflow-wrap: anywhere;
+        background: var(--bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
     }
 
-    .mobileIdentity svg {
-        flex: 0 0 auto;
-        color: var(--green);
+    .mobileIdentity .adminIdentityText {
+        flex: 1;
     }
 
     .mobileLogoutButton {

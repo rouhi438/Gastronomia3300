@@ -1,0 +1,259 @@
+.wrapper {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+}
+
+.trigger {
+    position: relative;
+
+    display: inline-grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+
+    padding: 0;
+
+    color: var(--text-primary);
+    font: inherit;
+
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 50%;
+
+    transition:
+        color 160ms ease,
+        background-color 160ms ease,
+        border-color 160ms ease;
+}
+
+.trigger:hover {
+    color: var(--green);
+    background: color-mix(in srgb, var(--green) 9%, transparent);
+    border-color: color-mix(in srgb, var(--green) 25%, transparent);
+}
+
+.trigger:focus-visible,
+.manageLink:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--green) 40%, transparent);
+    outline-offset: 2px;
+}
+
+.indicator {
+    position: absolute;
+    right: 4px;
+    bottom: 5px;
+
+    width: 11px;
+    height: 11px;
+
+    border: 2px solid var(--bg-card);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--text-primary) 12%, transparent);
+}
+
+.indicator.open {
+    background: var(--green);
+}
+
+.indicator.preorder,
+.indicator.paused,
+.indicator.mixed {
+    background: #f59e0b;
+}
+
+.indicator.closed {
+    background: var(--red);
+}
+
+.indicator.loading,
+.indicator.unknown {
+    background: var(--text-muted);
+}
+
+.loadingIcon {
+    animation: statusSpin 850ms linear infinite;
+}
+
+.popover {
+    position: absolute;
+    z-index: 1300;
+    top: calc(100% + 12px);
+    right: 0;
+
+    width: min(340px, calc(100vw - 2rem));
+    padding: 0.8rem;
+
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: 0 16px 42px rgba(0, 0, 0, 0.18);
+}
+
+.popoverHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+
+    padding: 0.2rem 0.2rem 0.75rem;
+
+    border-bottom: 1px solid var(--border-color);
+}
+
+.popoverHeader>svg {
+    flex: 0 0 auto;
+    color: var(--green);
+}
+
+.popoverHeader>span {
+    display: grid;
+    gap: 0.12rem;
+}
+
+.popoverHeader strong {
+    font-size: 0.88rem;
+}
+
+.popoverHeader small {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+}
+
+.serviceList {
+    display: grid;
+    gap: 0.45rem;
+
+    padding: 0.65rem 0;
+}
+
+.serviceRow {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 0.6rem;
+
+    padding: 0.65rem;
+
+    background: var(--bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.serviceRow>svg {
+    margin-top: 0.1rem;
+    color: var(--text-muted);
+}
+
+.serviceContent {
+    display: grid;
+    gap: 0.18rem;
+    min-width: 0;
+}
+
+.serviceContent strong {
+    font-size: 0.78rem;
+}
+
+.serviceContent small {
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    line-height: 1.35;
+}
+
+.statusText {
+    align-self: start;
+
+    padding: 0.2rem 0.45rem;
+
+    border: 1px solid currentColor;
+    border-radius: 999px;
+
+    font-size: 0.62rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.statusText.open {
+    color: var(--green);
+    background: color-mix(in srgb, var(--green) 8%, transparent);
+}
+
+.statusText.preorder,
+.statusText.paused {
+    color: #b66a00;
+    background: color-mix(in srgb, #f59e0b 10%, transparent);
+}
+
+.statusText.closed {
+    color: var(--red);
+    background: color-mix(in srgb, var(--red) 8%, transparent);
+}
+
+.unavailable {
+    margin: 0.7rem 0;
+    padding: 0.75rem;
+
+    color: var(--text-muted);
+    background: var(--bg);
+    border-radius: 9px;
+
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.manageLink {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 38px;
+    padding: 0.5rem 0.7rem;
+
+    color: #ffffff;
+    background: var(--green);
+    border-radius: 9px;
+
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.manageLink:hover {
+    filter: brightness(0.95);
+}
+
+@keyframes statusSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 940px) {
+    .popover {
+        position: fixed;
+        top: 80px;
+        right: 0.75rem;
+        left: 0.75rem;
+
+        width: auto;
+    }
+}
+
+@media (max-width: 420px) {
+    .serviceRow {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .statusText {
+        grid-column: 2;
+        justify-self: start;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .loadingIcon {
+        animation: none;
+    }
+}
