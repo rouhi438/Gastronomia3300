@@ -1,4 +1,4 @@
-# GastronomiaPizzaApp â€” Project Context
+# GastronomiaPizzaApp - Project Context
 
 Last updated: 2026-09-04
 
@@ -80,7 +80,7 @@ The following features have been implemented or corrected:
 - Admin accounting report
 - Admin portal isolation deployed to Production
 - OAuth profile continuity and paid-order fallback deployed to Production
-- Icon-based admin Store Status control in the current feature branch
+- Icon-based admin Store Status control deployed to Production
 - English public-rating threshold messages
 - Removal of customer comments from the compact admin order list only
 - Menu category icon and translation-key corrections
@@ -93,30 +93,35 @@ behavior.
 
 ### Main
 
-Admin accounting, admin portal isolation, and the registration-profile conflict
-fix have been merged. Their Production deployments reached Ready.
+Admin accounting, admin portal isolation, the registration-profile conflict fix,
+and the admin Store Status control have been merged. Their Production deployments
+reached Ready.
 
 The dedicated Production administrator has been verified. The previous account's
 admin role was revoked on 2026-09-04, and a clean-session access test confirmed
 that it can no longer reach `/admin/...` routes. The previous authentication
 account was retained without administrator privileges.
 
+The first real Production payment and restaurant-order lifecycle was also verified
+on 2026-09-04 without unresolved operational alerts.
+
 ### Admin store status
 
-Branch: `feature/admin-store-status`
+Branch: `feature/admin-store-status` (merged)
 
-Status at the time of this update:
+Completed verification:
 
 - Dedicated icon-based Store Status control implemented in the admin header
 - Pickup and delivery status sourced from `/api/store/service-status`
 - Compact status popover linked to `/admin/opening-hours`
 - Distinct monitor-and-settings administrator identity indicator
-- Desktop, mobile, Light mode, and Dark mode verified locally
+- Desktop, mobile, Light mode, and Dark mode verified
 - `git diff --check` passed
 - ESLint passed
 - TypeScript passed with `npx tsc --noEmit`
 - Next.js production build passed
-- Preview and Production deployment pending
+- Preview and Production deployments reached Ready
+- Production smoke test passed with the dedicated administrator
 
 ## Security and Privacy Rules
 
@@ -153,7 +158,7 @@ Do not place real customer data in:
 
 ---
 
-## 1. Order-Loss Prevention and Error Monitoring â€” Implemented
+## 1. Order-Loss Prevention and Error Monitoring - Implemented
 
 Branch: `feature/order-monitoring`
 
@@ -254,7 +259,7 @@ must operate independently of an open admin browser.
 
 ---
 
-## 2. Most Ordered Menu Section â€” Implemented
+## 2. Most Ordered Menu Section - Implemented
 
 Branch: `feature/most-ordered`
 
@@ -287,7 +292,7 @@ Current curated item order:
 
 ---
 
-## 3. Private Order Feedback and Public Rating â€” Implemented
+## 3. Private Order Feedback and Public Rating - Implemented
 
 Branch: `feature/private-order-feedback`
 
@@ -368,7 +373,7 @@ identity must never authorize access.
 
 ---
 
-## 4. Admin Accounting Report â€” Implemented
+## 4. Admin Accounting Report - Implemented
 
 Branch: `feature/admin-accounting-report`
 
@@ -567,15 +572,28 @@ Completed verification:
 - A clean-session test confirmed that the dedicated administrator retains access
   to the admin portal.
 
-Remaining operational follow-up:
+### First real Production order verification
 
-- Monitor the first real Production payment and restaurant-order lifecycle.
-- Review unresolved Production operational alerts after that order.
-- Continue monitoring the first real Production feedback cycle.
+A real Production order completed the full lifecycle on 2026-09-04.
+
+Verified behavior:
+
+- MobilePay payment and charge identifiers were persisted.
+- The restaurant order was created immediately after payment confirmation.
+- All order items were present.
+- The calculated subtotal matched the stored subtotal.
+- Fees and final total matched exactly.
+- Customer confirmation and restaurant notification emails were accepted.
+- The administrator accepted and completed the order.
+- The accepted-order email was accepted.
+- The feedback invitation was scheduled three hours after completion.
+- The Resend dashboard confirmed all three customer lifecycle emails.
+- The order-specific unresolved operational-alert query returned no rows.
+- The global Production unresolved operational-alert query returned no rows.
 
 ---
 
-## 6. Structured Menu Allergens â€” Deferred
+## 6. Structured Menu Allergens - Deferred
 
 Suggested branch: `feature/menu-allergens`
 
@@ -594,13 +612,13 @@ process.
 - Danish and English labels
 - Display before purchase, including the item modal
 - Existing product prices, modifiers, and availability preserved
-- Missing data distinguishable from â€œcontains no allergensâ€
+- Missing allergen data remains distinguishable from an explicit "contains no allergens" declaration.
 
 Production values must not be entered until the restaurant supplies verified data.
 
 ---
 
-## 7. Printer Integration â€” Deferred
+## 7. Printer Integration - Deferred
 
 Suggested branch: `feature/order-printing`
 
@@ -662,17 +680,10 @@ existing tooling. Inspect the test setup before adding a new dependency.
 
 ## Next Actions
 
-1. Commit and push `feature/admin-store-status`.
-2. Wait for the Preview deployment to reach Ready.
-3. Verify the admin status icon and popover in desktop, mobile, Light mode, and
-   Dark mode.
-4. Verify pickup and delivery states against `/admin/opening-hours`.
-5. Merge the feature branch and wait for the Production deployment.
-6. Smoke-test the Store Status control with the dedicated Production
-   administrator.
-7. Monitor the first real Production payment, order, alert, and feedback cycle.
-8. Reconcile the Production `on_auth_user_created` trigger with reviewed database
-   migrations before making related schema changes.
+1. Commit and merge the Production rollout documentation closure.
+2. Continue routine monitoring of Production payments, orders, emails, and alerts.
+3. Reconcile the Production `on_auth_user_created` trigger with reviewed database migrations before making related schema changes.
+4. Consider adding multi-factor authentication for the dedicated administrator as a future security-hardening task.
 
 ## Documentation Update Rule
 
