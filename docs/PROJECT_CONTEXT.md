@@ -125,9 +125,9 @@ Completed verification:
 
 ### Admin order receipt visibility
 
-Branch: `fix/order-receipt-print-visibility`
+Branch: `fix/order-receipt-print-visibility` (merged)
 
-Status at the time of this update:
+Completed verification:
 
 - Customer comments moved directly below the order header and before order items.
 - Comments use a prominent double border on screen and a high-contrast black double border in print.
@@ -136,7 +136,23 @@ Status at the time of this update:
 - Previous-order counts are visible in both the admin detail view and its printed receipt.
 - Guest order history falls back to normalized email and then phone when no authenticated user ID exists.
 - Previous-order counts remain absent from public customer receipts.
-- Desktop receipt and browser Print Preview were verified locally.
+- Desktop receipt and browser Print Preview were verified.
+- `git diff --check`, ESLint, TypeScript, and the Next.js production build passed.
+- Preview and Production deployments reached Ready.
+- The Production admin receipt and customer-comment print layout passed the smoke test.
+
+### Collapsible accounting report
+
+Branch: `feature/collapsible-accounting-report`
+
+Status at the time of this update:
+
+- The accounting-report controls are collapsed by default on the admin orders page.
+- A compact button opens and closes the existing date-range form.
+- Selected dates remain available after closing and reopening the panel.
+- Report generation continues to use the existing accounting page and API.
+- The disclosure exposes its state through `aria-expanded` and `aria-controls`.
+- Collapsed, expanded, mobile, and report-page states were verified locally.
 - `git diff --check`, ESLint, TypeScript, and the Next.js production build passed.
 - Preview and Production deployment pending.
 
@@ -690,18 +706,17 @@ existing tooling. Inspect the test setup before adding a new dependency.
 - Whether to add an independent scheduled reconciliation job
 - Verified allergen data for every applicable menu item
 - Printer hardware and paper width
-- Production migration to the new dedicated admin account
 - The Production `on_auth_user_created` trigger is not represented in repository
   migrations. Preview and Production schema parity should be reconciled through
   a dedicated, reviewed migration after the trigger function is verified.
 
 ## Next Actions
 
-1. Commit and push `fix/order-receipt-print-visibility`.
-2. Verify the admin receipt and browser Print Preview in the Preview deployment.
-3. Merge the receipt branch and wait for the Production deployment to reach Ready.
-4. Smoke-test a Production admin receipt containing a customer comment.
-5. Implement the collapsible accounting-report panel in a separate feature branch.
+1. Commit and push `feature/collapsible-accounting-report`.
+2. Verify the collapsed and expanded accounting panel in the Preview deployment.
+3. Verify date selection, report generation, desktop, mobile, Light mode, and Dark mode.
+4. Merge the feature branch and wait for the Production deployment to reach Ready.
+5. Smoke-test the accounting disclosure and report generation in Production.
 6. Continue routine monitoring of Production payments, orders, emails, and alerts.
 7. Reconcile the Production `on_auth_user_created` trigger with reviewed database migrations before making related schema changes.
 8. Consider multi-factor authentication for the dedicated administrator as a future security-hardening task.

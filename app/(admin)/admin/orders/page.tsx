@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+import { FiBarChart2, FiChevronDown } from "react-icons/fi";
 import OrderCountdown from "@/components/OrderCountdown";
 import RatingStar from "@/components/RatingStar";
 import styles from "./admin.module.css";
@@ -156,6 +157,8 @@ export default function AdminOrdersPage() {
   const [reportFrom, setReportFrom] = useState("");
   const [reportTo, setReportTo] = useState("");
   const [reportError, setReportError] = useState("");
+
+  const [isAccountingReportOpen, setIsAccountingReportOpen] = useState(false);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -326,65 +329,96 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      <section
-        className={styles.accountingPanel}
-        aria-labelledby="accounting-report-title"
-      >
-        <div className={styles.accountingIntro}>
-          <span className={styles.accountingEyebrow}>Regnskab</span>
+      <section className={styles.accountingDisclosure}>
+        <button
+          id="accounting-report-toggle"
+          type="button"
+          className={styles.accountingToggle}
+          aria-expanded={isAccountingReportOpen}
+          aria-controls="accounting-report-panel"
+          onClick={() => {
+            setIsAccountingReportOpen((currentValue) => !currentValue);
+          }}
+        >
+          <span className={styles.accountingToggleContent}>
+            <FiBarChart2
+              className={styles.accountingToggleIcon}
+              aria-hidden="true"
+            />
 
-          <h2 id="accounting-report-title" className={styles.accountingTitle}>
-            Omsætningsrapport
-          </h2>
+            <span className={styles.accountingToggleText}>
+              <span className={styles.accountingEyebrow}>Regnskab</span>
 
+              <span className={styles.accountingTitle}>Omsætningsrapport</span>
+            </span>
+          </span>
+
+          <FiChevronDown
+            className={`${styles.accountingChevron} ${
+              isAccountingReportOpen ? styles.accountingChevronOpen : ""
+            }`}
+            aria-hidden="true"
+          />
+        </button>
+
+        <div
+          id="accounting-report-panel"
+          className={styles.accountingPanel}
+          role="region"
+          aria-labelledby="accounting-report-toggle"
+          hidden={!isAccountingReportOpen}
+        >
           <p className={styles.accountingDescription}>
             Vælg en periode og opret en samlet rapport over betalte ordrer.
           </p>
+
+          <form
+            className={styles.accountingForm}
+            onSubmit={openAccountingReport}
+          >
+            <label className={styles.accountingField}>
+              <span>Fra dato</span>
+
+              <input
+                type="date"
+                value={reportFrom}
+                max={reportTo || undefined}
+                required
+                className={styles.accountingInput}
+                onChange={(event) => {
+                  setReportFrom(event.target.value);
+                  setReportError("");
+                }}
+              />
+            </label>
+
+            <label className={styles.accountingField}>
+              <span>Til dato</span>
+
+              <input
+                type="date"
+                value={reportTo}
+                min={reportFrom || undefined}
+                required
+                className={styles.accountingInput}
+                onChange={(event) => {
+                  setReportTo(event.target.value);
+                  setReportError("");
+                }}
+              />
+            </label>
+
+            <button type="submit" className={styles.accountingButton}>
+              Opret rapport
+            </button>
+          </form>
+
+          {reportError && (
+            <p className={styles.accountingError} role="alert">
+              {reportError}
+            </p>
+          )}
         </div>
-
-        <form className={styles.accountingForm} onSubmit={openAccountingReport}>
-          <label className={styles.accountingField}>
-            <span>Fra dato</span>
-
-            <input
-              type="date"
-              value={reportFrom}
-              max={reportTo || undefined}
-              required
-              className={styles.accountingInput}
-              onChange={(event) => {
-                setReportFrom(event.target.value);
-                setReportError("");
-              }}
-            />
-          </label>
-
-          <label className={styles.accountingField}>
-            <span>Til dato</span>
-
-            <input
-              type="date"
-              value={reportTo}
-              min={reportFrom || undefined}
-              required
-              className={styles.accountingInput}
-              onChange={(event) => {
-                setReportTo(event.target.value);
-                setReportError("");
-              }}
-            />
-          </label>
-
-          <button type="submit" className={styles.accountingButton}>
-            Opret rapport
-          </button>
-        </form>
-
-        {reportError && (
-          <p className={styles.accountingError} role="alert">
-            {reportError}
-          </p>
-        )}
       </section>
 
       <nav className={styles.tabs} aria-label="Filtrer ordrer efter dato">
