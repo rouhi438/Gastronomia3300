@@ -53,6 +53,32 @@ async function requireAdmin() {
   };
 }
 
+function getCustomerHistoryKey(order: {
+  user_id?: string | null;
+  customer_email?: string | null;
+  customer_phone?: string | null;
+}): string | null {
+  const userId = order.user_id?.trim();
+
+  if (userId) {
+    return `user:${userId}`;
+  }
+
+  const email = order.customer_email?.trim().toLowerCase();
+
+  if (email) {
+    return `email:${email}`;
+  }
+
+  const phone = order.customer_phone?.replace(/\D/g, "");
+
+  if (phone) {
+    return `phone:${phone}`;
+  }
+
+  return null;
+}
+
 export async function GET() {
   try {
     const auth = await requireAdmin();
@@ -117,7 +143,9 @@ export async function GET() {
       .map((order) => {
         const feedbackSummary = feedbackByOrderId.get(order.id) ?? null;
 
-        if (!order.user_id) {
+        const customerHistoryKey = getCustomerHistoryKey(order);
+
+        if (!customerHistoryKey) {
           return {
             ...order,
             previous_orders_count: null,
@@ -125,9 +153,10 @@ export async function GET() {
           };
         }
 
-        const previousOrdersCount = previousOrderCounts.get(order.user_id) ?? 0;
+        const previousOrdersCount =
+          previousOrderCounts.get(customerHistoryKey) ?? 0;
 
-        previousOrderCounts.set(order.user_id, previousOrdersCount + 1);
+        previousOrderCounts.set(customerHistoryKey, previousOrdersCount + 1);
 
         return {
           ...order,

@@ -330,17 +330,39 @@
     color: var(--text-secondary);
 }
 
-.orderNote {
-    margin-top: 5px !important;
-    padding: 7px 9px;
+.orderNoteAlert {
+    margin: 0.85rem 0;
+    padding: 0.8rem 1rem;
 
     color: #b42318;
-    background: rgba(211, 47, 47, 0.08);
-    border-left: 3px solid #d32f2f;
+    background: rgba(211, 47, 47, 0.06);
+    border: 4px double #d32f2f;
     border-radius: 4px;
 
-    font-weight: 700;
+    text-align: center;
+
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.orderNoteLabel {
+    display: block;
+
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.orderNoteText {
+    margin: 0.35rem 0 0;
+
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1.35;
     white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 /* ===== FOOTER ===== */
@@ -374,10 +396,6 @@
     color: var(--text-muted);
 
     font-size: 9px;
-}
-
-.previousOrders {
-    display: none;
 }
 
 /* ===== TABLET ===== */
@@ -572,11 +590,7 @@
         min-width: 0;
         margin-top: 3mm;
         padding: 2mm 1.5mm;
-
         color: #000000 !important;
-        border: 1px solid #000000;
-        border-radius: 1.5mm;
-
         font-size: 11.5px;
         line-height: 1.35;
         text-align: center;
@@ -630,6 +644,40 @@
 
         border: 0 !important;
         border-top: 1px dashed #000000 !important;
+    }
+
+    /* ===== ORDER NOTE WARNING ===== */
+
+    .orderNoteAlert {
+        margin: 2.7mm 0;
+        padding: 2.2mm 1.5mm;
+
+        color: #000000 !important;
+        background: #ffffff !important;
+        border: 4px double #000000 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .orderNoteLabel {
+        color: #000000 !important;
+
+        font-size: 9.5px;
+        font-weight: 800;
+        line-height: 1.2;
+        letter-spacing: 0.12em;
+    }
+
+    .orderNoteText {
+        margin: 1.4mm 0 0;
+
+        color: #000000 !important;
+
+        font-size: 16px;
+        font-weight: 900;
+        line-height: 1.35;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
     }
 
     /* ===== ITEMS ===== */
@@ -783,9 +831,8 @@
     }
 
     .requestedTime {
-        margin-top: 2mm !important;
         padding: 2mm 1.5mm !important;
-
+        margin: 2mm 0 0 !important;
         border: 1px solid #000000;
         border-radius: 1.5mm;
 
@@ -797,6 +844,13 @@
         page-break-inside: avoid;
     }
 
+    .requestedTimeValue {
+        display: block;
+        margin-top: 1mm;
+
+        text-align: center;
+    }
+
     .paymentInfo,
     .orderStatus {
         font-size: 12px;
@@ -805,28 +859,16 @@
 
     /* ===== ORDER COMMENT ===== */
 
-    .orderNote {
-        margin: 2.5mm 0 0 !important;
-        padding: 2.5mm 2mm !important;
-
-        color: #000000 !important;
-        background: #ffffff !important;
-        border: 1px solid #000000 !important;
-        border-radius: 2mm !important;
-
-        font-size: 12px;
-        font-weight: 800;
-        line-height: 1.4;
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-
-        break-inside: avoid;
-        page-break-inside: avoid;
-    }
-
     .requestedTimeLabel {
+        display: block !important;
+        width: 100%;
+        padding-bottom: 1mm;
+
+        border-bottom: 1px solid #000000;
+
         font-size: 11.5px;
         font-weight: 800;
+        text-align: left !important;
     }
 
     /* ===== FOOTER ===== */

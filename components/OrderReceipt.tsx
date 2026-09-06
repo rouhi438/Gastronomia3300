@@ -395,6 +395,7 @@ export default function OrderReceipt({
     .join(", ");
 
   const customerAddress = structuredAddress || order.customer_address || "";
+  const orderNote = order.order_note?.trim();
 
   return (
     <article className={styles.container}>
@@ -437,6 +438,14 @@ export default function OrderReceipt({
       </div>
 
       <hr className={styles.divider} />
+
+      {orderNote && (
+        <div className={styles.orderNoteAlert}>
+          <span className={styles.orderNoteLabel}>{t("customer.note")}:</span>
+
+          <p className={styles.orderNoteText}>{orderNote}</p>
+        </div>
+      )}
 
       <table className={styles.itemsTable}>
         <thead>
@@ -721,12 +730,13 @@ export default function OrderReceipt({
           </p>
         )}
 
-        <p className={styles.requestedTime}>
+        <div className={styles.requestedTime}>
           <strong className={styles.requestedTimeLabel}>
             {t("customer.requestedTime")}:
-          </strong>{" "}
-          {customerTime}
-        </p>
+          </strong>
+
+          <span className={styles.requestedTimeValue}> {customerTime}</span>
+        </div>
 
         <p className={styles.paymentInfo}>
           <strong>{t("customer.payment")}:</strong> {paymentLabel}
@@ -735,12 +745,6 @@ export default function OrderReceipt({
         <p className={styles.orderStatus}>
           <strong>{t("customer.status")}:</strong> {statusLabel}
         </p>
-
-        {order.order_note && (
-          <p className={styles.orderNote}>
-            <strong>{t("customer.note")}:</strong> {order.order_note}
-          </p>
-        )}
       </div>
 
       <div className={styles.footer}>
