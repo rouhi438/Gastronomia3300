@@ -1,6 +1,6 @@
 # GastronomiaPizzaApp - Project Context
 
-Last updated: 2026-09-04
+Last updated: 2026-09-06
 
 ## Purpose
 
@@ -122,6 +122,23 @@ Completed verification:
 - Next.js production build passed
 - Preview and Production deployments reached Ready
 - Production smoke test passed with the dedicated administrator
+
+### Admin order receipt visibility
+
+Branch: `fix/order-receipt-print-visibility`
+
+Status at the time of this update:
+
+- Customer comments moved directly below the order header and before order items.
+- Comments use a prominent double border on screen and a high-contrast black double border in print.
+- The print-only border around the order header was removed while preserving the bordered pickup/delivery badge.
+- Requested-time values print on a separate centered line beneath a left-aligned label and separator.
+- Previous-order counts are visible in both the admin detail view and its printed receipt.
+- Guest order history falls back to normalized email and then phone when no authenticated user ID exists.
+- Previous-order counts remain absent from public customer receipts.
+- Desktop receipt and browser Print Preview were verified locally.
+- `git diff --check`, ESLint, TypeScript, and the Next.js production build passed.
+- Preview and Production deployment pending.
 
 ## Security and Privacy Rules
 
@@ -680,10 +697,14 @@ existing tooling. Inspect the test setup before adding a new dependency.
 
 ## Next Actions
 
-1. Commit and merge the Production rollout documentation closure.
-2. Continue routine monitoring of Production payments, orders, emails, and alerts.
-3. Reconcile the Production `on_auth_user_created` trigger with reviewed database migrations before making related schema changes.
-4. Consider adding multi-factor authentication for the dedicated administrator as a future security-hardening task.
+1. Commit and push `fix/order-receipt-print-visibility`.
+2. Verify the admin receipt and browser Print Preview in the Preview deployment.
+3. Merge the receipt branch and wait for the Production deployment to reach Ready.
+4. Smoke-test a Production admin receipt containing a customer comment.
+5. Implement the collapsible accounting-report panel in a separate feature branch.
+6. Continue routine monitoring of Production payments, orders, emails, and alerts.
+7. Reconcile the Production `on_auth_user_created` trigger with reviewed database migrations before making related schema changes.
+8. Consider multi-factor authentication for the dedicated administrator as a future security-hardening task.
 
 ## Documentation Update Rule
 
