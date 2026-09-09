@@ -15,11 +15,7 @@ type PendingOrderResponse = {
 
 const CHECK_INTERVAL_MS = 5000;
 
-const PROCESSING_PATHS = [
-  "/admin/new-order",
-  "/admin/select-time",
-  "/admin/order-accepted",
-];
+const PROCESSING_PATHS = ["/admin/new-order", "/admin/select-time"];
 
 function isProcessingOrder(pathname: string): boolean {
   return PROCESSING_PATHS.some(

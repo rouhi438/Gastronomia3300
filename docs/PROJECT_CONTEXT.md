@@ -1,6 +1,6 @@
 # GastronomiaPizzaApp - Project Context
 
-Last updated: 2026-09-06
+Last updated: 2026-09-09
 
 ## Purpose
 
@@ -93,9 +93,7 @@ behavior.
 
 ### Main
 
-Admin accounting, admin portal isolation, the registration-profile conflict fix,
-and the admin Store Status control have been merged. Their Production deployments
-reached Ready.
+Admin accounting, admin portal isolation, the registration-profile conflict fix, the admin Store Status control, the admin receipt improvements, and the collapsible accounting report have been merged. Their Production deployments reached Ready.
 
 The dedicated Production administrator has been verified. The previous account's
 admin role was revoked on 2026-09-04, and a clean-session access test confirmed
@@ -143,18 +141,33 @@ Completed verification:
 
 ### Collapsible accounting report
 
-Branch: `feature/collapsible-accounting-report`
+Branch: `feature/collapsible-accounting-report` (merged)
 
-Status at the time of this update:
+Completed verification:
 
 - The accounting-report controls are collapsed by default on the admin orders page.
 - A compact button opens and closes the existing date-range form.
 - Selected dates remain available after closing and reopening the panel.
 - Report generation continues to use the existing accounting page and API.
 - The disclosure exposes its state through `aria-expanded` and `aria-controls`.
-- Collapsed, expanded, mobile, and report-page states were verified locally.
+- Desktop, mobile, Light mode, Dark mode, and report generation were verified.
 - `git diff --check`, ESLint, TypeScript, and the Next.js production build passed.
-- Preview and Production deployment pending.
+- Preview and Production deployments reached Ready.
+- The Production accounting disclosure and report generation passed the smoke test.
+
+### Admin pending-order alert on receipt pages
+
+Branch: `fix/admin-order-alert-on-receipt`
+
+Status at the time of this update:
+
+- The global admin watcher continues checking pending orders every five seconds and through Supabase Realtime.
+- Accepted-order receipt pages no longer suppress navigation to the new-order alarm page.
+- A new pending order can interrupt an accepted-order receipt page and open `/admin/new-order`.
+- Active new-order and select-time workflows remain protected from automatic navigation.
+- Payment, order creation, pending-order lookup, and email-notification logic are unchanged.
+- `git diff --check`, ESLint, TypeScript, and the Next.js production build passed.
+- Controlled Preview testing and Production deployment pending.
 
 ## Security and Privacy Rules
 
@@ -712,14 +725,17 @@ existing tooling. Inspect the test setup before adding a new dependency.
 
 ## Next Actions
 
-1. Commit and push `feature/collapsible-accounting-report`.
-2. Verify the collapsed and expanded accounting panel in the Preview deployment.
-3. Verify date selection, report generation, desktop, mobile, Light mode, and Dark mode.
-4. Merge the feature branch and wait for the Production deployment to reach Ready.
-5. Smoke-test the accounting disclosure and report generation in Production.
-6. Continue routine monitoring of Production payments, orders, emails, and alerts.
-7. Reconcile the Production `on_auth_user_created` trigger with reviewed database migrations before making related schema changes.
-8. Consider multi-factor authentication for the dedicated administrator as a future security-hardening task.
+1. Commit and push `fix/admin-order-alert-on-receipt`.
+2. Wait for the Preview deployment to reach Ready.
+3. Keep an accepted-order receipt page open in Preview and create a controlled test order from another device or browser session.
+4. Verify that the admin is redirected to `/admin/new-order` within five seconds and that the alarm is audible.
+5. Verify that `Se ordre` opens the correct pending order and that the normal accept flow still works.
+6. If the browser blocks the alarm sound, add a persistent admin sound-activation mechanism before merging.
+7. Merge the fix after the controlled Preview test passes and wait for the Production deployment.
+8. Verify the behavior with the next real Production order while an accepted-order receipt page is open.
+9. Continue routine monitoring of Production payments, orders, emails, and alerts.
+10. Reconcile the Production `on_auth_user_created` trigger with reviewed database migrations before making related schema changes.
+11. Consider multi-factor authentication for the dedicated administrator as a future security-hardening task.
 
 ## Documentation Update Rule
 
