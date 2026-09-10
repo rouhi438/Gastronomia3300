@@ -19,6 +19,7 @@ import {
 
 import { createClient } from "@/lib/supabase/client";
 import AdminStoreStatus from "./AdminStoreStatus";
+import AdminNotificationButton from "./AdminNotificationButton";
 
 import styles from "./AdminHeader.module.css";
 
@@ -133,6 +134,9 @@ export default function AdminHeader({ userLabel }: AdminHeaderProps) {
 
         <div className={styles.actions}>
           <AdminStoreStatus />
+          <AdminNotificationButton
+            className={`${styles.iconButton} ${styles.notificationButton}`}
+          />
           <button
             type="button"
             className={styles.iconButton}

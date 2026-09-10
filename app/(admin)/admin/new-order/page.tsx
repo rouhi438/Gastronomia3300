@@ -3,115 +3,28 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, BellRing, Volume2 } from "lucide-react";
+import { playAdminOrderAlarm } from "@/lib/admin/orderAlarm";
 
 import styles from "./new-order.module.css";
 
-type BrowserWindow = Window &
-  typeof globalThis & {
-    webkitAudioContext?: typeof AudioContext;
-  };
-
-function scheduleTone(
-  context: AudioContext,
-  frequency: number,
-  startTime: number,
-  duration: number,
-) {
-  const oscillator = context.createOscillator();
-
-  const gain = context.createGain();
-
-  oscillator.type = "sine";
-  oscillator.frequency.setValueAtTime(frequency, startTime);
-
-  gain.gain.setValueAtTime(0.0001, startTime);
-
-  gain.gain.exponentialRampToValueAtTime(0.24, startTime + 0.025);
-
-  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
-
-  oscillator.connect(gain);
-  gain.connect(context.destination);
-
-  oscillator.start(startTime);
-  oscillator.stop(startTime + duration + 0.03);
-}
-
 export default function NewOrderPage() {
   const router = useRouter();
-
-  const audioContextRef = useRef<AudioContext | null>(null);
 
   const alarmIntervalRef = useRef<number | null>(null);
 
   const [soundEnabled, setSoundEnabled] = useState(false);
 
-  const getAudioContext = useCallback(() => {
-    if (audioContextRef.current) {
-      return audioContextRef.current;
-    }
-
-    const AudioContextConstructor =
-      window.AudioContext || (window as BrowserWindow).webkitAudioContext;
-
-    if (!AudioContextConstructor) {
-      return null;
-    }
-
-    const context = new AudioContextConstructor();
-
-    audioContextRef.current = context;
-
-    return context;
-  }, []);
-
   const playAlarm = useCallback(async () => {
-    try {
-      const context = getAudioContext();
+    const played = await playAdminOrderAlarm();
 
-      if (!context) {
-        setSoundEnabled(false);
-        return;
-      }
-
-      if (context.state === "suspended") {
-        await context.resume();
-      }
-
-      if (context.state !== "running") {
-        setSoundEnabled(false);
-        return;
-      }
-
-      const start = context.currentTime + 0.03;
-
-      scheduleTone(context, 740, start, 0.2);
-
-      scheduleTone(context, 988, start + 0.22, 0.28);
-
-      scheduleTone(context, 740, start + 0.62, 0.2);
-
-      scheduleTone(context, 988, start + 0.84, 0.3);
-
-      setSoundEnabled(true);
-    } catch {
-      setSoundEnabled(false);
-    }
-  }, [getAudioContext]);
+    setSoundEnabled(played);
+  }, []);
 
   const stopAlarm = useCallback(() => {
     if (alarmIntervalRef.current !== null) {
       window.clearInterval(alarmIntervalRef.current);
 
       alarmIntervalRef.current = null;
-    }
-
-    const context = audioContextRef.current;
-
-    audioContextRef.current = null;
-
-    if (context && context.state !== "closed") {
-      void context.close();
     }
   }, []);
 
