@@ -4,6 +4,10 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/client";
+import {
+  playAdminOrderAlarm,
+  prepareAdminOrderAlarm,
+} from "@/lib/admin/orderAlarm";
 
 type PendingOrderResponse = {
   order?: {
@@ -15,11 +19,7 @@ type PendingOrderResponse = {
 
 const CHECK_INTERVAL_MS = 5000;
 
-const PROCESSING_PATHS = [
-  "/admin/new-order",
-  "/admin/select-time",
-  "/admin/order-accepted",
-];
+const PROCESSING_PATHS = ["/admin/new-order", "/admin/select-time"];
 
 function isProcessingOrder(pathname: string): boolean {
   return PROCESSING_PATHS.some(
@@ -37,6 +37,29 @@ export default function AdminOrderWatcher() {
   const redirectingRef = useRef(false);
   const isAdminRef = useRef(false);
 
+  const notifiedOrderIdRef = useRef<number | null>(null);
+  const alarmedOrderIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const removePreparationListeners = () => {
+      window.removeEventListener("pointerdown", handleAdminInteraction, true);
+      window.removeEventListener("keydown", handleAdminInteraction, true);
+    };
+
+    const handleAdminInteraction = () => {
+      void prepareAdminOrderAlarm().then((ready) => {
+        if (ready) {
+          removePreparationListeners();
+        }
+      });
+    };
+
+    window.addEventListener("pointerdown", handleAdminInteraction, true);
+    window.addEventListener("keydown", handleAdminInteraction, true);
+
+    return removePreparationListeners;
+  }, []);
+
   useEffect(() => {
     pathnameRef.current = pathname;
     redirectingRef.current = false;
@@ -53,6 +76,53 @@ export default function AdminOrderWatcher() {
 
     router.replace("/admin/new-order");
   }, [router]);
+
+  const playOrderAlarm = useCallback((orderId: number) => {
+    if (alarmedOrderIdRef.current === orderId) {
+      return;
+    }
+
+    alarmedOrderIdRef.current = orderId;
+
+    void playAdminOrderAlarm().then((played) => {
+      if (!played && alarmedOrderIdRef.current === orderId) {
+        alarmedOrderIdRef.current = null;
+      }
+    });
+  }, []);
+
+  const showSystemNotification = useCallback(
+    (orderId: number) => {
+      if (
+        !("Notification" in window) ||
+        Notification.permission !== "granted" ||
+        notifiedOrderIdRef.current === orderId
+      ) {
+        return;
+      }
+
+      try {
+        const notification = new Notification("Ny ordre", {
+          body: "En ny betalt ordre venter på at blive behandlet.",
+          icon: "/pwa-192.png",
+          tag: `admin-order-${orderId}`,
+          requireInteraction: true,
+          silent: false,
+        });
+
+        notifiedOrderIdRef.current = orderId;
+
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+          router.replace("/admin/new-order");
+        };
+      } catch (error: unknown) {
+        console.error("New-order system notification failed:", error);
+      }
+    },
+    [router],
+  );
 
   const checkPendingOrder = useCallback(async (): Promise<boolean> => {
     try {
@@ -79,6 +149,8 @@ export default function AdminOrderWatcher() {
       isAdminRef.current = true;
 
       if (result.order) {
+        playOrderAlarm(result.order.id);
+        showSystemNotification(result.order.id);
         openNewOrderPage();
       }
 
@@ -88,7 +160,7 @@ export default function AdminOrderWatcher() {
 
       return isAdminRef.current;
     }
-  }, [openNewOrderPage]);
+  }, [openNewOrderPage, showSystemNotification, playOrderAlarm]);
 
   useEffect(() => {
     let disposed = false;
@@ -100,6 +172,8 @@ export default function AdminOrderWatcher() {
       watching = false;
       isAdminRef.current = false;
       redirectingRef.current = false;
+      notifiedOrderIdRef.current = null;
+      alarmedOrderIdRef.current = null;
 
       if (intervalId !== null) {
         window.clearInterval(intervalId);
@@ -163,10 +237,15 @@ export default function AdminOrderWatcher() {
           },
           (payload) => {
             const newOrder = payload.new as {
+              id?: unknown;
               status?: unknown;
             };
 
             if (isAdminRef.current && newOrder.status === "pending") {
+              if (typeof newOrder.id === "number") {
+                playOrderAlarm(newOrder.id);
+                showSystemNotification(newOrder.id);
+              }
               openNewOrderPage();
             }
           },
@@ -207,6 +286,12 @@ export default function AdminOrderWatcher() {
       subscription.unsubscribe();
       stopWatching();
     };
-  }, [checkPendingOrder, openNewOrderPage, supabase]);
+  }, [
+    checkPendingOrder,
+    openNewOrderPage,
+    playOrderAlarm,
+    showSystemNotification,
+    supabase,
+  ]);
   return null;
 }

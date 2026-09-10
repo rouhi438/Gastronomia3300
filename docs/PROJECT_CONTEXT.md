@@ -1,6 +1,6 @@
 # GastronomiaPizzaApp - Project Context
 
-Last updated: 2026-09-06
+Last updated: 2026-09-10
 
 ## Purpose
 
@@ -93,9 +93,7 @@ behavior.
 
 ### Main
 
-Admin accounting, admin portal isolation, the registration-profile conflict fix,
-and the admin Store Status control have been merged. Their Production deployments
-reached Ready.
+Admin accounting, admin portal isolation, the registration-profile conflict fix, the admin Store Status control, the admin receipt improvements, and the collapsible accounting report have been merged. Their Production deployments reached Ready.
 
 The dedicated Production administrator has been verified. The previous account's
 admin role was revoked on 2026-09-04, and a clean-session access test confirmed
@@ -143,18 +141,43 @@ Completed verification:
 
 ### Collapsible accounting report
 
-Branch: `feature/collapsible-accounting-report`
+Branch: `feature/collapsible-accounting-report` (merged)
 
-Status at the time of this update:
+Completed verification:
 
 - The accounting-report controls are collapsed by default on the admin orders page.
 - A compact button opens and closes the existing date-range form.
 - Selected dates remain available after closing and reopening the panel.
 - Report generation continues to use the existing accounting page and API.
 - The disclosure exposes its state through `aria-expanded` and `aria-controls`.
-- Collapsed, expanded, mobile, and report-page states were verified locally.
+- Desktop, mobile, Light mode, Dark mode, and report generation were verified.
 - `git diff --check`, ESLint, TypeScript, and the Next.js production build passed.
-- Preview and Production deployment pending.
+- Preview and Production deployments reached Ready.
+- The Production accounting disclosure and report generation passed the smoke test.
+
+### Admin pending-order alert reliability
+
+Branch: `fix/admin-order-alert-on-receipt`
+
+Status at the time of this update:
+
+- The global admin watcher checks pending orders every five seconds and through Supabase Realtime.
+- Accepted-order receipt pages no longer suppress navigation to the new-order alarm page.
+- Pending orders can interrupt ordinary admin pages and open `/admin/new-order`.
+- Active new-order and select-time workflows remain protected from automatic navigation.
+- A header notification control manages the browser's one-time notification permission and provides an alarm test.
+- The watcher requests both an in-app alarm and a persistent system notification before redirecting.
+- A shared Web Audio alarm engine remains available across internal admin navigation.
+- The first ordinary pointer or keyboard interaction prepares audio without requiring a dedicated daily activation step.
+- The new-order page uses the shared alarm and repeats it every five seconds.
+- Duplicate alarm requests within 1.5 seconds are suppressed.
+- A full browser reload can still require one ordinary page interaction before custom audio is allowed by browser autoplay rules.
+- System notifications and restaurant email alerts remain independent fallback channels.
+- Payment, order creation, pending-order lookup, and restaurant email logic are unchanged.
+- Desktop alarm playback, desktop notification display, and the 370px mobile header layout were verified locally.
+- `git diff --check`, ESLint, TypeScript, and the Next.js production build passed.
+- The original cross-page redirect behavior passed controlled Preview testing.
+- Updated Preview alarm testing and Production deployment are pending.
 
 ## Security and Privacy Rules
 
@@ -712,14 +735,19 @@ existing tooling. Inspect the test setup before adding a new dependency.
 
 ## Next Actions
 
-1. Commit and push `feature/collapsible-accounting-report`.
-2. Verify the collapsed and expanded accounting panel in the Preview deployment.
-3. Verify date selection, report generation, desktop, mobile, Light mode, and Dark mode.
-4. Merge the feature branch and wait for the Production deployment to reach Ready.
-5. Smoke-test the accounting disclosure and report generation in Production.
-6. Continue routine monitoring of Production payments, orders, emails, and alerts.
-7. Reconcile the Production `on_auth_user_created` trigger with reviewed database migrations before making related schema changes.
-8. Consider multi-factor authentication for the dedicated administrator as a future security-hardening task.
+1. Commit and push `fix/admin-order-alert-on-receipt`.
+2. Wait for the updated Preview deployment to reach Ready.
+3. Grant notification permission once for the Preview origin.
+4. Open an ordinary admin page, interact with it normally, and create a controlled order from another device or browser session.
+5. Verify the immediate alarm, system notification, redirect to `/admin/new-order`, and five-second repeating alarm.
+6. Verify `Se ordre` opens the correct pending order and the normal accept flow still works.
+7. Repeat the controlled test from the admin menu and an accepted-order receipt page.
+8. Merge the fix after the updated Preview test passes and wait for the Production deployment.
+9. Grant notification permission once on the Production store computer and verify Windows notification sound settings.
+10. Verify the complete behavior with the next real Production order.
+11. Continue routine monitoring of Production payments, orders, emails, and alerts.
+12. Reconcile the Production `on_auth_user_created` trigger with reviewed database migrations before making related schema changes.
+13. Consider multi-factor authentication for the dedicated administrator as a future security-hardening task.
 
 ## Documentation Update Rule
 
