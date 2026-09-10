@@ -169,6 +169,158 @@
     cursor: not-allowed;
 }
 
+.notificationControl {
+    position: relative;
+
+    display: inline-grid;
+    flex: 0 0 auto;
+}
+
+.notificationPopover {
+    position: absolute;
+    z-index: 120;
+    top: calc(100% + 0.7rem);
+    right: 0;
+
+    display: grid;
+    gap: 0.75rem;
+
+    width: min(320px, calc(100vw - 1.5rem));
+    padding: 0.85rem;
+
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+}
+
+.alarmHeader {
+    display: grid;
+    gap: 0.15rem;
+}
+
+.alarmEyebrow {
+    color: var(--green);
+
+    font-size: 0.65rem;
+    font-weight: 850;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.alarmTitle {
+    color: var(--text-primary);
+
+    font-size: 0.95rem;
+    line-height: 1.25;
+}
+
+.alarmDescription {
+    margin: 0;
+
+    color: var(--text-muted);
+
+    font-size: 0.72rem;
+    line-height: 1.4;
+}
+
+.alarmOptions {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.alarmOption {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.65rem;
+
+    width: 100%;
+    min-height: 58px;
+    padding: 0.6rem 0.7rem;
+
+    color: var(--text-primary);
+    font: inherit;
+    text-align: left;
+
+    cursor: pointer;
+    background: var(--bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+
+    transition:
+        background-color 160ms ease,
+        border-color 160ms ease;
+}
+
+.alarmOption:hover {
+    background: color-mix(in srgb, var(--green) 8%, var(--bg));
+    border-color: color-mix(in srgb, var(--green) 35%, var(--border-color));
+}
+
+.alarmOption:focus-visible,
+.alarmTestButton:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--green) 38%, transparent);
+    outline-offset: 2px;
+}
+
+.alarmOptionSelected {
+    background: color-mix(in srgb, var(--green) 11%, var(--bg));
+    border-color: color-mix(in srgb, var(--green) 48%, var(--border-color));
+}
+
+.alarmOptionIcon {
+    color: var(--green);
+}
+
+.alarmOptionText {
+    display: grid;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.alarmOptionLabel {
+    font-size: 0.78rem;
+    line-height: 1.25;
+}
+
+.alarmOptionDescription {
+    color: var(--text-muted);
+
+    font-size: 0.68rem;
+    line-height: 1.35;
+}
+
+.alarmOptionCheck {
+    color: var(--green);
+}
+
+.alarmTestButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+
+    width: 100%;
+    min-height: 40px;
+    padding: 0.55rem 0.75rem;
+
+    color: #ffffff;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 800;
+
+    cursor: pointer;
+    background: var(--green);
+    border: 0;
+    border-radius: 9px;
+}
+
+.alarmTestButton:hover {
+    opacity: 0.9;
+}
+
 .adminIdentity {
     display: inline-flex;
     align-items: center;
@@ -389,6 +541,21 @@
 
     .mobileLogoutButton {
         justify-self: end;
+    }
+}
+
+@media (max-width: 720px) {
+    .notificationPopover {
+        position: fixed;
+        top: 78px;
+        right: 0.75rem;
+        left: 0.75rem;
+
+        width: auto;
+        max-height: calc(100dvh - 90px);
+        overflow-y: auto;
+
+        overscroll-behavior: contain;
     }
 }
 
