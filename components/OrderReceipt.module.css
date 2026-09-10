@@ -546,7 +546,7 @@
         box-shadow: none !important;
 
         font-family: Arial, "Helvetica Neue", sans-serif;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 600;
         line-height: 1.4;
 
@@ -608,7 +608,7 @@
     }
 
     .orderInfo p:first-child {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 900;
         line-height: 1.15;
     }
@@ -673,7 +673,7 @@
 
         color: #000000 !important;
 
-        font-size: 16px;
+        font-size: 13px;
         font-weight: 900;
         line-height: 1.35;
         white-space: pre-wrap;
@@ -716,7 +716,7 @@
 
         color: #000000 !important;
 
-        font-size: 11.5px;
+        font-size: 10.5px;
         font-weight: 800;
         line-height: 1.35;
         overflow-wrap: break-word;
@@ -732,8 +732,8 @@
 
         color: #000000 !important;
 
-        font-size: 11.5px;
-        font-weight: 700;
+        font-size: 9px;
+        font-weight: 600;
         line-height: 1.3;
         overflow-wrap: break-word;
     }
@@ -741,8 +741,8 @@
     .printPrice {
         color: #000000 !important;
 
-        font-size: 11.5px;
-        font-weight: 900;
+        font-size: 10px;
+        font-weight: 700;
         line-height: 1.3;
         text-align: right;
         white-space: nowrap;
@@ -787,7 +787,7 @@
         border: 1px solid #000000 !important;
         border-radius: 1.5mm;
 
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 900;
         line-height: 1.15;
     }
