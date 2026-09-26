@@ -1,6 +1,6 @@
 # GastronomiaPizzaApp - Project Context
 
-Last updated: 2026-09-10
+Last updated: 2026-09-26
 
 ## Purpose
 
@@ -92,7 +92,7 @@ Before changing any completed area, inspect the current code and verify existing
 
 ### Main
 
-Admin accounting, admin portal isolation, the registration-profile conflict fix, the admin Store Status control, the admin receipt improvements, the collapsible accounting report, and the pending-order alert reliability fix have been merged. Their Production deployments reached Ready.
+Admin accounting, admin portal isolation, the registration-profile conflict fix, the admin Store Status control, the admin receipt improvements, the collapsible accounting report, the pending-order alert reliability fix, compact receipt typography, and the admin alarm sound selector have been merged into main.
 
 The dedicated Production administrator has been verified. The previous account's
 admin role was revoked on 2026-09-04, and a clean-session access test confirmed
@@ -181,9 +181,9 @@ Completed verification:
 
 ### Admin alarm sound selector
 
-Branch: `feature/admin-alarm-sound-selector`
+Branch: `feature/admin-alarm-sound-selector` (merged)
 
-Status at the time of this update:
+Completed verification:
 
 - The green notification bell opens a compact alarm-sound selector.
 - Klassisk, Køkkenklokke, Digital, Telefon, and Haster sounds are available.
@@ -192,7 +192,27 @@ Status at the time of this update:
 - No database or API change is required.
 - Desktop, refresh persistence, repeating playback, and the 370px mobile layout were verified locally.
 - `git diff --check`, ESLint, TypeScript, and the Next.js production build passed.
-- Preview and Production deployment pending.
+- Merged into main through PR #49.
+
+### Orders and order-items RLS hardening
+
+Branch: `fix/orders-order-items-rls`
+
+Status at the time of this update:
+
+- Added migration `20260926000000_secure_orders_and_order_items.sql`.
+- Enabled Row-Level Security on `public.orders` and `public.order_items`.
+- Removed the legacy direct customer INSERT and SELECT policies from `orders`.
+- Revoked all direct `anon` access to both tables.
+- Revoked direct `authenticated` access to `order_items`.
+- Retained authenticated SELECT on `orders` only for the administrator's Supabase Realtime subscription.
+- The administrator policy trusts only `auth.jwt().app_metadata.role = 'admin'`.
+- Existing server-side APIs and payment webhooks continue using `service_role`.
+- No application code or environment-variable change was required.
+- The migration was applied successfully to Production.
+- Supabase Security Advisor errors decreased from three to zero.
+- The Production admin order list and an existing order receipt passed the smoke test.
+- Verification with the next real Production order remains pending.
 
 ## Security and Privacy Rules
 
@@ -747,19 +767,25 @@ existing tooling. Inspect the test setup before adding a new dependency.
 - The Production `on_auth_user_created` trigger is not represented in repository
   migrations. Preview and Production schema parity should be reconciled through
   a dedicated, reviewed migration after the trigger function is verified.
+- Supabase Security Advisor still reports warnings for the mutable
+  `handle_updated_at` search path, public and authenticated execution of the
+  `handle_new_user()` SECURITY DEFINER function, and disabled leaked-password
+  protection.
+- The original `orders` and `order_items` table definitions are not represented
+  in repository migrations and should be reconciled as part of schema-baseline work.
+- New tables created in the exposed `public` schema require explicit grants in
+  their migrations under Supabase's October 30 Data API grant behavior.
 
 ## Next Actions
 
-1. Commit and push `feature/admin-alarm-sound-selector`.
-2. Wait for the Preview deployment to reach Ready.
-3. Verify all five sounds, selection persistence, repeated alarm playback, desktop layout, and mobile scrolling in Preview.
-4. Merge the feature branch and wait for the Production deployment to reach Ready.
-5. Select and test the preferred alarm on the Production store computer.
-6. Smoke-test the compact receipt typography in Production.
-7. Verify the complete notification and alarm flow with the next real Production order.
-8. Continue routine monitoring of Production payments, orders, emails, and alerts.
-9. Reconcile the Production `on_auth_user_created` trigger with reviewed database migrations before making related schema changes.
-10. Consider multi-factor authentication for the dedicated administrator as a future security-hardening task.
+1. Merge `fix/orders-order-items-rls` and wait for the Production deployment to reach Ready.
+2. Verify the complete payment, order creation, Realtime notification, and acceptance flow with the next real Production order.
+3. Confirm the preferred alarm sound on the Production store computer.
+4. Review the remaining Supabase Security Advisor warnings in a separate security branch.
+5. Audit table-creation migrations for explicit Data API grants before October 30.
+6. Reconcile the Production `on_auth_user_created` trigger and the missing schema baseline with reviewed database migrations.
+7. Continue routine monitoring of Production payments, orders, emails, and alerts.
+8. Consider multi-factor authentication for the dedicated administrator as a future security-hardening task.
 
 ## Documentation Update Rule
 
