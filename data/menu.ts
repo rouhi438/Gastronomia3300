@@ -394,8 +394,7 @@ export const menuData: MenuItem[] = [
     id: 23,
     menuNumber: 23,
     name: "PATATE",
-    description:
-      "Tomat, ost, kartofler, gorgonzola, cherrytomat, pesto og skinke",
+    description: "Tomat, ost, kartofler, gorgonzola, cherrytomat og pesto",
     category: "pizza",
     mainCategory: "pizza",
     subCategory: "vegetar",
