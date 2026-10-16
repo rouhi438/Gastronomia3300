@@ -52,3 +52,9 @@ alter table public.orders
   add column discount_amount numeric(12, 2)
     not null default 0
     check (discount_amount >= 0);
+
+-- Restrict direct Data API access.
+-- Campaigns are accessed only through trusted server-side APIs.
+revoke all on table public.discount_campaigns from anon, authenticated;
+
+
