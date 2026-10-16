@@ -1,4 +1,9 @@
 import {
+  validateDiscount,
+  type ValidatedDiscount,
+} from "@/lib/discounts/validateDiscount";
+
+import {
   prepareOrderPricing,
   type DeliveryMethod,
   type PreparedOrderPricing,
@@ -16,6 +21,7 @@ import {
 
 type CreateCheckoutRequest = {
   delivery_method?: unknown;
+  discount_code?: unknown;
   payment_method?: unknown;
 
   bag_included?: unknown;
@@ -62,6 +68,7 @@ export type PreparedCheckout = {
   paymentMethod: CheckoutPaymentMethod;
   bagIncluded: boolean;
 
+  discount: ValidatedDiscount | null;
   pricing: PreparedOrderPricing;
 };
 
@@ -363,9 +370,29 @@ export async function prepareCheckout(
       error: pricingResult.error,
     };
   }
+  const discountResult = await validateDiscount(
+    body.discount_code,
+    pricingResult.data.subtotal,
+  );
+
+  if (!discountResult.ok) {
+    return {
+      ok: false,
+      error: discountResult.error,
+    };
+  }
+
+  const discount = discountResult.discount;
+  const discountAmount = discount?.discountAmount ?? 0;
+
+  const pricing: PreparedOrderPricing = {
+    ...pricingResult.data,
+    totalPrice: pricingResult.data.totalPrice - discountAmount,
+  };
+
   if (
     deliveryMethod === "delivery" &&
-    pricingResult.data.totalPrice < MIN_DELIVERY_TOTAL
+    pricing.totalPrice < MIN_DELIVERY_TOTAL
   ) {
     return {
       ok: false,
@@ -395,7 +422,8 @@ export async function prepareCheckout(
       paymentMethod,
       bagIncluded,
 
-      pricing: pricingResult.data,
+      pricing,
+      discount,
     },
   };
 }

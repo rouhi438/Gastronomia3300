@@ -1,0 +1,237 @@
+.container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.75rem 1rem 3rem;
+    color: var(--text-primary);
+}
+
+.pageHeader {
+    margin-bottom: 1.5rem;
+}
+
+.title {
+    margin: 0;
+    font-size: clamp(1.8rem, 5vw, 2.4rem);
+    font-weight: 800;
+}
+
+.subtitle {
+    margin: 0.3rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.campaignList {
+    display: grid;
+    gap: 1rem;
+}
+
+.campaignCard,
+.emptyState {
+    padding: 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+}
+
+.cardHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.campaignName {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+}
+
+.code {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    background: var(--bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-weight: 700;
+}
+
+.status {
+    flex-shrink: 0;
+    padding: 0.3rem 0.65rem;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.percent {
+    display: block;
+    margin-top: 1rem;
+    color: var(--green);
+    font-size: 1.5rem;
+}
+
+.dates {
+    margin-top: 1rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.dates p {
+    margin: 0.3rem 0;
+}
+
+.error {
+    color: var(--red);
+}
+
+.emptyState {
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.formCard {
+    margin-bottom: 2rem;
+    padding: 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+}
+
+.sectionTitle {
+    margin: 0 0 1rem;
+    color: var(--text-primary);
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.field input {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.7rem 0.8rem;
+    color: var(--text-primary);
+    background: var(--bg);
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+    font: inherit;
+}
+
+.field input:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
+}
+
+.checkboxField {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.checkboxField input {
+    width: 19px;
+    height: 19px;
+    accent-color: var(--green);
+}
+
+.helperText {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.formActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.primaryButton,
+.secondaryButton {
+    min-height: 44px;
+    padding: 0.7rem 1.1rem;
+    border-radius: 9px;
+    font: inherit;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.primaryButton {
+    color: #fff;
+    background: var(--green);
+    border: 1px solid var(--green);
+}
+
+.secondaryButton {
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.success {
+    color: var(--green);
+    font-weight: 700;
+}
+
+.field input[type="date"] {
+    color-scheme: light;
+}
+
+:global(html.dark) .field input[type="date"] {
+    color-scheme: dark;
+}
+
+.field input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 1;
+}
+
+@media (max-width: 600px) {
+    .formGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .formCard {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .cardHeader {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}

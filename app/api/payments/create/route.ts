@@ -148,6 +148,21 @@ export async function POST(request: NextRequest) {
       },
     );
 
+    if (checkout.discount && checkout.discount.discountAmount > 0) {
+      const discountAmountMinor = Math.round(
+        checkout.discount.discountAmount * 100,
+      );
+
+      netsItems.push(
+        createNetsOrderItem({
+          reference: `discount-${checkout.discount.code}`,
+          name: `Rabat ${checkout.discount.code}`,
+          quantity: 1,
+          grossUnitPriceMinor: -discountAmountMinor,
+        }),
+      );
+    }
+
     if (checkout.pricing.bagFee > 0) {
       netsItems.push(
         createNetsOrderItem({

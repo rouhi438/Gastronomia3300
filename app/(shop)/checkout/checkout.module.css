@@ -114,6 +114,43 @@
     color: #ffffff;
 }
 
+/* ===== DISCOUNT CODE ===== */
+.discountButton {
+    align-self: flex-start;
+    padding: 0.7rem 1.5rem;
+    border: 1px solid var(--green);
+    border-radius: var(--radius);
+    background-color: transparent;
+    color: var(--green);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.discountButton:hover:not(:disabled) {
+    background-color: var(--green);
+    color: #ffffff;
+}
+
+.discountButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.discountError {
+    margin: 0;
+    color: var(--red);
+    font-size: 0.9rem;
+}
+
+.discountSuccess {
+    margin: 0;
+    color: var(--green);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
 /* ===== SUBMIT BUTTON ===== */
 .submitBtn {
     padding: 0.9rem 2rem;
@@ -130,6 +167,17 @@
 
 .submitBtn:hover {
     opacity: 0.85;
+}
+
+.submitBtn:disabled {
+    background-color: #9ca3af;
+    color: #ffffff;
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.submitBtn:disabled:hover {
+    opacity: 0.65;
 }
 
 /* ===== SUMMARY ===== */
@@ -457,6 +505,17 @@
 
     font-size: 0.88rem;
     line-height: 1.4;
+}
+
+.discountSummaryRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    color: var(--green);
+    font-size: 0.95rem;
+    font-weight: 600;
 }
 
 :global(.dark) .errorModal {

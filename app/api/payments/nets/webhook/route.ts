@@ -103,6 +103,64 @@ function isPreparedCheckout(value: unknown): value is PreparedCheckout {
 
   const checkout = value as Partial<PreparedCheckout>;
 
+  const pricing = checkout.pricing;
+
+  if (!pricing || typeof pricing !== "object") {
+    return false;
+  }
+
+  const amounts = [
+    pricing.subtotal,
+    pricing.bagFee,
+    pricing.serviceFee,
+    pricing.deliveryFee,
+    pricing.totalPrice,
+  ];
+
+  if (
+    amounts.some(
+      (amount) =>
+        typeof amount !== "number" ||
+        !Number.isSafeInteger(amount) ||
+        amount < 0,
+    )
+  ) {
+    return false;
+  }
+
+  const discount = checkout.discount;
+
+  if (discount !== undefined && discount !== null) {
+    if (
+      typeof discount.campaignId !== "string" ||
+      typeof discount.code !== "string" ||
+      !/^[A-Z0-9_-]{3,32}$/.test(discount.code) ||
+      !Number.isInteger(discount.discountPercent) ||
+      discount.discountPercent < 1 ||
+      discount.discountPercent > 100 ||
+      !Number.isSafeInteger(discount.discountAmount) ||
+      discount.discountAmount < 0 ||
+      discount.discountAmount !==
+        Math.round((pricing.subtotal * discount.discountPercent) / 100)
+    ) {
+      return false;
+    }
+  }
+
+  const expectedTotal =
+    pricing.subtotal +
+    pricing.bagFee +
+    pricing.serviceFee +
+    pricing.deliveryFee -
+    (discount?.discountAmount ?? 0);
+
+  if (
+    !Number.isSafeInteger(expectedTotal) ||
+    expectedTotal !== pricing.totalPrice
+  ) {
+    return false;
+  }
+
   return (
     typeof checkout.customerName === "string" &&
     typeof checkout.customerPhone === "string" &&
@@ -1112,6 +1170,34 @@ export async function POST(request: NextRequest) {
 
   const checkout = checkoutSession.order_payload;
 
+  if (
+    Math.round(checkout.pricing.totalPrice * 100) !==
+    checkoutSession.amount_minor
+  ) {
+    console.error(
+      "Paid checkout pricing does not match the charged amount:",
+      checkoutSession.id,
+    );
+
+    await recordOperationalAlert({
+      dedupeKey: paidOrderAlertKey,
+      category: "paid_order_creation",
+      severity: "critical",
+      summary:
+        "Nets confirmed payment, but the checkout total does not match the charged amount.",
+      checkoutSessionId: checkoutSession.id,
+      context: {
+        stage: "verify_checkout_total",
+      },
+      notify: true,
+    });
+
+    return NextResponse.json(
+      { error: "Checkout total mismatch" },
+      { status: 500 },
+    );
+  }
+
   let orderUserId = checkoutSession.user_id;
 
   if (orderUserId) {
@@ -1173,6 +1259,11 @@ export async function POST(request: NextRequest) {
       service_fee: checkout.pricing.serviceFee,
       delivery_fee: checkout.pricing.deliveryFee,
       total_price: checkout.pricing.totalPrice,
+
+      discount_campaign_id: checkout.discount?.campaignId ?? null,
+      discount_code: checkout.discount?.code ?? null,
+      discount_amount: checkout.discount?.discountAmount ?? 0,
+      discount_percent: checkout.discount?.discountPercent ?? null,
 
       delivery_method: checkout.deliveryMethod,
 

@@ -13,6 +13,7 @@ import {
   MonitorCog,
   Moon,
   Sun,
+  Tag,
   UtensilsCrossed,
   X,
 } from "lucide-react";
@@ -44,6 +45,12 @@ const navigationItems = [
     label: "Menukort",
     icon: UtensilsCrossed,
     activePaths: ["/admin/menu"],
+  },
+  {
+    href: "/admin/discount-campaigns",
+    label: "Rabatkampagner",
+    icon: Tag,
+    activePaths: ["/admin/discount-campaigns"],
   },
   {
     href: "/admin/opening-hours",

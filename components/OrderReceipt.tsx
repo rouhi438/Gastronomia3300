@@ -40,6 +40,9 @@ interface OrderReceiptProps {
     estimated_time?: number | null;
 
     subtotal?: MoneyValue;
+    discount_code?: string | null;
+    discount_percent?: number | null;
+    discount_amount?: MoneyValue;
     bag_included?: boolean | null;
     bag_fee?: MoneyValue;
     service_fee?: MoneyValue;
@@ -380,6 +383,11 @@ export default function OrderReceipt({
       ? toNumber(order.subtotal)
       : itemSubtotal;
 
+  const discountAmount = toNumber(order.discount_amount);
+  const discountPercent = order.discount_percent;
+
+  const hasDiscount = discountAmount > 0;
+
   const bagFee = toNumber(order.bag_fee);
 
   const serviceFee = toNumber(order.service_fee);
@@ -639,13 +647,21 @@ export default function OrderReceipt({
       <div className={`${styles.totals} ${styles.screenTotals}`}>
         <div className={styles.totalRow}>
           <span>{t("totals.items")}:</span>
-
           <span>{formatReceiptMoney(subtotal)}</span>
         </div>
 
+        {hasDiscount && (
+          <div className={styles.totalRow}>
+            <span>
+              {t("totals.discount")}
+              {discountPercent != null ? ` (${discountPercent}%)` : ""}:
+            </span>
+            <span>-{formatReceiptMoney(discountAmount)}</span>
+          </div>
+        )}
+
         <div className={styles.totalRow}>
           <span>{t("totals.bag")}:</span>
-
           <span>{formatReceiptMoney(bagFee)}</span>
         </div>
 
@@ -675,6 +691,15 @@ export default function OrderReceipt({
           <span>{t("totals.items")}:</span>
           <span>{formatPrintMoney(subtotal)}</span>
         </div>
+
+        {hasDiscount && (
+          <div className={styles.totalRow}>
+            <span>
+              Discount{discountPercent != null ? ` (${discountPercent}%)` : ""}:
+            </span>
+            <span>-{formatPrintMoney(discountAmount)}</span>
+          </div>
+        )}
 
         {bagFee > 0 && (
           <div className={styles.totalRow}>

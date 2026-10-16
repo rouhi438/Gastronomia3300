@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 
+import { MIN_DELIVERY_TOTAL } from "@/lib/orders/constants";
 import { useCart } from "@/context/CartContext";
 import { extraGroups, type Extra } from "@/data/menu";
 import styles from "./checkout.module.css";
@@ -55,6 +56,16 @@ export default function CheckoutPage() {
   const [mounted, setMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  const [discountCode, setDiscountCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState<{
+    code: string;
+    amount: number;
+    totalPrice: number;
+    cartKey: string;
+  } | null>(null);
+  const [discountError, setDiscountError] = useState("");
+  const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
 
   const [orderNote, setOrderNote] = useState("");
   const [form, setForm] = useState<CheckoutForm>(initialForm);
@@ -149,6 +160,120 @@ export default function CheckoutPage() {
     return index >= 0 && itemModalT.has(key) ? itemModalT(key) : extra.name;
   };
 
+  const buildOrderItems = () =>
+    items.map((item) => {
+      const extras = (item.extras ?? []).map((extra) => {
+        const groupId = extra.groupId;
+
+        if (typeof groupId !== "string" || groupId.trim() === "") {
+          throw new Error(t("errors.invalidExtraGroup"));
+        }
+
+        return {
+          name: extra.name,
+          groupId: groupId.trim(),
+        };
+      });
+
+      return {
+        id: item.id,
+        quantity: item.quantity,
+        size: item.size || "normal",
+        deepPan: Boolean(item.deepPan),
+        extras,
+      };
+    });
+
+  const cartKey = JSON.stringify({
+    items,
+    bagIncluded,
+    deliveryMethod,
+  });
+
+  const validAppliedDiscount =
+    appliedDiscount?.cartKey === cartKey &&
+    appliedDiscount.code === discountCode.trim().toUpperCase()
+      ? appliedDiscount
+      : null;
+
+  const checkoutTotal = validAppliedDiscount
+    ? validAppliedDiscount.totalPrice
+    : totalPrice;
+
+  const deliveryMinimumShortfall =
+    deliveryMethod === "delivery"
+      ? Math.max(0, MIN_DELIVERY_TOTAL - checkoutTotal)
+      : 0;
+
+  const handleApplyDiscount = async () => {
+    if (isApplyingDiscount || isSubmitting) return;
+
+    const code = discountCode.trim().toUpperCase();
+
+    setAppliedDiscount(null);
+    setDiscountError("");
+
+    if (!code) {
+      setDiscountError(t("discountRequired"));
+      return;
+    }
+
+    if (items.length === 0) {
+      setDiscountError(t("discountEmptyCart"));
+      return;
+    }
+
+    const requestedCartKey = cartKey;
+    setIsApplyingDiscount(true);
+
+    try {
+      const response = await fetch("/api/discounts/preview", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          discount_code: code,
+          items: buildOrderItems(),
+          bag_included: bagIncluded,
+          delivery_method: deliveryMethod,
+        }),
+      });
+
+      const result = (await response.json()) as {
+        code?: string | null;
+        discount_amount?: number;
+        total_price?: number;
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(result.error || t("discountApplyFailed"));
+      }
+
+      if (
+        typeof result.code !== "string" ||
+        typeof result.discount_amount !== "number" ||
+        typeof result.total_price !== "number"
+      ) {
+        throw new Error(t("discountInvalidResponse"));
+      }
+
+      setAppliedDiscount({
+        code: result.code,
+        amount: result.discount_amount,
+        totalPrice: result.total_price,
+        cartKey: requestedCartKey,
+      });
+    } catch (error) {
+      setDiscountError(
+        error instanceof Error ? error.message : t("discountUnknownError"),
+      );
+    } finally {
+      setIsApplyingDiscount(false);
+    }
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -180,28 +305,7 @@ export default function CheckoutPage() {
     setSubmitError("");
 
     try {
-      const orderItems = items.map((item) => {
-        const extras = (item.extras ?? []).map((extra) => {
-          const groupId = extra.groupId;
-
-          if (typeof groupId !== "string" || groupId.trim() === "") {
-            throw new Error(t("errors.invalidExtraGroup"));
-          }
-
-          return {
-            name: extra.name,
-            groupId: groupId.trim(),
-          };
-        });
-
-        return {
-          id: item.id,
-          quantity: item.quantity,
-          size: item.size || "normal",
-          deepPan: Boolean(item.deepPan),
-          extras,
-        };
-      });
+      const orderItems = buildOrderItems();
 
       const customerAddress =
         deliveryMethod === "delivery" ? formattedDeliveryAddress : null;
@@ -210,6 +314,7 @@ export default function CheckoutPage() {
         delivery_method: deliveryMethod,
         payment_method: payment,
         bag_included: bagIncluded,
+        discount_code: validAppliedDiscount?.code ?? null,
         customer_name: form.name.trim(),
         customer_phone: form.phone.trim(),
         customer_email: form.email.trim(),
@@ -394,6 +499,56 @@ export default function CheckoutPage() {
             </div>
 
             <div className={styles.section}>
+              <h3>{t("discountTitle")}</h3>
+
+              <div className={styles.inputGroup}>
+                <label htmlFor="checkout-discount-code">
+                  {t("discountLabel")}
+                </label>
+
+                <input
+                  id="checkout-discount-code"
+                  type="text"
+                  value={discountCode}
+                  onChange={(event) => {
+                    setDiscountCode(event.target.value.toUpperCase());
+                    setDiscountError("");
+                  }}
+                  placeholder={t("discountPlaceholder")}
+                  autoComplete="off"
+                  maxLength={32}
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleApplyDiscount}
+                className={styles.discountButton}
+                disabled={isApplyingDiscount || isSubmitting}
+              >
+                {isApplyingDiscount
+                  ? t("discountChecking")
+                  : t("discountApply")}
+              </button>
+
+              {discountError && (
+                <p className={styles.discountError} role="alert">
+                  {discountError}
+                </p>
+              )}
+
+              {validAppliedDiscount && (
+                <p className={styles.discountSuccess} role="status">
+                  {t("discountApplied", {
+                    code: validAppliedDiscount.code,
+                    amount: formatPrice(validAppliedDiscount.amount),
+                  })}
+                </p>
+              )}
+            </div>
+
+            <div className={styles.section}>
               <h3>{t("payment")}</h3>
 
               <div className={styles.options}>
@@ -423,10 +578,23 @@ export default function CheckoutPage() {
               </div>
             </div>
 
+            {deliveryMinimumShortfall > 0 && (
+              <p
+                role="alert"
+                style={{ color: "#b91c1c", marginBottom: "12px" }}
+              >
+                {t.rich("deliveryMinimumWarning", {
+                  minimum: MIN_DELIVERY_TOTAL,
+                  shortfall: deliveryMinimumShortfall,
+                  bold: (chunks) => <strong>{chunks}</strong>,
+                })}
+              </p>
+            )}
+
             <button
               type="submit"
               className={styles.submitBtn}
-              disabled={isSubmitting}
+              disabled={isSubmitting || deliveryMinimumShortfall > 0}
             >
               {isSubmitting ? t("submitting") : t("completeOrder")}
             </button>
@@ -469,11 +637,22 @@ export default function CheckoutPage() {
               })}
             </ul>
 
+            {validAppliedDiscount && (
+              <div className={styles.discountSummaryRow}>
+                <span>{t("discountTitle")}</span>
+                <span>-{formatPrice(validAppliedDiscount.amount)}</span>
+              </div>
+            )}
+
             <div className={styles.totalRow}>
               <span>{t("total")}</span>
 
               <span className={styles.totalPrice}>
-                {formatPrice(totalPrice)}
+                {formatPrice(
+                  validAppliedDiscount
+                    ? validAppliedDiscount.totalPrice
+                    : totalPrice,
+                )}
               </span>
             </div>
           </div>

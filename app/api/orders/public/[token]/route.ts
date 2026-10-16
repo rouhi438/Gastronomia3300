@@ -63,6 +63,9 @@ export async function GET(_request: Request, context: RouteContext) {
           cancel_reason,
 
           subtotal,
+          discount_code,
+          discount_percent,
+          discount_amount,
           bag_included,
           bag_fee,
           service_fee,
