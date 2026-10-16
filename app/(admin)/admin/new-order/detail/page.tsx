@@ -22,7 +22,14 @@ interface Order {
   requested_time?: string | null;
   order_note: string | null;
   cancel_reason?: string | null;
-  total_price: number;
+  subtotal: number | string;
+  discount_code?: string | null;
+  discount_percent?: number | null;
+  discount_amount?: number | string | null;
+  bag_fee: number | string;
+  service_fee: number | string;
+  delivery_fee: number | string;
+  total_price: number | string;
   status: string;
   estimated_time?: number | null;
   created_at: string;
@@ -340,6 +347,13 @@ export default function OrderDetailPage() {
   }
 
   const formattedDate = new Date(order.created_at).toLocaleString("da-DK");
+  const subtotal = Number(order.subtotal);
+  const discountAmount = Number(order.discount_amount ?? 0);
+  const discountPercent = order.discount_percent;
+
+  const bagFee = Number(order.bag_fee);
+  const serviceFee = Number(order.service_fee);
+  const deliveryFee = Number(order.delivery_fee);
   const isSubmitting = submittingAction !== null;
 
   return (
@@ -456,6 +470,45 @@ export default function OrderDetailPage() {
                 </div>
               );
             })}
+          </div>
+          <div className={styles.orderSummary}>
+            <div className={styles.summaryRow}>
+              <span>Varer i alt</span>
+              <span>{subtotal} kr.</span>
+            </div>
+
+            {discountAmount > 0 && (
+              <div className={styles.summaryRow}>
+                <span>
+                  Rabat{discountPercent != null ? ` (${discountPercent}%)` : ""}
+                </span>
+                <span>-{discountAmount} kr.</span>
+              </div>
+            )}
+
+            {bagFee > 0 && (
+              <div className={styles.summaryRow}>
+                <span>Pose</span>
+                <span>{bagFee} kr.</span>
+              </div>
+            )}
+
+            <div className={styles.summaryRow}>
+              <span>Servicegebyr</span>
+              <span>{serviceFee} kr.</span>
+            </div>
+
+            {order.delivery_method === "delivery" && (
+              <div className={styles.summaryRow}>
+                <span>Levering</span>
+                <span>{deliveryFee} kr.</span>
+              </div>
+            )}
+
+            <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
+              <strong>I alt</strong>
+              <strong>{order.total_price} kr.</strong>
+            </div>
           </div>
         </section>
 

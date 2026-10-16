@@ -43,6 +43,9 @@ interface Order {
   estimated_time: number | null;
 
   subtotal: MoneyValue;
+  discount_code: string | null;
+  discount_percent: number | null;
+  discount_amount: MoneyValue;
   bag_included: boolean;
   bag_fee: MoneyValue;
   service_fee: MoneyValue;
@@ -219,6 +222,12 @@ export default function OrderAcceptedPage() {
     estimated_time: order.estimated_time,
 
     subtotal: order.subtotal,
+
+    discount_code: order.discount_code,
+
+    discount_percent: order.discount_percent,
+
+    discount_amount: order.discount_amount,
 
     bag_included: order.bag_included,
 

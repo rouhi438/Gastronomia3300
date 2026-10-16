@@ -1,1 +1,1 @@
-export const MIN_DELIVERY_TOTAL = 180;
+export const MIN_DELIVERY_TOTAL = 170;

@@ -43,6 +43,9 @@ interface PublicOrder {
   order_note: string | null;
   cancel_reason: string | null;
   subtotal: MoneyValue;
+  discount_code: string | null;
+  discount_percent: number | null;
+  discount_amount: MoneyValue;
   bag_included: boolean;
   bag_fee: MoneyValue;
   service_fee: MoneyValue;

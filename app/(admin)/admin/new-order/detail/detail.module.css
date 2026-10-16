@@ -959,6 +959,38 @@
     border-color: #16a34a;
 }
 
+.orderSummary {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 18px 24px 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+.summaryRow {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.summaryRow span:last-child {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.summaryTotal {
+    margin-top: 6px;
+    padding-top: 14px;
+    border-top: 1px solid #e5e7eb;
+    font-size: 17px;
+    font-weight: 700;
+}
+
 @keyframes overlayIn {
     from {
         opacity: 0;
