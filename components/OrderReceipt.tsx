@@ -695,7 +695,7 @@ export default function OrderReceipt({
         {hasDiscount && (
           <div className={styles.totalRow}>
             <span>
-              Discount{discountPercent != null ? ` (${discountPercent}%)` : ""}:
+              Rabat{discountPercent != null ? ` (${discountPercent}%)` : ""}:
             </span>
             <span>-{formatPrintMoney(discountAmount)}</span>
           </div>

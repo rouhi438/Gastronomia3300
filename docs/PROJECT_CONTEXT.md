@@ -1,6 +1,6 @@
 # GastronomiaPizzaApp - Project Context
 
-Last updated: 2026-09-26
+Last updated: 2026-10-16
 
 ## Purpose
 
@@ -85,6 +85,7 @@ The following features have been implemented or corrected:
 - Removal of customer comments from the compact admin order list only
 - Menu category icon and translation-key corrections
 - Production menu price corrections completed on 2026-08-27
+- Discount campaigns and discounted checkout implemented on `feature/discount-campaigns`; Preview testing in progress, not merged or deployed to Production
 
 Before changing any completed area, inspect the current code and verify existing behavior.
 
@@ -213,6 +214,100 @@ Status at the time of this update:
 - Supabase Security Advisor errors decreased from three to zero.
 - The Production admin order list and an existing order receipt passed the smoke test.
 - Verification with the next real Production order remains pending.
+
+### Discount campaigns and checkout discounts (Preview only)
+
+Branch: `feature/discount-campaigns` (NOT merged to `main`)
+
+Status as of 2026-10-16:
+
+- Initial complete feature committed and pushed on the feature branch as `902f312`.
+- Vercel Preview deployment for that commit reached Ready.
+- Both discount migrations were applied **only** to the Supabase Preview database
+  through the Preview SQL Editor and manually registered in
+  `supabase_migrations.schema_migrations`.
+- A complete Nets **Test** card payment and authenticated charge webhook were
+  exercised in Vercel Preview. The discounted order was persisted, shown on the
+  customer order detail, accepted by the administrator, and shown in the admin
+  receipt and 58 mm browser print preview.
+- The follow-up new-order card breakdown and print-label changes are currently
+  **local, uncommitted and not yet deployed to Preview**. TypeScript and
+  `git diff --check` passed; browser retesting remains pending.
+- No changes from this feature have been merged into `main` or applied to
+  Production.
+
+#### Database migrations and security
+
+- `supabase/migrations/20261014000000_add_discount_campaigns.sql` creates
+  `public.discount_campaigns`, with unique uppercase code, percentage (1–100),
+  active flag, optional Copenhagen date range, and RLS enabled without public
+  access policies. It also adds order snapshot references and amounts.
+- `supabase/migrations/20261016000000_add_order_discount_percent.sql` adds
+  `orders.discount_percent` with a 1–100 check, preserving the historical
+  percentage independently of later campaign edits.
+- `orders` records `discount_campaign_id`, `discount_code`,
+  `discount_percent`, and `discount_amount` at the time of payment confirmation.
+- Migrations were applied and registered in **Supabase Preview only**.
+- The local Supabase CLI is still linked to the **Production** project: do not
+  run `supabase db push`, `migration repair`, or other mutating CLI commands
+  until project linking has been explicitly confirmed and corrected.
+
+#### Business rules and implementation
+
+- Admin campaign management: `app/(admin)/admin/discount-campaigns/page.tsx`,
+  `app/api/admin/discount-campaigns/route.ts`, and its `[id]/route.ts`; linked
+  as `Rabatkampagner` from the admin header.
+- Campaign windows use Copenhagen-local dates and DST-safe handling in
+  `lib/time/discountCampaignDates.ts`.
+- `lib/discounts/validateDiscount.ts` verifies code, campaign status, dates,
+  and percentage. Discount applies to the products-and-extras subtotal only;
+  fees are excluded. Discount amount uses `Math.round(subtotal * percent / 100)`.
+- Checkout preview: `app/api/discounts/preview/route.ts` and
+  `app/(shop)/checkout/page.tsx`. Applied discount is invalidated when the cart
+  changes; Danish/English checkout strings are maintained separately.
+- Server checkout pricing: `lib/orders/prepareCheckout.ts`. Minimum **delivery**
+  order total is 170 DKK **after** discount, configured in
+  `lib/orders/constants.ts`. Pickup does not use that delivery minimum.
+- Nets payment creation includes a negative discount order line and charges
+  the final discounted total. The webhook validates currency, payment identity,
+  amount, checkout-session arithmetic, and existing idempotency before storing
+  the order's discount snapshot.
+- Customer `View Order` and administrator accepted-order detail/print use
+  `components/OrderReceipt.tsx`. Compact profile order-history rows intentionally
+  remain unchanged; full discount details appear in `View Order`.
+
+#### Follow-up UI changes awaiting commit and Preview verification
+
+Files changed locally:
+
+- `app/(admin)/admin/new-order/detail/page.tsx` adds order financial fields
+  and an item-level summary below the products: `Varer i alt`, optional
+  `Rabat (N%)` and negative amount, optional bag/delivery fees, service fee,
+  and final `I alt`. The final total remains in the card header as well.
+- `app/(admin)/admin/new-order/detail/detail.module.css` styles this compact
+  breakdown without changing the item list or restaurant print layout.
+- `components/OrderReceipt.tsx` replaces the hard-coded **print-only** English
+  `Discount` label with Danish `Rabat` in the 58 mm printed totals.
+
+The admin new-order page fetches from `/api/admin/orders`, which selects order
+columns with `*`. It displays stored order amounts rather than recalculating
+campaign discounts. Do not change payment calculations to implement the UI.
+
+#### Remaining verification before merge
+
+1. Add and review this documentation update with the three local UI files.
+2. Run `npx tsc --noEmit` and `git diff --check` after all edits.
+3. Commit and push to `feature/discount-campaigns` only; wait for Vercel
+   Preview to reach Ready.
+4. Verify the financial breakdown on a **new pending** discounted order in
+   Vercel Preview. An already accepted order cannot be used to revisit the
+   pending-order card.
+5. Verify the Danish `Rabat` line in the 58 mm browser print preview.
+6. Verify the stored discount snapshot and final-total arithmetic using the
+   **Preview** SQL Editor. Do not expose private order/customer information in
+   documentation or source control.
+7. Review remaining functional tests and environment separation before any
+   explicitly approved merge/Production rollout.
 
 ## Security and Privacy Rules
 
@@ -778,14 +873,22 @@ existing tooling. Inspect the test setup before adding a new dependency.
 
 ## Next Actions
 
-1. Merge `fix/orders-order-items-rls` and wait for the Production deployment to reach Ready.
-2. Verify the complete payment, order creation, Realtime notification, and acceptance flow with the next real Production order.
-3. Confirm the preferred alarm sound on the Production store computer.
-4. Review the remaining Supabase Security Advisor warnings in a separate security branch.
-5. Audit table-creation migrations for explicit Data API grants before October 30.
-6. Reconcile the Production `on_auth_user_created` trigger and the missing schema baseline with reviewed database migrations.
-7. Continue routine monitoring of Production payments, orders, emails, and alerts.
-8. Consider multi-factor authentication for the dedicated administrator as a future security-hardening task.
+1. Complete the `feature/discount-campaigns` UI/documentation review, commit
+   and push to the feature branch, then test the new-order card and printed
+   Danish receipt in Vercel Preview.
+2. Verify stored discount snapshots and totals in Supabase **Preview**; finish
+   the remaining discount test cases before requesting any merge approval.
+3. Confirm the current status of the historical `fix/orders-order-items-rls`
+   branch; this document's September 26 status may no longer be current.
+4. Verify payment, order creation, Realtime notification, and acceptance flow
+   with the next real Production order as a routine operational check.
+5. Review the remaining Supabase Security Advisor warnings in a separate
+   security branch, audit explicit Data API grants, and reconcile the
+   Production auth-profile trigger and migration baseline.
+6. Continue Production monitoring of payments, orders, emails, and alerts;
+   consider independent scheduled reconciliation and admin MFA.
+7. Keep allergen data and printer hardware integration deferred until the
+   required restaurant-verified information and equipment are available.
 
 ## Documentation Update Rule
 
