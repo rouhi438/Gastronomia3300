@@ -58,6 +58,16 @@ type AccountingReport = {
     refundStatus: RefundStatus | null;
     refundAmountMinor: number | null;
   }>;
+  orderDetails: Array<{
+    id: number;
+    createdAt: string;
+    status: string;
+    paymentMethod: PaymentMethod;
+    totalAmountMinor: number;
+    refundStatus: RefundStatus | null;
+    completedRefundAmountMinor: number;
+    netAmountMinor: number;
+  }>;
 };
 
 const statusLabels: Record<string, string> = {
@@ -116,6 +126,9 @@ function AccountingReportContent() {
     from <= to;
 
   const [report, setReport] = useState<AccountingReport | null>(null);
+  const [paymentFilter, setPaymentFilter] = useState<"all" | PaymentMethod>(
+    "all",
+  );
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -220,6 +233,26 @@ function AccountingReportContent() {
 
   const paymentRows = (["card", "mobilepay", "other"] as const).filter(
     (method) => report.paymentMethods[method].orderCount > 0,
+  );
+
+  const filteredOrderDetails = report.orderDetails.filter(
+    (order) => paymentFilter === "all" || order.paymentMethod === paymentFilter,
+  );
+
+  const detailTotals = filteredOrderDetails.reduce(
+    (totals, order) => ({
+      orderCount: totals.orderCount + 1,
+      grossAmountMinor: totals.grossAmountMinor + order.totalAmountMinor,
+      refundAmountMinor:
+        totals.refundAmountMinor + order.completedRefundAmountMinor,
+      netAmountMinor: totals.netAmountMinor + order.netAmountMinor,
+    }),
+    {
+      orderCount: 0,
+      grossAmountMinor: 0,
+      refundAmountMinor: 0,
+      netAmountMinor: 0,
+    },
   );
 
   return (
@@ -385,6 +418,79 @@ function AccountingReportContent() {
                   </tr>
                 ))}
               </tbody>
+            </table>
+          </div>
+        </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Ordredetaljer</h2>
+
+          <div className={styles.detailFilters}>
+            {(
+              [
+                { id: "all", label: "Alle" },
+                { id: "mobilepay", label: "MobilePay" },
+                { id: "card", label: "Betalingskort" },
+                { id: "other", label: "Andre" },
+              ] as const
+            ).map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className={`${styles.detailFilterButton} ${
+                  paymentFilter === option.id ? styles.detailFilterActive : ""
+                }`}
+                aria-pressed={paymentFilter === option.id}
+                onClick={() => setPaymentFilter(option.id)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          <p className={styles.detailCount}>{detailTotals.orderCount} ordrer</p>
+
+          <div className={styles.tableScroll}>
+            <table className={`${styles.table} ${styles.wideTable}`}>
+              <thead>
+                <tr>
+                  <th>Ordre</th>
+                  <th>Dato</th>
+                  <th>Status</th>
+                  <th>Betaling</th>
+                  <th>Brutto</th>
+                  <th>Refund</th>
+                  <th>Netto</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredOrderDetails.map((order) => (
+                  <tr key={order.id}>
+                    <td>#{order.id}</td>
+                    <td>
+                      {dateTimeFormatter.format(new Date(order.createdAt))}
+                    </td>
+                    <td>{statusLabels[order.status] ?? order.status}</td>
+                    <td>{paymentMethodLabels[order.paymentMethod]}</td>
+                    <td>{formatMoney(order.totalAmountMinor)}</td>
+                    <td>
+                      {order.refundStatus
+                        ? `${refundStatusLabels[order.refundStatus]} · ${formatMoney(order.completedRefundAmountMinor)}`
+                        : "—"}
+                    </td>
+                    <td>{formatMoney(order.netAmountMinor)}</td>
+                  </tr>
+                ))}
+              </tbody>
+
+              <tfoot>
+                <tr>
+                  <th colSpan={4}>I alt</th>
+                  <th>{formatMoney(detailTotals.grossAmountMinor)}</th>
+                  <th>{formatMoney(detailTotals.refundAmountMinor)}</th>
+                  <th>{formatMoney(detailTotals.netAmountMinor)}</th>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </section>
