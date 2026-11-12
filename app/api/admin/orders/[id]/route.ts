@@ -51,6 +51,68 @@ async function requireAdmin() {
   return { error: null, user };
 }
 
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const auth = await requireAdmin();
+
+    if (auth.error) {
+      return auth.error;
+    }
+
+    const { id } = await params;
+
+    if (!/^[1-9]\d*$/.test(id)) {
+      return NextResponse.json({ error: "Invalid order ID" }, { status: 400 });
+    }
+
+    const orderId = Number(id);
+
+    if (!Number.isSafeInteger(orderId)) {
+      return NextResponse.json({ error: "Invalid order ID" }, { status: 400 });
+    }
+
+    const supabaseAdmin = createAdminClient();
+
+    const { data: order, error } = await supabaseAdmin
+      .from("orders")
+      .select("*, order_items (*)")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Admin order fetch failed:", error);
+
+      return NextResponse.json(
+        { error: "Could not load order" },
+        { status: 500 },
+      );
+    }
+
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(
+      { order },
+      {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      },
+    );
+  } catch (error) {
+    console.error("Unexpected admin order GET error:", error);
+
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

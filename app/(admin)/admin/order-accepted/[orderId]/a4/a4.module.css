@@ -1,0 +1,453 @@
+.page {
+    min-height: 100vh;
+    padding: 32px 20px 60px;
+    background: #f3f4f6;
+    color: #17202b;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    max-width: 210mm;
+    margin: 0 auto 20px;
+}
+
+.toolbar a {
+    color: #166534;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.printButton {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 9px;
+    background: #166534;
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.printButton:hover {
+    background: #14532d;
+}
+
+.backButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 0 18px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #166534;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease,
+        transform 160ms ease;
+}
+
+.backButton:hover {
+    background: #f8fafc;
+    border-color: #166534;
+    color: #14532d;
+    transform: translateY(-1px);
+}
+
+.document {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 20mm 18mm;
+    background: #fff;
+    color: #17202b;
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.documentHeader {
+    padding-bottom: 25px;
+    border-bottom: 2px solid #168347;
+}
+
+.restaurantName {
+    margin: 0 0 8px;
+    color: #166534;
+    font-size: 29px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.documentHeader p {
+    margin: 2px 0;
+    color: #475569;
+}
+
+.documentHeader hr {
+    margin: 26px 0 20px;
+    border: 0;
+    border-top: 1px solid #e2e8f0;
+}
+
+.documentTitle {
+    margin: 0 0 12px;
+    color: #111827;
+    font-size: 23px;
+    font-weight: 750;
+}
+
+.customerSection,
+.itemsSection,
+.totalsSection {
+    margin-top: 30px;
+}
+
+.customerSection h3,
+.itemsSection h3,
+.totalsSection h3 {
+    margin: 0 0 14px;
+    padding-bottom: 9px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #166534;
+    font-size: 16px;
+}
+
+.customerSection p {
+    margin: 5px 0;
+}
+
+.itemsTable,
+.totalsTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.itemsTable {
+    table-layout: auto;
+}
+
+.itemsTable th {
+    padding: 12px 10px;
+    background: #eef6f0;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: left;
+}
+
+.itemsTable td {
+    padding: 14px 10px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+}
+
+.itemsTable th:not(:first-child),
+.itemsTable td:not(:first-child) {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.itemsTable td:first-child {
+    overflow-wrap: anywhere;
+}
+
+.itemsTable td:first-child div {
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.totalsSection {
+    margin-top: 35px;
+}
+
+.totalsTable {
+    max-width: 390px;
+    margin-left: auto;
+}
+
+.totalsTable td,
+.totalsTable th {
+    padding: 8px 10px;
+    text-align: left;
+}
+
+.totalsTable td:last-child,
+.totalsTable th:last-child {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.totalsTable tr:last-child {
+    border-top: 2px solid #166534;
+}
+
+.totalsTable tr:last-child th {
+    padding-top: 14px;
+    color: #166534;
+    font-size: 19px;
+}
+
+@media (max-width: 600px) {
+    .page {
+        padding: 16px 10px 30px;
+    }
+
+    .document {
+        min-height: 0;
+        padding: 24px 16px;
+    }
+
+    .toolbar {
+        flex-wrap: wrap;
+    }
+
+    .restaurantName {
+        font-size: 24px;
+    }
+
+    .itemsTable {
+        font-size: 11px;
+    }
+
+    .itemsTable th,
+    .itemsTable td {
+        padding: 9px 5px;
+    }
+}
+
+@page {
+    size: A4 portrait;
+    margin: 12mm;
+}
+
+.headerGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 24px;
+}
+
+.restaurantInfo p,
+.orderInfo p {
+    margin: 2px 0;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.orderInfo {
+    text-align: right;
+}
+
+.orderInfo strong {
+    font-size: 15px;
+}
+
+.documentHeader {
+    padding-bottom: 12px;
+    border-bottom: none;
+}
+
+.restaurantName {
+    margin-bottom: 5px;
+    font-size: 25px;
+}
+
+.documentTitle {
+    margin: 0 0 5px;
+    font-size: 17px;
+}
+
+.italianDivider {
+    height: 3px;
+    margin-top: 14px;
+    background: linear-gradient(90deg,
+            #168447 0%,
+            #168447 33.33%,
+            #e5e7eb 33.33%,
+            #e5e7eb 66.66%,
+            #ce293d 66.66%,
+            #ce293d 100%);
+}
+
+.documentFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.footerText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 11px;
+}
+
+.footerText span {
+    color: #64748b;
+}
+
+.italianFlag {
+    width: 125px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.customerSection {
+    margin: 14px 0 16px;
+    padding: 0;
+}
+
+.customerGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+}
+
+.customerIdentity {
+    min-width: 0;
+}
+
+.customerIdentity strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #172033;
+}
+
+.customerIdentity p {
+    margin: 3px 0 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: #475569;
+}
+
+.customerMeta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    font-size: 11px;
+    color: #475569;
+    white-space: nowrap;
+}
+
+@media print {
+
+    :global(html:has([data-a4-print])),
+    :global(body:has([data-a4-print])) {
+        width: auto !important;
+        max-width: none !important;
+        min-height: 0 !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+    }
+
+    .page {
+        min-height: 0;
+        margin: 0;
+        padding: 0;
+        background: white;
+    }
+
+    .toolbar {
+        display: none !important;
+    }
+
+    .document {
+        width: 100%;
+        max-width: none;
+        min-height: 0;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        font-size: 11px;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .documentHeader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 76px;
+        padding-bottom: 0;
+        background: #fff;
+        z-index: 10;
+    }
+
+    .documentFooter {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 38px;
+        padding-top: 6px;
+        background: #fff;
+        z-index: 10;
+    }
+
+    .customerSection {
+        margin-top: 0;
+        padding-top: 130px;
+    }
+
+    .itemsTable th,
+    .itemsTable td {
+        padding: 6px 7px;
+    }
+
+    .documentHeader,
+    .customerSection,
+    .totalsSection {
+        break-inside: avoid;
+    }
+
+    .itemsTable {
+        break-inside: auto;
+    }
+
+    .itemsTable thead {
+        display: table-header-group;
+    }
+
+    .itemsTable tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .itemsTable th,
+    .itemsTable td {
+        padding: 8px 7px;
+    }
+
+    .restaurantName {
+        font-size: 25px;
+    }
+
+    .documentTitle {
+        font-size: 21px;
+    }
+}
