@@ -229,7 +229,7 @@
 
 .tabs {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0.35rem;
     margin-bottom: 1rem;
     padding: 0.3rem;
@@ -630,6 +630,40 @@
     color: var(--red);
 }
 
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 28px 0;
+}
+
+.pageButton {
+    padding: 10px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.pageButton:hover:not(:disabled) {
+    background: rgba(128, 128, 128, 0.1);
+}
+
+.pageButton:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pageInfo {
+    font-size: 14px;
+    font-weight: 600;
+}
+
 @media (max-width: 560px) {
     .container {
         padding: 1rem 0.75rem 2rem;
@@ -640,8 +674,19 @@
     }
 
     .tabs {
-        grid-template-columns: repeat(4, max-content);
-        justify-content: start;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        overflow-x: hidden;
+    }
+
+    .tabs .tab {
+        grid-column: span 2;
+        min-width: 0;
+        white-space: normal;
+    }
+
+    .tabs .tab:nth-child(4),
+    .tabs .tab:nth-child(5) {
+        grid-column: span 3;
     }
 
     .accountingToggle {

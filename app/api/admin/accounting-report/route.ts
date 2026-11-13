@@ -327,6 +327,26 @@ export async function GET(request: NextRequest) {
 
       statusBreakdown,
       exceptionOrders,
+
+      orderDetails: orders.map((order) => {
+        const totalAmountMinor = kronerToMinor(order.total_price);
+
+        const completedRefundAmountMinor =
+          order.refund_status === "completed"
+            ? normalizeRefundAmount(order.refund_amount_minor)
+            : 0;
+
+        return {
+          id: order.id,
+          createdAt: order.created_at,
+          status: order.status,
+          paymentMethod: normalizePaymentMethod(order.payment_method),
+          totalAmountMinor,
+          refundStatus: order.refund_status,
+          completedRefundAmountMinor,
+          netAmountMinor: totalAmountMinor - completedRefundAmountMinor,
+        };
+      }),
     });
   } catch (error) {
     console.error("Unexpected accounting report error:", error);

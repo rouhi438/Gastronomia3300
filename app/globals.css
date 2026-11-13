@@ -120,8 +120,8 @@ body {
         margin: 0;
     }
 
-    html,
-    body {
+    html:not(:has([data-a4-print])),
+    body:not(:has([data-a4-print])) {
         width: 58mm !important;
         min-height: 0 !important;
         height: auto !important;

@@ -270,6 +270,53 @@
     border-bottom: 0;
 }
 
+.detailFilters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0 12px;
+}
+
+.detailFilterButton {
+    padding: 9px 15px;
+    border: 1px solid var(--border-color, #d1d5db);
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.detailFilterButton:hover {
+    background: rgba(128, 128, 128, 0.1);
+}
+
+.detailFilterActive,
+.detailFilterActive:hover {
+    background: #166534;
+    border-color: #166534;
+    color: #fff;
+}
+
+.detailCount {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: inherit;
+}
+
+@media print {
+    .detailFilters {
+        display: none;
+    }
+
+    .detailCount {
+        color: #000;
+    }
+}
+
 @media (max-width: 760px) {
     .page {
         padding: 1rem 0.75rem 2rem;
@@ -436,6 +483,10 @@
 
     .table th {
         background: #f1f1f1 !important;
+    }
+
+    .table tfoot {
+        display: table-row-group;
     }
 
     .table thead {

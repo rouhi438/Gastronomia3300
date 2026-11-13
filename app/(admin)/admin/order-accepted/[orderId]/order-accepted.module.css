@@ -146,6 +146,39 @@
     outline-offset: 3px;
 }
 
+.a4PrintBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 22px;
+    border: 2px solid #168347;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #166534;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        transform 160ms ease;
+}
+
+.a4PrintBtn:hover {
+    background: #f0fdf4;
+    border-color: #14532d;
+    transform: translateY(-1px);
+}
+
+.a4PrintBtn:focus-visible {
+    outline: 3px solid #86efac;
+    outline-offset: 3px;
+}
+
 .loading,
 .error {
     min-height: 100vh;
@@ -191,6 +224,10 @@
     }
 
     .actionsBar {
+        display: none !important;
+    }
+
+    .a4PrintBtn {
         display: none !important;
     }
 }

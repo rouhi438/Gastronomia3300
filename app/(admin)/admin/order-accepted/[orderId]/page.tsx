@@ -261,6 +261,20 @@ export default function OrderAcceptedPage() {
           🖨️ Print
         </button>
 
+        <button
+          type="button"
+          className={styles.a4PrintBtn}
+          onClick={() =>
+            window.open(
+              `/admin/order-accepted/${order.id}/a4`,
+              "_blank",
+              "noopener,noreferrer",
+            )
+          }
+        >
+          <span aria-hidden="true">📄</span> Print A4
+        </button>
+
         <button type="button" className={styles.doneBtn} onClick={handleGoBack}>
           Tilbage til oversigt
         </button>

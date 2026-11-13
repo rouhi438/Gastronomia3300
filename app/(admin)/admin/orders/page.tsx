@@ -17,7 +17,7 @@ type OrderStatus = "pending" | "accepted" | "ready" | "completed" | "cancelled";
 
 type RefundStatus = "pending" | "completed" | "failed";
 
-type DateFilter = "today" | "yesterday" | "lastWeek" | "lastMonth";
+type DateFilter = "today" | "yesterday" | "lastWeek" | "lastMonth" | "all";
 interface OrderFeedbackSummary {
   rating: number;
   admin_seen_at: string | null;
@@ -64,6 +64,7 @@ const filters: Array<{
   { id: "yesterday", label: "I går" },
   { id: "lastWeek", label: "Sidste uge" },
   { id: "lastMonth", label: "Sidste måned" },
+  { id: "all", label: "Alle" },
 ];
 
 const statusLabels: Record<OrderStatus, string> = {
@@ -88,64 +89,15 @@ function formatRequestedTime(requestedTime: string | null | undefined) {
   return requestedTime;
 }
 
-function getStartOfDay(date: Date) {
-  const result = new Date(date);
-  result.setHours(0, 0, 0, 0);
-  return result;
-}
-
-function getEndOfDay(date: Date) {
-  const result = new Date(date);
-  result.setHours(23, 59, 59, 999);
-  return result;
-}
-
-function isOrderInFilter(createdAt: string, filter: DateFilter) {
-  const orderDate = new Date(createdAt);
-
-  if (Number.isNaN(orderDate.getTime())) {
-    return false;
-  }
-
-  const now = new Date();
-
-  if (filter === "today") {
-    return orderDate >= getStartOfDay(now) && orderDate <= getEndOfDay(now);
-  }
-
-  if (filter === "yesterday") {
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    return (
-      orderDate >= getStartOfDay(yesterday) &&
-      orderDate <= getEndOfDay(yesterday)
-    );
-  }
-
-  if (filter === "lastWeek") {
-    const sevenDaysAgo = new Date(now);
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    return (
-      orderDate >= getStartOfDay(sevenDaysAgo) && orderDate <= getEndOfDay(now)
-    );
-  }
-
-  const thirtyDaysAgo = new Date(now);
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-  return (
-    orderDate >= getStartOfDay(thirtyDaysAgo) && orderDate <= getEndOfDay(now)
-  );
-}
-
 export default function AdminOrdersPage() {
   const router = useRouter();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeFilter, setActiveFilter] = useState<DateFilter>("today");
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -162,10 +114,18 @@ export default function AdminOrdersPage() {
 
   const fetchOrders = useCallback(async () => {
     try {
-      const response = await fetch("/api/admin/orders", {
-        credentials: "include",
-        cache: "no-store",
+      const params = new URLSearchParams({
+        filter: activeFilter,
+        page: String(currentPage),
       });
+
+      const response = await fetch(
+        `/api/admin/orders/paginated?${params.toString()}`,
+        {
+          credentials: "include",
+          cache: "no-store",
+        },
+      );
 
       if (response.status === 401) {
         router.replace("/auth");
@@ -179,14 +139,17 @@ export default function AdminOrdersPage() {
       }
 
       setOrders(Array.isArray(data?.orders) ? data.orders : []);
-
+      setTotalCount(data.totalCount);
+      setTotalAmount(data.totalAmount);
+      setTotalPages(data.totalPages);
+      setCurrentPage(data.page);
       setError("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Kunne ikke hente ordrer");
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [router, activeFilter, currentPage]);
 
   useEffect(() => {
     const initialFetch = window.setTimeout(() => {
@@ -203,18 +166,8 @@ export default function AdminOrdersPage() {
     };
   }, [fetchOrders]);
 
-  const filteredOrders = useMemo(() => {
-    return orders
-      .filter((order) => isOrderInFilter(order.created_at, activeFilter))
-      .sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      );
-  }, [orders, activeFilter]);
-
-  const filteredTotal = useMemo(() => {
-    return filteredOrders.reduce((sum, order) => sum + order.total_price, 0);
-  }, [filteredOrders]);
+  const filteredOrders = orders;
+  const filteredTotal = totalAmount;
 
   const handleCompleteOrder = async (order: Order) => {
     if (
@@ -319,7 +272,7 @@ export default function AdminOrdersPage() {
         <div>
           <h1 className={styles.title}>Ordrer</h1>
 
-          <p className={styles.subtitle}>{filteredOrders.length} ordrer</p>
+          <p className={styles.subtitle}>{totalCount} ordrer</p>
         </div>
 
         <div className={styles.summary}>
@@ -429,7 +382,10 @@ export default function AdminOrdersPage() {
             className={`${styles.tab} ${
               activeFilter === filter.id ? styles.activeTab : ""
             }`}
-            onClick={() => setActiveFilter(filter.id)}
+            onClick={() => {
+              setCurrentPage(1);
+              setActiveFilter(filter.id);
+            }}
           >
             {filter.label}
           </button>
@@ -609,6 +565,32 @@ export default function AdminOrdersPage() {
             );
           })}
         </section>
+      )}
+
+      {totalPages > 1 && (
+        <nav className={styles.pagination} aria-label="Ordresider">
+          <button
+            type="button"
+            className={styles.pageButton}
+            disabled={currentPage <= 1}
+            onClick={() => setCurrentPage((page) => page - 1)}
+          >
+            ← Forrige
+          </button>
+
+          <span className={styles.pageInfo}>
+            Side {currentPage} af {totalPages}
+          </span>
+
+          <button
+            type="button"
+            className={styles.pageButton}
+            disabled={currentPage >= totalPages}
+            onClick={() => setCurrentPage((page) => page + 1)}
+          >
+            Næste →
+          </button>
+        </nav>
       )}
     </main>
   );
