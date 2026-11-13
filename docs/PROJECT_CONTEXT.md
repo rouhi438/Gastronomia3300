@@ -1,6 +1,6 @@
 # GastronomiaPizzaApp - Project Context
 
-Last updated: 2026-10-16
+Last updated: 2026-11-13
 
 ## Purpose
 
@@ -10,7 +10,8 @@ Production website: `https://gastronomia3300.dk`
 
 This document preserves project context, completed work, important decisions,
 operational procedures, known risks, and the agreed roadmap. Update it whenever
-a meaningful feature is merged.
+a meaningful feature is implemented, verified, pushed, or merged. Record
+these stages separately; do not describe a Preview feature as Production-ready.
 
 The repository remains the technical source of truth. Verify exact file names,
 routes, database objects, environment variables, and script behavior in the
@@ -77,7 +78,9 @@ The following features have been implemented or corrected:
 - Curated Most Ordered menu section
 - Private order feedback and public aggregate ratings
 - Order-loss prevention and durable operational alerts
-- Admin accounting report
+- Admin accounting report (original summary version merged into `main`)
+- Admin orders pagination, detailed accounting and optional A4 confirmation printing
+  (implemented on `feature/admin-orders-report-a4`; NOT merged into `main`)
 - Admin portal isolation deployed to Production
 - OAuth profile continuity and paid-order fallback deployed to Production
 - Icon-based admin Store Status control deployed to Production
@@ -90,6 +93,35 @@ The following features have been implemented or corrected:
 Before changing any completed area, inspect the current code and verify existing behavior.
 
 ## Current Branch and Deployment State
+
+### Latest work (2026-11-13): feature/admin-orders-report-a4, not merged
+
+**Authoritative status from the last shared Git output:**
+
+- Local branch and upstream: `feature/admin-orders-report-a4` and
+  `origin/feature/admin-orders-report-a4`.
+- Most recent confirmed pushed commit: `60d8bb7` (`fix(admin): align A4
+  screen and print layouts`). The preceding confirmed commits are `11d0305`
+  (`fix(admin): support multi-page A4 order printing`) and `0c5b61e`
+  (`feat(admin): add optional A4 order confirmation printing`).
+- At that checkpoint Git reported a clean, synchronized working tree.
+- Later, **two local uncommitted changes** were made to the accounting report:
+  `app/(admin)/admin/accounting-report/page.tsx` and
+  `app/(admin)/admin/accounting-report/accounting-report.module.css`.
+  TypeScript, diff whitespace checks, and a Next.js production build passed;
+  the last shown `git status -sb` indicated both modified files.
+- Commands to commit and push these accounting changes were proposed, but **no
+  subsequent terminal output confirms their execution**. Re-check Git before
+  claiming they have been pushed or are present in Vercel Preview.
+- The A4 feature was confirmed working in Vercel Preview, including a long order
+  displayed as two sheets in screen and browser Print Preview. The newest
+  accounting-summary/detail toggle was verified **locally** only in the shared
+  evidence; a newer Vercel Preview verification is still needed after push.
+- **No merge into `main` and no Production deployment of this feature branch
+  has been reported.** Avoid Production changes without explicit approval.
+
+The full feature design, file paths, print rules, test cases, and rollout steps
+are documented below in **Section 8**.
 
 ### Main
 
@@ -826,6 +858,253 @@ Confirm before implementation:
 Do not design a final receipt around an assumed paper width. Keep receipt data
 separate from printer-specific layout and transport.
 
+## 8. Admin Orders, Detailed Accounting and Optional A4 Printing - Feature Branch
+
+**As of 2026-11-13.** Branch: `feature/admin-orders-report-a4`.
+Status: implemented and locally tested; A4 pushed and Preview-verified;
+latest accounting view-mode improvements locally verified and pending
+confirmed commit/push/Preview test. **NOT merged to `main` or Production.**
+
+### Scope and boundaries
+
+Three related admin enhancements were developed together:
+
+1. **All orders and pagination** on `/admin/orders`. An `Alle` filter includes
+   the full order history rather than just a short recent list. The UI is
+   paginated in groups of 20, with navigation and totals/counts. The existing
+   admin order-processing flow must remain intact.
+2. **Detailed accounting report** on `/admin/accounting-report`, retaining
+   financial summary groups while adding per-order rows and payment-method
+   filtering. Its later view-mode refinement makes `Oversigt` the default and
+   shows the full order table only after `Vis detaljer` is selected.
+3. **Optional A4 order confirmation** for accepted orders, separate from the
+   existing 58 mm thermal/kitchen receipt. A4 is deliberately an additional
+   action, not a replacement for or change to automatic printing on acceptance.
+
+Do not modify payment capture, refund accounting, order creation, Nets webhook,
+RLS, Supabase migrations, live customer data, or the original 58 mm print
+layout merely to implement these display/reporting features. No new database
+migration or environment secret was reported for this feature work.
+
+### All-orders pagination
+
+- Admin page: `app/(admin)/admin/orders/page.tsx` (verify current structure in
+  repository before changing); admin data route:
+  `app/api/admin/orders/paginated`.
+- An `Alle` filter exposes historical orders; pages show 20 orders at a time.
+- Admin order count and total amounts should follow the appropriate filtered
+  dataset. Prev/next navigation must work at boundaries and preserve filters.
+- The branch implementation was discussed as completed, but the latest
+  conversation did **not** include a fresh end-to-end pagination test in
+  Vercel Preview. Treat that final UI smoke test as outstanding until confirmed.
+
+### Detailed accounting: data and existing reporting sections
+
+Relevant files:
+
+- `app/(admin)/admin/accounting-report/page.tsx`
+- `app/(admin)/admin/accounting-report/accounting-report.module.css`
+- `app/api/admin/accounting-report/route.ts` (existing source; do not change
+  calculations for the view toggle)
+- `lib/time/copenhagenDateRange.ts` (date boundaries)
+
+The report remains admin-protected and date-range-based, using Copenhagen-local
+boundaries. It retains `Antal ordrer`, `Bruttoomsætning`, `Gennemført refund`,
+`Nettoomsætning`, `Betalingsmetoder`, `Refundoversigt`, `Ordrestatus`, and
+conditional `Ordrer der kræver opmærksomhed` sections. Per-order detail rows
+include order ID, date/time, status, payment method, gross amount, refund,
+and net amount. Existing detail payment filters are `Alle`, `MobilePay`,
+`Betalingskort`, and `Andre`. The existing filter is held in `paymentFilter`,
+and `filteredOrderDetails` and `detailTotals` derive data from the fetched
+report. Values are reported in Danish kroner and already supplied minor units.
+
+**2026-11-13 view-mode refinement:**
+
+- Added `const [showDetails, setShowDetails] = useState(false)` in the report
+  page. This initializes the UI in **summary-only** mode.
+- Added a toolbar button toggling `Vis detaljer` and `Skjul detaljer`, with
+  `aria-expanded={showDetails}`. At the time of testing it reused
+  `styles.printButton`; dedicated button styling was not a prerequisite.
+- Wrapped **only** the `Ordredetaljer` section (including the payment filter,
+  per-order table and total row) in `{showDetails && (...)}`. Do **not** wrap
+  the `Betalingsmetoder`, refund summary, status breakdown, or attention orders
+  sections in this condition.
+- The button that already calls `window.print()` retains its label
+  `Udskriv / Gem som PDF`. Browser print preview uses the current React
+  document: summary view prints without the detail table; detailed view prints
+  the summary plus that table. `Save as PDF` is chosen through the browser
+  destination; a separate server-generated PDF/download mechanism was neither
+  implemented nor required. Browser `Headers and footers` may be disabled for
+  a clean PDF. A separate PDF save/reopen test is not recorded.
+- The chosen detail payment filter may narrow rows and the detail subtotal.
+  It must not silently recalculate the independent overall summary numbers.
+- `showDetails` is state-only: no report API or financial arithmetic changes.
+
+### Multi-page accounting print and repeated-total fix
+
+Chrome may repeat a semantic `<tfoot>` at the end of **every printed page**
+for a multi-page HTML table. The report's `Ordredetaljer` table contained
+its `I alt` row inside `<tfoot>`, so the total appeared both on page one and
+at the true end of the table on page two. The correct intended behavior is:
+
+- `<thead>` repeats on continued pages for legible column headings.
+- `I alt` appears **once**, after the final order in the final table page.
+- Refunds and financial totals remain untouched; do not duplicate/suppress
+  the summary section's separate legitimate totals.
+
+In the final `@media print` block in the accounting CSS, immediately following
+`.table thead { display: table-header-group; }`, added:
+
+```css
+.table tfoot {
+    display: table-row-group;
+}
+```
+
+This changes only footer pagination behavior, not the underlying totals.
+The CSS already specifies A4 portrait with `@page { size: A4 portrait;
+margin: 12mm; }`, repeats table headers, avoids splitting table rows,
+hides toolbar controls in print and prints only the report content. Two
+print media sections exist in that module; inspect both before adjustments.
+
+### Detailed accounting print tests completed locally
+
+Browser: Chrome, local `/admin/accounting-report`.
+
+**October 2026 test:** date range `2026-10-01` to `2026-10-31`.
+
+- 4 orders; `Brutto` 498.00 DKK, completed refunds 0.00 DKK and `Netto`
+  498.00 DKK in the observed local test data.
+- `Oversigt` generated one A4 page with summary sections and no
+  `Ordredetaljer` table.
+- `Detaljeret` generated one A4 page with the summary plus four individual
+  rows, payment method and one correct final total.
+
+**Long-range test:** date range `2026-05-01` to `2026-11-13`.
+
+- 27 orders, gross `8.855,00 kr.`, completed refunds `201,00 kr.`,
+  net `8.654,00 kr.` in test data. These are **test observations**, not
+  permanent financial figures or Production accounts.
+- Summary-only print rendered in **one A4 page**.
+- Detailed print rendered in **two A4 pages**, retaining the summary,
+  per-order rows, repeated table headings on page two, and the attention
+  orders table.
+- Before the CSS fix Chrome repeated `I alt` on both pages. After applying
+  `tfoot { display: table-row-group; }`, screenshots verified the row
+  disappeared from page one and appeared **once** at the end of the
+  detailed table on page two, with the same correct gross/refund/net totals.
+- No missing/cut-off rows or overlapping sections were evident in the
+  supplied Chrome previews. Do a separate larger dataset test if many months
+  or hundreds of orders become routine; 27 orders do not validate every size.
+
+### Optional A4 accepted-order print: architecture and behavior
+
+Main implementation:
+
+- Route: `/admin/order-accepted/[orderId]/a4`
+- Page: `app/(admin)/admin/order-accepted/[orderId]/a4/page.tsx`
+- Scoped stylesheet:
+  `app/(admin)/admin/order-accepted/[orderId]/a4/a4.module.css`
+- Authorized admin data endpoint: `app/api/admin/orders/[id]/route.ts`
+- Existing primary 58 mm receipt route and acceptance/automatic printing
+  behavior must remain unchanged.
+
+The page is componentized into `A4Header`, `A4Footer`, `A4Items`, `A4Totals`,
+and `A4Sheet`. Each visible `A4Sheet` renders a standalone `<article>` with
+header, page content, optional first-page customer information, item rows,
+optional last-page totals and a bottom-aligned footer. `A4Footer` uses a
+React `useId()`-derived SVG clipping ID to prevent collisions across repeated
+page flags/graphics. The first page shows the customer information; the last
+page shows totals. Header and footer appear on every A4 sheet.
+
+**Pagination:** a separate hidden measurement `A4Sheet` is rendered outside
+the viewport, preserving the full item list for DOM measurement. An effect
+measures rendered item rows and reserves height for page content, customer
+section, totals, fixed header and footer plus safety allowance. It builds
+`OrderItem[][]` page groups in `sheets` and renders only those visible
+sheets; it must **not** accidentally render another unsplit full copy. The
+measurement area is hidden from printing.
+
+**Physical dimensions and CSS:** print has `@page` A4 with 12 mm margins.
+An inner document sheet is 186 mm wide by 273 mm tall, representing the
+usable printable area. The screen presentation uses an outer 210 x 297 mm
+white sheet with 12 mm padding. The hidden measurement sheet keeps the
+186 x 273 mm inner layout. The table-row cell padding was unified across
+screen/measurement/print with a higher-specificity rule:
+
+```css
+.documentPage .itemsTable th,
+.documentPage .itemsTable td {
+    padding: 8px 7px;
+}
+```
+
+The layout uses a flex column sheet, expandable content, and bottom-aligned
+footer; page breaks are explicit for print. Earlier larger screen-only cell
+padding had made the screen render overflow/overlap despite an acceptable
+print preview. Equalizing the padding fixed that difference without
+increasing the safety allowance to a value that would unnecessarily force
+three pages. The final accepted safety allowance was 24 px.
+
+**A4 validation:**
+
+- Short order `#30` with three item rows rendered on **one A4 page**, with
+  total `455,00 kr.` in the test data.
+- Long order `#32` with **27 rows** split into **two A4 sheets** (observed
+  14 + 13 row grouping), including both repeated headers and footers,
+  customer data on first page and total `2.415,00 kr.` on last page.
+- Screen and Chrome Print Preview both showed exactly two sheets for the
+  long order, without footer overlap or clipped totals, including when
+  checked against the Vercel Preview deployment.
+- Light and Dark admin themes were exercised; the physical A4 document
+  stays white for legible printed output.
+- Build and TypeScript passed before A4 push. The pushed A4 commits are
+  `0c5b61e`, `11d0305`, and `60d8bb7`. The latest confirmed Git output
+  showed both local and remote at `60d8bb7`, with no uncommitted files **at
+  that earlier checkpoint**.
+
+### Validation and deployment checkpoints
+
+- Accounting view-mode changes: `npx tsc --noEmit` passed;
+  `git diff --check` passed; `npm run build` succeeded under Next.js
+  **16.2.10** with Turbopack. The last report showed two modified accounting
+  files and no confirmed accounting-feature commit/push.
+- Accounting report Print Preview: local 4-order and 27-order tests passed,
+  including the repeated-footer correction. The `Save as PDF` destination
+  was visible, but standalone exported-PDF inspection was not confirmed.
+- A4: committed/pushed, Vercel Preview tested in two-page screen and print
+  presentations. Vercel Preview readiness for subsequent accounting edits
+  has **not** been confirmed in the shared terminal/screenshot record.
+- Orders `Alle` pagination and amount display: a feature on this branch, but
+  obtain one explicit Vercel Preview smoke test before merge.
+- The primary thermal 58 mm receipt and new-order automatic acceptance
+  print should be regression-tested before Production rollout. Do not assume
+  the A4 option automatically changes printer defaults.
+
+### Remaining actions before any merge
+
+1. Check `git status -sb` and the accounting diff. Review the two changed
+   accounting files for only the intended view toggle and print-footer fix.
+2. If still local, commit both accounting files with a descriptive message
+   (proposed: `feat(admin): add summary and detailed accounting report modes`)
+   and push to `feature/admin-orders-report-a4`; **do not assert this step
+   occurred until the resulting terminal output confirms it**.
+3. Wait for the corresponding Vercel Preview deployment to be Ready. In
+   Preview, verify summary/default mode, detail toggle, payment filters and
+   A4 accounting print/PDF for both short and multi-page date ranges.
+4. Verify `Alle` order pagination at 20 per page, counts, totals, filter
+   interactions and page controls in Preview.
+5. Re-test an accepted order's **optional** one-page and multi-page A4
+   printing, plus existing 58 mm thermal receipt and unchanged acceptance
+   workflow, in Preview.
+6. Verify no confidential customer details are committed or leaked into
+   public URLs/screenshots. Confirm correct Preview Supabase credentials
+   and Nets test environment; never test by mutating Production records.
+7. Only after explicit authorization, review the PR diff and merge into
+   `main`; then verify a Production deployment and smoke tests separately.
+
+---
+
 ## Testing Priorities
 
 Critical automated or manual scenarios include:
@@ -873,6 +1152,14 @@ existing tooling. Inspect the test setup before adding a new dependency.
 
 ## Next Actions
 
+**Latest priority as of 2026-11-13:** Complete `feature/admin-orders-report-a4`
+according to the detailed checklist in Section 8. In particular, the A4
+changes are pushed and Preview tested, whereas the accounting-view changes
+have no confirmed commit/push yet. Do not merge into `main` or deploy to
+Production without an explicit decision and an updated Preview test.
+
+**Other work from the 2026-10-16 snapshot, requiring status re-verification:**
+
 1. Complete the `feature/discount-campaigns` UI/documentation review, commit
    and push to the feature branch, then test the new-order card and printed
    Danish receipt in Vercel Preview.
@@ -892,10 +1179,11 @@ existing tooling. Inspect the test setup before adding a new dependency.
 
 ## Documentation Update Rule
 
-After every meaningful merged feature:
+After every meaningful feature change, verification, push, or merge:
 
 1. Update the completed-work summary.
-2. Update branch and deployment status.
+2. Update branch and deployment status, explicitly distinguishing Local,
+   Preview, merged `main`, and Production.
 3. Record new database migrations and RLS policies.
 4. Record environment-variable names without values.
 5. Record operational recovery procedures.
