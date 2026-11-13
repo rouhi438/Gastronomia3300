@@ -129,6 +129,7 @@ function AccountingReportContent() {
   const [paymentFilter, setPaymentFilter] = useState<"all" | PaymentMethod>(
     "all",
   );
+  const [showDetails, setShowDetails] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -262,6 +263,15 @@ function AccountingReportContent() {
           <ArrowLeft size={18} aria-hidden="true" />
           Tilbage til ordrer
         </Link>
+
+        <button
+          type="button"
+          className={styles.printButton}
+          onClick={() => setShowDetails((current) => !current)}
+          aria-expanded={showDetails}
+        >
+          {showDetails ? "Skjul detaljer" : "Vis detaljer"}
+        </button>
 
         <button
           type="button"
@@ -421,80 +431,83 @@ function AccountingReportContent() {
             </table>
           </div>
         </section>
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Ordredetaljer</h2>
+        {showDetails && (
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Ordredetaljer</h2>
 
-          <div className={styles.detailFilters}>
-            {(
-              [
-                { id: "all", label: "Alle" },
-                { id: "mobilepay", label: "MobilePay" },
-                { id: "card", label: "Betalingskort" },
-                { id: "other", label: "Andre" },
-              ] as const
-            ).map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                className={`${styles.detailFilterButton} ${
-                  paymentFilter === option.id ? styles.detailFilterActive : ""
-                }`}
-                aria-pressed={paymentFilter === option.id}
-                onClick={() => setPaymentFilter(option.id)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+            <div className={styles.detailFilters}>
+              {(
+                [
+                  { id: "all", label: "Alle" },
+                  { id: "mobilepay", label: "MobilePay" },
+                  { id: "card", label: "Betalingskort" },
+                  { id: "other", label: "Andre" },
+                ] as const
+              ).map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={`${styles.detailFilterButton} ${
+                    paymentFilter === option.id ? styles.detailFilterActive : ""
+                  }`}
+                  aria-pressed={paymentFilter === option.id}
+                  onClick={() => setPaymentFilter(option.id)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
 
-          <p className={styles.detailCount}>{detailTotals.orderCount} ordrer</p>
+            <p className={styles.detailCount}>
+              {detailTotals.orderCount} ordrer
+            </p>
 
-          <div className={styles.tableScroll}>
-            <table className={`${styles.table} ${styles.wideTable}`}>
-              <thead>
-                <tr>
-                  <th>Ordre</th>
-                  <th>Dato</th>
-                  <th>Status</th>
-                  <th>Betaling</th>
-                  <th>Brutto</th>
-                  <th>Refund</th>
-                  <th>Netto</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {filteredOrderDetails.map((order) => (
-                  <tr key={order.id}>
-                    <td>#{order.id}</td>
-                    <td>
-                      {dateTimeFormatter.format(new Date(order.createdAt))}
-                    </td>
-                    <td>{statusLabels[order.status] ?? order.status}</td>
-                    <td>{paymentMethodLabels[order.paymentMethod]}</td>
-                    <td>{formatMoney(order.totalAmountMinor)}</td>
-                    <td>
-                      {order.refundStatus
-                        ? `${refundStatusLabels[order.refundStatus]} · ${formatMoney(order.completedRefundAmountMinor)}`
-                        : "—"}
-                    </td>
-                    <td>{formatMoney(order.netAmountMinor)}</td>
+            <div className={styles.tableScroll}>
+              <table className={`${styles.table} ${styles.wideTable}`}>
+                <thead>
+                  <tr>
+                    <th>Ordre</th>
+                    <th>Dato</th>
+                    <th>Status</th>
+                    <th>Betaling</th>
+                    <th>Brutto</th>
+                    <th>Refund</th>
+                    <th>Netto</th>
                   </tr>
-                ))}
-              </tbody>
+                </thead>
 
-              <tfoot>
-                <tr>
-                  <th colSpan={4}>I alt</th>
-                  <th>{formatMoney(detailTotals.grossAmountMinor)}</th>
-                  <th>{formatMoney(detailTotals.refundAmountMinor)}</th>
-                  <th>{formatMoney(detailTotals.netAmountMinor)}</th>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </section>
+                <tbody>
+                  {filteredOrderDetails.map((order) => (
+                    <tr key={order.id}>
+                      <td>#{order.id}</td>
+                      <td>
+                        {dateTimeFormatter.format(new Date(order.createdAt))}
+                      </td>
+                      <td>{statusLabels[order.status] ?? order.status}</td>
+                      <td>{paymentMethodLabels[order.paymentMethod]}</td>
+                      <td>{formatMoney(order.totalAmountMinor)}</td>
+                      <td>
+                        {order.refundStatus
+                          ? `${refundStatusLabels[order.refundStatus]} · ${formatMoney(order.completedRefundAmountMinor)}`
+                          : "—"}
+                      </td>
+                      <td>{formatMoney(order.netAmountMinor)}</td>
+                    </tr>
+                  ))}
+                </tbody>
 
+                <tfoot>
+                  <tr>
+                    <th colSpan={4}>I alt</th>
+                    <th>{formatMoney(detailTotals.grossAmountMinor)}</th>
+                    <th>{formatMoney(detailTotals.refundAmountMinor)}</th>
+                    <th>{formatMoney(detailTotals.netAmountMinor)}</th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </section>
+        )}
         {report.exceptionOrders.length > 0 && (
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>
