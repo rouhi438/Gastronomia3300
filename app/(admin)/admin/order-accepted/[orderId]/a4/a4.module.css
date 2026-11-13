@@ -363,6 +363,11 @@
     flex: 0 0 auto;
 }
 
+.documentPage .itemsTable th,
+.documentPage .itemsTable td {
+    padding: 8px 7px;
+}
+
 @media print {
     .documentPage {
         box-sizing: border-box;
@@ -410,11 +415,13 @@
 @media screen {
     .documentPage {
         width: 210mm;
+        height: 297mm;
         padding: 12mm;
     }
 
     .measurementArea .documentPage {
         width: 186mm;
+        height: 273mm;
         padding: 0;
     }
 }
