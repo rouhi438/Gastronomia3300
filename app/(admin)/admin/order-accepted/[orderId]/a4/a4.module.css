@@ -63,21 +63,6 @@
     transform: translateY(-1px);
 }
 
-.document {
-    box-sizing: border-box;
-    width: 100%;
-    max-width: 210mm;
-    min-height: 297mm;
-    margin: 0 auto;
-    padding: 20mm 18mm;
-    background: #fff;
-    color: #17202b;
-    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 13px;
-    line-height: 1.6;
-}
-
 .documentHeader {
     padding-bottom: 25px;
     border-bottom: 2px solid #168347;
@@ -110,9 +95,12 @@
 }
 
 .customerSection,
-.itemsSection,
-.totalsSection {
+.itemsSection {
     margin-top: 30px;
+}
+
+.totalsSection {
+    margin-top: 8px;
 }
 
 .customerSection h3,
@@ -171,9 +159,6 @@
     font-size: 12px;
 }
 
-.totalsSection {
-    margin-top: 35px;
-}
 
 .totalsTable {
     max-width: 390px;
@@ -351,6 +336,89 @@
     white-space: nowrap;
 }
 
+.documentPage {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: 186mm;
+    height: 273mm;
+    min-height: 0;
+    margin: 0 auto 24px;
+    padding: 0;
+    background: #ffffff;
+    color: #17202b;
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.pageContent {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.pageFooter {
+    margin-top: auto;
+    flex: 0 0 auto;
+}
+
+@media print {
+    .documentPage {
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        width: 186mm;
+        height: 273mm;
+        min-height: 0;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+
+        break-inside: avoid;
+        page-break-inside: avoid;
+        break-after: page;
+        page-break-after: always;
+    }
+
+    .documentPage:last-child {
+        break-after: auto;
+        page-break-after: auto;
+    }
+}
+
+.measurementArea {
+    position: absolute;
+    top: 0;
+    left: -10000px;
+    width: 186mm;
+    padding: 0;
+    visibility: hidden;
+    pointer-events: none;
+    box-sizing: border-box;
+}
+
+.measurementArea .documentPage {
+    width: 186mm;
+    height: 273mm;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+}
+
+@media screen {
+    .documentPage {
+        width: 210mm;
+        padding: 12mm;
+    }
+
+    .measurementArea .documentPage {
+        width: 186mm;
+        padding: 0;
+    }
+}
+
 @media print {
 
     :global(html:has([data-a4-print])),
@@ -364,6 +432,10 @@
         background: white !important;
     }
 
+    .measurementArea {
+        display: none !important;
+    }
+
     .page {
         min-height: 0;
         margin: 0;
@@ -375,48 +447,23 @@
         display: none !important;
     }
 
-    .document {
-        width: 100%;
-        max-width: none;
-        min-height: 0;
-        margin: 0;
-        padding: 0;
-        box-shadow: none;
-        font-size: 11px;
-        print-color-adjust: exact;
-        -webkit-print-color-adjust: exact;
-    }
-
     .documentHeader {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 76px;
-        padding-bottom: 0;
+        position: static;
+        height: auto;
+        padding-bottom: 12px;
         background: #fff;
-        z-index: 10;
     }
 
     .documentFooter {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 38px;
+        position: static;
+        height: auto;
         padding-top: 6px;
         background: #fff;
-        z-index: 10;
     }
 
     .customerSection {
-        margin-top: 0;
-        padding-top: 130px;
-    }
-
-    .itemsTable th,
-    .itemsTable td {
-        padding: 6px 7px;
+        margin-top: 12px;
+        padding-top: 0;
     }
 
     .documentHeader,
